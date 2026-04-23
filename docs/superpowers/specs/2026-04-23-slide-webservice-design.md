@@ -39,21 +39,22 @@ This spec describes a web-based replacement: a browser editor with live preview 
 │  • Agent chat           │
 └────────────┬────────────┘
              │ HTTPS
-┌────────────▼────────────┐
-│ SvelteKit app (Node)    │
-│  • API + auth           │
-│  • TS renderer (PDF)    │
-│  • Playwright           │
+┌────────────▼─────────────┐
+│ SvelteKit app (Node)     │
+│  • API + auth            │
+│  • TS renderer (PDF)     │
+│  • Playwright            │
 │  • Claude API (streaming)│
-└─────┬───────────────┬───┘
-      │               │
-┌─────▼─────┐    ┌────▼───┐
-│ Postgres  │    │ MinIO  │
-│ (Drizzle) │    │ (S3)   │
-└───────────┘    └────────┘
+│  • Assets on local disk  │
+└────────────┬─────────────┘
+             │
+       ┌─────▼─────┐
+       │ Postgres  │
+       │ (Drizzle) │
+       └───────────┘
 ```
 
-Single `docker-compose.yml` with `app`, `postgres`, `minio`, and `caddy` (TLS reverse proxy). All five services run on one VPS.
+Single `docker-compose.yml` with `app`, `postgres`, and `caddy` (TLS reverse proxy). Three services on one VPS. Assets live on a mounted data volume alongside the app — no object storage in v1 (see Deferred).
 
 The renderer is a **pure TypeScript function** `render(deck, theme, templates) → HTML`. The exact same function runs in the browser (instant preview) and in the Node server inside Playwright (PDF export). No code duplication — one source of truth.
 
@@ -65,7 +66,7 @@ Deck          id, title, lang, ownerId, themeId, updatedAt, slideOrder: uuid[]
 Slide         id, deckId, typeId, data: jsonb, orderIndex
 SlideType     id, name, label, fields: jsonb, htmlTemplate, css, scope, deckId?
 Theme         id, name, tokens: jsonb, scope, deckId?, isPreset
-Asset         id, deckId, kind, s3Key, filename, uploadedById
+Asset         id, deckId, kind, storagePath, filename, uploadedById
 AgentMessage  id, deckId, role, content, toolCalls: jsonb, createdAt
 ShareLink     id, deckId, token, createdAt, expiresAt?
 Session       id, userId, expiresAt (for cookie-based auth)
@@ -166,7 +167,7 @@ function render(deck, theme, templates): string {
 
 **Undo:** every tool call logged in `AgentMessage.toolCalls`. Editor shows "Agent did X" entries with a `revert` button that applies the inverse patch. V1: undo last N. Full history browsing deferred.
 
-**Rate limiting:** per-user token/cost budget (e.g. $5/day default), configurable per user. Overages show a banner asking admin for a raise.
+**No rate limiting in v1.** Seven trusted users; token/cost is logged per message so spend stays visible, but no hard budget. Revisit if usage gets surprising.
 
 ## Editor UX detail
 
@@ -203,7 +204,7 @@ function render(deck, theme, templates): string {
 One-time CLI: `pnpm run import-deck path/to/slides/`
 
 1. Reads `slides.json`, maps each slide 1:1 to the new model.
-2. Uploads assets (SVGs, fonts, appendix PDFs) to MinIO.
+2. Copies assets (SVGs, fonts, appendix PDFs) into the app's data volume and creates `Asset` rows.
 3. Extracts `:root` custom properties from `styles.css` → creates an "ANTAL-Theta default" `Theme`.
 4. Mechanically ports the 13 `tmpl_*` Python functions to seeded `SlideType` rows (Handlebars template + scoped CSS).
 5. Renders a PDF and diffs it visually against the current `ANTAL-Theta-slides.pdf`. Any drift is fixed in the seed data, not the renderer.
@@ -241,23 +242,26 @@ The existing `build.sh` pipeline keeps working during and after migration — it
 
 ## Deployment + observability
 
-- `docker-compose.yml`: `app`, `postgres`, `minio`, `caddy` (TLS via Let's Encrypt).
-- Env: `ANTHROPIC_API_KEY`, `POSTGRES_URL`, `S3_ENDPOINT`/`KEY`/`SECRET`, `APP_URL`, `SESSION_SECRET`.
+- `docker-compose.yml`: `app`, `postgres`, `caddy` (TLS via Let's Encrypt).
+- Mounted volumes: `./data/pg` for Postgres, `./data/assets` for uploaded assets.
+- Env: `ANTHROPIC_API_KEY`, `POSTGRES_URL`, `ASSETS_DIR`, `APP_URL`, `SESSION_SECRET`.
 - Migrations via `drizzle-kit`.
 - Structured JSON logs (Pino).
-- Per-agent-message token + cost logging so spend is visible per user and per deck.
+- Per-agent-message token + cost logging so spend is visible per user and per deck (no hard budget — see Agent design).
 - `/healthz` endpoint for uptime monitoring.
 - PDF rendering inline in the request for v1. If queue pressure emerges, swap in a BullMQ worker in a sidecar container — no API change needed.
+- Backups: a `data/` tarball covers both Postgres dumps and assets. Scripted nightly; ship to offsite storage the team already uses (OneDrive is fine for v1).
 
 ## Known unknowns (to resolve during implementation)
 
 - Exact Handlebars helper implementations for `fmt` — the Python regex is specific enough that it needs a careful TS port (unit tests against corpus of existing slides will pin it).
 - Playwright font loading on Alpine Linux may be fussy — Debian base image as fallback if needed.
-- MinIO signed-URL TTL vs. long PDF renders: signed URLs may expire mid-render on slow deploys. Mitigation: fetch assets to tmp before invoking Playwright, or use path-style addressing inside the container network.
 - Handlebars AST parsing for guardrails: pick a library that exposes AST (`handlebars` npm package does; verify the exact API).
+- Asset access inside Playwright: Playwright must load images via `file://` paths (or a localhost HTTP fetch on the app port). Pick whichever is simpler once the renderer is concrete.
 
 ## Deferred to v2+
 
+- **Object storage (S3-compatible / MinIO).** Revisit if asset volume grows past what a single VPS disk wants to hold, or if multi-instance deploy becomes needed.
 - Google Workspace SSO as an auth option alongside email/password.
 - Version history + diff view.
 - PPTX export (python-pptx or similar).

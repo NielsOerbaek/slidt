@@ -1,0 +1,22 @@
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: slidt
+      POSTGRES_USER: slidt
+      POSTGRES_PASSWORD: slidt
+    ports:
+      - '5432:5432'
+    volumes:
+      - ./data/pg:/var/lib/postgresql/data
+
+  postgres-test:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: slidt_test
+      POSTGRES_USER: slidt
+      POSTGRES_PASSWORD: slidt
+    ports:
+      - '5433:5432'
+    volumes:
+      - ./data/pg-test:/var/lib/postgresql/data

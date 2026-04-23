@@ -736,7 +736,7 @@ Co-authored-by: Ralphify <noreply@ralphify.co>"
 - Create: `scripts/backup.sh`
 - Modify: `README.md`
 
-- [ ] **Step 1: Write the backup script**
+- [x] **Step 1: Write the backup script**
 
 `scripts/backup.sh`:
 ```bash
@@ -791,17 +791,17 @@ ls -1t "${BACKUP_DIR}"/*.tar.gz 2>/dev/null | tail -n +8 | xargs -r rm --
 echo "[$(date -u +%FT%TZ)] Backup complete: ${ARCHIVE}"
 ```
 
-- [ ] **Step 2: Make the backup script executable**
+- [x] **Step 2: Make the backup script executable**
 
 Run: `chmod +x scripts/backup.sh`
 Expected: exit code 0 (no output)
 
-- [ ] **Step 3: Validate the backup script syntax**
+- [x] **Step 3: Validate the backup script syntax**
 
 Run: `bash -n scripts/backup.sh`
 Expected: no output, exit code 0
 
-- [ ] **Step 4: Update README.md**
+- [x] **Step 4: Update README.md**
 
 Replace the existing README with the full updated version:
 
@@ -973,12 +973,12 @@ The `postgres-test` service runs on port 5433. Set `DATABASE_URL=postgresql://sl
 "slidt" is Danish for *worn out*. It's also a slide tool. Make of that what you will.
 ```
 
-- [ ] **Step 5: Run full test suite one final time**
+- [x] **Step 5: Run full test suite one final time**
 
 Run: `pnpm test`
 Expected: PASS — all tests passed
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```
 git add scripts/backup.sh README.md

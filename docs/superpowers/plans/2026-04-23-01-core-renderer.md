@@ -382,7 +382,7 @@ This ports the Python `fmt` function from `generate.py`. It HTML-escapes text, t
 - Create: `src/renderer/fmt.ts`
 - Create: `tests/fmt.test.ts`
 
-- [ ] **Step 1: Write failing tests**
+- [x] **Step 1: Write failing tests**
 
 Create `tests/fmt.test.ts`:
 
@@ -442,12 +442,12 @@ describe('fmt', () => {
 });
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `pnpm test tests/fmt.test.ts`
 Expected: FAIL with "Cannot find module '../src/renderer/fmt.ts'".
 
-- [ ] **Step 3: Implement `fmt`**
+- [x] **Step 3: Implement `fmt`**
 
 Create `src/renderer/fmt.ts`:
 
@@ -479,12 +479,12 @@ export function fmt(text: string | null | undefined): string {
 }
 ```
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `pnpm test tests/fmt.test.ts`
 Expected: 11 tests pass.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```sh
 git add src/renderer/fmt.ts tests/fmt.test.ts

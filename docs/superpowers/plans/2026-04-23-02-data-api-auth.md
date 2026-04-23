@@ -1391,7 +1391,7 @@ Co-authored-by: Ralphify <noreply@ralphify.co>"
 - Create: `src/routes/api/decks/[id]/slides/[slideId]/+server.ts`
 - Test: `tests/api/slides.test.ts`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `tests/api/slides.test.ts`:
 
@@ -1483,14 +1483,14 @@ describe('Slide CRUD', () => {
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 ```
 DATABASE_URL=postgres://slidt:slidt@localhost:5433/slidt_test pnpm test:integration tests/api/slides.test.ts
 ```
 Expected: FAIL — `Cannot find module '../../src/routes/api/decks/[id]/slides/+server.ts'`
 
-- [ ] **Step 3: Write the slide route handlers**
+- [x] **Step 3: Write the slide route handlers**
 
 Create `src/routes/api/decks/[id]/slides/+server.ts`:
 
@@ -1603,14 +1603,14 @@ export async function DELETE(event: RequestEvent) {
 }
 ```
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 ```
 DATABASE_URL=postgres://slidt:slidt@localhost:5433/slidt_test pnpm test:integration tests/api/slides.test.ts
 ```
 Expected: PASS — 4 tests passed
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```
 git add src/routes/api/decks/[id]/slides/ tests/api/slides.test.ts

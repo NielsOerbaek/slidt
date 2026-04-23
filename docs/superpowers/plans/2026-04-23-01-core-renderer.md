@@ -217,7 +217,7 @@ git commit -m "Scaffold slidt project with TS, Vitest, and deps"
 - Create: `src/renderer/types.ts`
 - Create: `tests/types.test.ts`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `tests/types.test.ts`:
 
@@ -277,12 +277,12 @@ describe('types', () => {
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `pnpm test tests/types.test.ts`
 Expected: FAIL with "Cannot find module '../src/renderer/types.ts'".
 
-- [ ] **Step 3: Write `src/renderer/types.ts`**
+- [x] **Step 3: Write `src/renderer/types.ts`**
 
 Create `src/renderer/types.ts`:
 
@@ -360,12 +360,12 @@ export interface RenderOptions {
 }
 ```
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `pnpm test tests/types.test.ts && pnpm typecheck`
 Expected: 5 tests pass; typecheck exits 0.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```sh
 git add src/renderer/types.ts tests/types.test.ts

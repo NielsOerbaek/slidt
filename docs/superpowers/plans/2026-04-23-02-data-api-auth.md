@@ -551,7 +551,7 @@ Co-authored-by: Ralphify <noreply@ralphify.co>"
 - Create: `src/lib/server/auth.ts` (hash + verify only)
 - Test: `tests/api/auth-hash.test.ts`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `tests/api/auth-hash.test.ts`:
 
@@ -585,12 +585,12 @@ describe('hashPassword / verifyPassword', () => {
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `pnpm vitest run tests/api/auth-hash.test.ts`
 Expected: FAIL — `Cannot find module '../../src/lib/server/auth.ts'`
 
-- [ ] **Step 3: Install argon2 and write auth.ts**
+- [x] **Step 3: Install argon2 and write auth.ts**
 
 Run: `pnpm add @node-rs/argon2`
 
@@ -660,12 +660,12 @@ export async function deleteSession(token: string): Promise<void> {
 }
 ```
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `pnpm vitest run tests/api/auth-hash.test.ts`
 Expected: PASS — 4 tests passed
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```
 git add src/lib/server/auth.ts tests/api/auth-hash.test.ts pnpm-lock.yaml

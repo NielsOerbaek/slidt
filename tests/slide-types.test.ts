@@ -143,3 +143,81 @@ describe('values slide type', () => {
     expect(html).toContain('Ikke være');
   });
 });
+import { reserve } from '../src/slide-types/reserve.ts';
+import { purposes } from '../src/slide-types/purposes.ts';
+import { ownership } from '../src/slide-types/ownership.ts';
+import { friction } from '../src/slide-types/friction.ts';
+
+describe('reserve slide type', () => {
+  it('renders title, paragraphs, and callout', async () => {
+    const html = await renderOne(reserve, {
+      eyebrow: 'Princip 6',
+      title: 'Udelelig reserve',
+      paragraphs: ['Bygger på fællesøkonomi.', 'Må ikke udbetales.'],
+      callout: 'Aldrig som udbytte.',
+    });
+    expect(html).toContain('Udelelig reserve');
+    expect(html).toContain('Bygger på fællesøkonomi');
+    expect(html).toContain('Aldrig som udbytte');
+  });
+});
+
+describe('purposes slide type', () => {
+  it('renders a grid of numbered cards', async () => {
+    const html = await renderOne(purposes, {
+      eyebrow: 'Helikopter',
+      title: 'Fire formål',
+      cards: [
+        { num: '01', title: 'Stordrift', body: 'Delt IT' },
+        { num: '02', title: 'Fællesskab', body: 'Metoder' },
+      ],
+    });
+    expect(html).toContain('01');
+    expect(html).toContain('Stordrift');
+    expect(html).toContain('Delt IT');
+  });
+});
+
+describe('ownership slide type', () => {
+  it('renders a source line and three cards', async () => {
+    const html = await renderOne(ownership, {
+      eyebrow: 'Theta',
+      title: 'Demokratisk organisering',
+      source: 'F.M.B.A.-struktur.',
+      cards: [
+        { title: 'Foreningen', sub: 'medlemmer', body: 'Alle medlemmer.' },
+        { title: 'Repræsentantskab', sub: '99 personer', body: 'Legitimitet.' },
+        { title: 'Bestyrelse', sub: '8–12', body: 'Valgte.' },
+      ],
+    });
+    expect(html).toContain('F.M.B.A.-struktur');
+    expect(html).toContain('Foreningen');
+    expect(html).toContain('99 personer');
+  });
+});
+
+describe('friction slide type', () => {
+  it('renders two sides and a question', async () => {
+    const html = await renderOne(friction, {
+      eyebrow: 'Friktion 1',
+      title: 'Medarbejdereje?',
+      sideA: {
+        label: 'ANTAL',
+        head: 'Medlemsvirksomheder er medarbejderejede.',
+        body: ['Fundament.'],
+      },
+      sideB: {
+        label: 'Theta',
+        head: 'Forbrugereje.',
+        body: ['Ejes af brugerne.'],
+      },
+      question: 'Hvad er forholdet?',
+    });
+    expect(html).toContain('Medarbejdereje');
+    expect(html).toContain('ANTAL');
+    expect(html).toContain('Fundament');
+    expect(html).toContain('Theta');
+    expect(html).toContain('Ejes af brugerne');
+    expect(html).toContain('Hvad er forholdet');
+  });
+});

@@ -227,7 +227,7 @@ Co-authored-by: Ralphify <noreply@ralphify.co>"
 - Create: `Caddyfile`
 - Create: `.env.example`
 
-- [ ] **Step 1: Update docker-compose.yml**
+- [x] **Step 1: Update docker-compose.yml**
 
 Replace the entire file:
 
@@ -298,7 +298,7 @@ volumes:
   caddy_config:
 ```
 
-- [ ] **Step 2: Write the Caddyfile**
+- [x] **Step 2: Write the Caddyfile**
 
 `Caddyfile`:
 ```caddyfile
@@ -309,7 +309,7 @@ volumes:
 
 Caddy uses `APP_HOST` from the container environment. For local dev `APP_HOST=localhost` serves over plain HTTP (Caddy detects no FQDN). For production set `APP_HOST=slidt.example.com` and Caddy auto-provisions a Let's Encrypt cert.
 
-- [ ] **Step 3: Write .env.example**
+- [x] **Step 3: Write .env.example**
 
 `.env.example`:
 ```dotenv
@@ -327,14 +327,14 @@ ASSETS_DIR=./data/assets
 ANTHROPIC_API_KEY=sk-ant-...
 ```
 
-- [ ] **Step 4: Validate the compose file**
+- [x] **Step 4: Validate the compose file**
 
 Run: `docker compose config --quiet`
 Expected: no output, exit code 0
 
 (If Docker Compose is not available: `python3 -c "import sys; import re; t=open('docker-compose.yml').read(); assert 'caddy' in t and 'app' in t; print('ok')"` — should print `ok`.)
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```
 git add docker-compose.yml Caddyfile .env.example

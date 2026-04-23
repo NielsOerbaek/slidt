@@ -5,6 +5,8 @@ import { closing } from '../src/slide-types/closing.ts';
 import { section } from '../src/slide-types/section.ts';
 import { agenda } from '../src/slide-types/agenda.ts';
 import type { Deck, Theme, SlideType } from '../src/renderer/types.ts';
+import { appendixList } from '../src/slide-types/appendix-list.ts';
+import { BUILT_IN_SLIDE_TYPES } from '../src/slide-types/index.ts';
 
 const emptyTheme: Theme = { name: 'empty', tokens: {} };
 
@@ -219,5 +221,42 @@ describe('friction slide type', () => {
     expect(html).toContain('Theta');
     expect(html).toContain('Ejes af brugerne');
     expect(html).toContain('Hvad er forholdet');
+  });
+});
+
+describe('appendix-list slide type', () => {
+  it('renders a list of appendix items with marks', async () => {
+    const html = await renderOne(appendixList, {
+      eyebrow: 'Bilag',
+      title: 'Tilhørende materiale',
+      items: [
+        { mark: 'A', title: 'Bilag A', subtitle: 'Vedtægter' },
+        { mark: 'B', title: 'Bilag B', subtitle: 'Principgrundlag' },
+      ],
+    });
+    expect(html).toContain('Tilhørende materiale');
+    expect(html).toContain('>A<');
+    expect(html).toContain('Bilag A');
+    expect(html).toContain('Vedtægter');
+  });
+});
+
+describe('BUILT_IN_SLIDE_TYPES', () => {
+  it('exports exactly 13 types', () => {
+    expect(BUILT_IN_SLIDE_TYPES).toHaveLength(13);
+  });
+
+  it('includes the expected names', () => {
+    const names = BUILT_IN_SLIDE_TYPES.map((t) => t.name).sort();
+    expect(names).toEqual([
+      'agenda', 'appendix-list', 'closing', 'content', 'discussion',
+      'friction', 'ownership', 'principles', 'purposes', 'reserve',
+      'section', 'title', 'values',
+    ]);
+  });
+
+  it('has unique names', () => {
+    const names = BUILT_IN_SLIDE_TYPES.map((t) => t.name);
+    expect(new Set(names).size).toBe(names.length);
   });
 });

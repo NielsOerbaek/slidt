@@ -198,7 +198,7 @@
           <span>Agent</span>
           <button onclick={() => showAgent = false}>×</button>
         </div>
-        <AgentPanel deckId={data.deck.id} onclose={() => showAgent = false} />
+        <AgentPanel deckId={data.deck.id} themeId={data.deck.themeId} onclose={() => showAgent = false} />
       </aside>
     {/if}
   </div>

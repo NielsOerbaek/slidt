@@ -1041,7 +1041,7 @@ git commit -m "Add PostCSS-based CSS scoping for slide types"
 - Create: `src/renderer/slide-wrap.ts`
 - Create: `tests/slide-wrap.test.ts`
 
-- [ ] **Step 1: Write failing tests**
+- [x] **Step 1: Write failing tests**
 
 Create `tests/slide-wrap.test.ts`:
 
@@ -1079,12 +1079,12 @@ describe('wrapSlide', () => {
 });
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `pnpm test tests/slide-wrap.test.ts`
 Expected: FAIL with "Cannot find module '../src/renderer/slide-wrap.ts'".
 
-- [ ] **Step 3: Implement `wrapSlide`**
+- [x] **Step 3: Implement `wrapSlide`**
 
 Create `src/renderer/slide-wrap.ts`:
 
@@ -1111,12 +1111,12 @@ export function wrapSlide(content: string, opts: WrapOptions): string {
 }
 ```
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `pnpm test tests/slide-wrap.test.ts`
 Expected: 5 tests pass.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```sh
 git add src/renderer/slide-wrap.ts tests/slide-wrap.test.ts

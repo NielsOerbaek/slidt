@@ -682,7 +682,7 @@ Co-authored-by: Ralphify <noreply@ralphify.co>"
 - Create: `src/hooks.server.ts`
 - Create: `tests/api/helpers.ts`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `tests/api/hooks.test.ts`:
 
@@ -753,14 +753,14 @@ function makeMockEvent(opts: { sessionCookie?: string }) {
 }
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 ```
 DATABASE_URL=postgres://slidt:slidt@localhost:5433/slidt_test pnpm test:integration tests/api/hooks.test.ts
 ```
 Expected: FAIL — `Cannot find module '../../src/hooks.server.ts'` or `Cannot find './helpers.ts'`
 
-- [ ] **Step 3: Create hooks.server.ts and test helpers**
+- [x] **Step 3: Create hooks.server.ts and test helpers**
 
 Create `src/hooks.server.ts`:
 
@@ -840,14 +840,14 @@ export function makeEvent(opts: {
 }
 ```
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 ```
 DATABASE_URL=postgres://slidt:slidt@localhost:5433/slidt_test pnpm test:integration tests/api/hooks.test.ts
 ```
 Expected: PASS — 2 tests passed
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```
 git add src/hooks.server.ts tests/api/helpers.ts tests/api/hooks.test.ts

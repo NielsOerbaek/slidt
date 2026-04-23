@@ -351,7 +351,7 @@ Co-authored-by: Ralphify <noreply@ralphify.co>"
 - Create: `scripts/import-deck-parse.ts`
 - Test: `tests/import-deck-parse.test.ts`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 `tests/import-deck-parse.test.ts`:
 ```ts
@@ -425,12 +425,12 @@ describe('parseImportInput', () => {
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `pnpm test tests/import-deck-parse.test.ts`
 Expected: FAIL — `Cannot find module '../scripts/import-deck-parse.ts'`
 
-- [ ] **Step 3: Write the parse module**
+- [x] **Step 3: Write the parse module**
 
 `scripts/import-deck-parse.ts`:
 ```ts
@@ -499,12 +499,12 @@ export function parseImportInput(raw: unknown): ImportInput {
 }
 ```
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `pnpm test tests/import-deck-parse.test.ts`
 Expected: PASS — 10 tests passed
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```
 git add scripts/import-deck-parse.ts tests/import-deck-parse.test.ts

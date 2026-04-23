@@ -1630,7 +1630,7 @@ Co-authored-by: Ralphify <noreply@ralphify.co>"
 - Create: `src/routes/api/templates/[id]/+server.ts`
 - Test: `tests/api/themes.test.ts`, `tests/api/templates.test.ts`
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Create `tests/api/themes.test.ts`:
 
@@ -1739,14 +1739,14 @@ describe('Template (SlideType) CRUD', () => {
 });
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 ```
 DATABASE_URL=postgres://slidt:slidt@localhost:5433/slidt_test pnpm test:integration tests/api/themes.test.ts tests/api/templates.test.ts
 ```
 Expected: FAIL — module not found errors
 
-- [ ] **Step 3: Write the theme and template route handlers**
+- [x] **Step 3: Write the theme and template route handlers**
 
 Create `src/routes/api/themes/+server.ts`:
 
@@ -1892,14 +1892,14 @@ export async function DELETE(event: RequestEvent) {
 }
 ```
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 ```
 DATABASE_URL=postgres://slidt:slidt@localhost:5433/slidt_test pnpm test:integration tests/api/themes.test.ts tests/api/templates.test.ts
 ```
 Expected: PASS — 7 tests passed (4 theme + 3 template)
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```
 git add src/routes/api/themes/ src/routes/api/templates/ tests/api/themes.test.ts tests/api/templates.test.ts

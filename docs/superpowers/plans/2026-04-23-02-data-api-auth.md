@@ -1057,7 +1057,7 @@ Co-authored-by: Ralphify <noreply@ralphify.co>"
 - Create: `scripts/reset-password.ts`
 - Test: `tests/api/cli.test.ts`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `tests/api/cli.test.ts`:
 
@@ -1105,14 +1105,14 @@ describe('resetPassword', () => {
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 ```
 DATABASE_URL=postgres://slidt:slidt@localhost:5433/slidt_test pnpm test:integration tests/api/cli.test.ts
 ```
 Expected: FAIL — `Cannot find module '../../scripts/cli-lib.ts'`
 
-- [ ] **Step 3: Write the CLI library and scripts**
+- [x] **Step 3: Write the CLI library and scripts**
 
 Create `scripts/cli-lib.ts`:
 
@@ -1184,14 +1184,14 @@ rl.question('New password: ', async (password) => {
 });
 ```
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 ```
 DATABASE_URL=postgres://slidt:slidt@localhost:5433/slidt_test pnpm test:integration tests/api/cli.test.ts
 ```
 Expected: PASS — 4 tests passed
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```
 git add scripts/ tests/api/cli.test.ts

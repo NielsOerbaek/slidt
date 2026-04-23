@@ -499,7 +499,7 @@ git commit -m "Port fmt helper (bold, em, linebreak inline markup)"
 - Create: `src/renderer/handlebars.ts`
 - Create: `tests/handlebars.test.ts`
 
-- [ ] **Step 1: Write failing tests**
+- [x] **Step 1: Write failing tests**
 
 Create `tests/handlebars.test.ts`:
 
@@ -551,12 +551,12 @@ describe('handlebars helpers', () => {
 });
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `pnpm test tests/handlebars.test.ts`
 Expected: FAIL with "Cannot find module '../src/renderer/handlebars.ts'".
 
-- [ ] **Step 3: Implement handlebars setup**
+- [x] **Step 3: Implement handlebars setup**
 
 Create `src/renderer/handlebars.ts`:
 
@@ -595,12 +595,12 @@ export function compile(source: string): CompiledTemplate {
 export { env as handlebars };
 ```
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `pnpm test tests/handlebars.test.ts`
 Expected: 7 tests pass.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```sh
 git add src/renderer/handlebars.ts tests/handlebars.test.ts

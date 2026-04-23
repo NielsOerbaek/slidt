@@ -4,11 +4,16 @@ services:
     environment:
       POSTGRES_DB: slidt
       POSTGRES_USER: slidt
-      POSTGRES_PASSWORD: slidt
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-slidt}
     ports:
       - '5432:5432'
     volumes:
       - ./data/pg:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U slidt']
+      interval: 5s
+      timeout: 5s
+      retries: 10
 
   postgres-test:
     image: postgres:16
@@ -20,3 +25,39 @@ services:
       - '5433:5432'
     volumes:
       - ./data/pg-test:/var/lib/postgresql/data
+    profiles: ['test']
+
+  app:
+    build: .
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://slidt:${POSTGRES_PASSWORD:-slidt}@postgres:5432/slidt
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      ASSETS_DIR: /data/assets
+      APP_URL: ${APP_URL:-http://localhost:3000}
+      SESSION_SECRET: ${SESSION_SECRET:-dev-secret-change-in-production}
+    volumes:
+      - ./data/assets:/data/assets
+    expose:
+      - '3000'
+
+  caddy:
+    image: caddy:2-alpine
+    depends_on:
+      - app
+    ports:
+      - '80:80'
+      - '443:443'
+      - '443:443/udp'
+    environment:
+      APP_HOST: ${APP_HOST:-localhost}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - caddy_data:/data
+      - caddy_config:/config
+
+volumes:
+  caddy_data:
+  caddy_config:

@@ -1209,7 +1209,7 @@ Co-authored-by: Ralphify <noreply@ralphify.co>"
 - Create: `src/routes/api/decks/[id]/+server.ts`
 - Test: `tests/api/decks.test.ts`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `tests/api/decks.test.ts`:
 
@@ -1282,14 +1282,14 @@ describe('Deck CRUD', () => {
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 ```
 DATABASE_URL=postgres://slidt:slidt@localhost:5433/slidt_test pnpm test:integration tests/api/decks.test.ts
 ```
 Expected: FAIL — `Cannot find module '../../src/routes/api/decks/+server.ts'`
 
-- [ ] **Step 3: Write the deck route handlers**
+- [x] **Step 3: Write the deck route handlers**
 
 Create `src/routes/api/decks/+server.ts`:
 
@@ -1366,14 +1366,14 @@ export async function DELETE(event: RequestEvent) {
 }
 ```
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 ```
 DATABASE_URL=postgres://slidt:slidt@localhost:5433/slidt_test pnpm test:integration tests/api/decks.test.ts
 ```
 Expected: PASS — 6 tests passed
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```
 git add src/routes/api/decks/ tests/api/decks.test.ts

@@ -1,5 +1,5 @@
 ---
-agent: claude -p --dangerously-skip-permissions
+agent: happy -p --yolo
 commands:
   - name: plan-status
     run: "grep -c '^- \\[ \\]' docs/superpowers/plans/2026-04-23-01-core-renderer.md || echo 0"

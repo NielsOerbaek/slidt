@@ -865,7 +865,7 @@ Co-authored-by: Ralphify <noreply@ralphify.co>"
 - Create: `src/routes/api/auth/logout/+server.ts`
 - Test: `tests/api/auth.test.ts`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `tests/api/auth.test.ts`:
 
@@ -965,14 +965,14 @@ function makeEventWithCookies(
 }
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 ```
 DATABASE_URL=postgres://slidt:slidt@localhost:5433/slidt_test pnpm test:integration tests/api/auth.test.ts
 ```
 Expected: FAIL — `Cannot find module '../../src/routes/api/auth/login/+server.ts'`
 
-- [ ] **Step 3: Write the login and logout route handlers**
+- [x] **Step 3: Write the login and logout route handlers**
 
 Create `src/routes/api/auth/login/+server.ts`:
 
@@ -1032,14 +1032,14 @@ export async function POST(event: RequestEvent) {
 }
 ```
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 ```
 DATABASE_URL=postgres://slidt:slidt@localhost:5433/slidt_test pnpm test:integration tests/api/auth.test.ts
 ```
 Expected: PASS — 4 tests passed
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```
 git add src/routes/api/auth/ tests/api/auth.test.ts

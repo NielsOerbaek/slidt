@@ -2437,7 +2437,7 @@ Port the 13th type (`appendix-list`) and create the `BUILT_IN_SLIDE_TYPES` expor
 - Create: `src/slide-types/index.ts`
 - Modify: `tests/slide-types.test.ts`
 
-- [ ] **Step 1: Write failing tests — append to `tests/slide-types.test.ts`**
+- [x] **Step 1: Write failing tests — append to `tests/slide-types.test.ts`**
 
 Append to `tests/slide-types.test.ts`:
 
@@ -2483,12 +2483,12 @@ describe('BUILT_IN_SLIDE_TYPES', () => {
 });
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `pnpm test tests/slide-types.test.ts`
 Expected: FAIL with "Cannot find module '../src/slide-types/appendix-list.ts'".
 
-- [ ] **Step 3: Implement `appendixList`**
+- [x] **Step 3: Implement `appendixList`**
 
 Create `src/slide-types/appendix-list.ts`:
 
@@ -2539,7 +2539,7 @@ h2 { font-family: 'Neureal', sans-serif; font-size: 72px; margin-bottom: 48px; }
 };
 ```
 
-- [ ] **Step 4: Create `src/slide-types/index.ts`**
+- [x] **Step 4: Create `src/slide-types/index.ts`**
 
 Create `src/slide-types/index.ts`:
 
@@ -2599,12 +2599,12 @@ export * from './renderer/index.ts';
 export * from './slide-types/index.ts';
 ```
 
-- [ ] **Step 5: Run tests to verify they pass**
+- [x] **Step 5: Run tests to verify they pass**
 
 Run: `pnpm test`
 Expected: all tests pass, including the 4 new appendix-list + registry tests.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```sh
 git add src/slide-types/appendix-list.ts src/slide-types/index.ts src/index.ts tests/slide-types.test.ts

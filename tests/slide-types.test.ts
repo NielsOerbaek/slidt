@@ -77,3 +77,69 @@ describe('agenda slide type', () => {
     expect(html).toContain('<li>Theta</li>');
   });
 });
+import { content } from '../src/slide-types/content.ts';
+import { principles } from '../src/slide-types/principles.ts';
+import { discussion } from '../src/slide-types/discussion.ts';
+import { values } from '../src/slide-types/values.ts';
+
+describe('content slide type', () => {
+  it('renders eyebrow, title, and bullets', async () => {
+    const html = await renderOne(content, {
+      eyebrow: 'Recap',
+      title: 'Hvad er ANTAL?',
+      bullets: ['**ANTAL** er en forening', 'F.M.B.A. stiftet i 2022'],
+    });
+    expect(html).toContain('Recap');
+    expect(html).toContain('Hvad er ANTAL?');
+    expect(html).toContain('<strong>ANTAL</strong>');
+    expect(html).toContain('F.M.B.A. stiftet i 2022');
+  });
+});
+
+describe('principles slide type', () => {
+  it('renders an ordered list of {title, body} items', async () => {
+    const html = await renderOne(principles, {
+      eyebrow: 'Værdi',
+      title: 'De syv principper',
+      items: [
+        { title: 'Demokratisk', body: 'Medlemmer skal være...' },
+        { title: 'Flad ledelse', body: 'Lige og direkte...' },
+      ],
+    });
+    expect(html).toContain('Demokratisk');
+    expect(html).toContain('Medlemmer skal være');
+    expect(html).toContain('Flad ledelse');
+  });
+});
+
+describe('discussion slide type', () => {
+  it('renders letter-marked items', async () => {
+    const html = await renderOne(discussion, {
+      eyebrow: 'Diskussion',
+      title: 'Fire spørgsmål',
+      items: [
+        { letter: 'A', text: 'Hvordan...?' },
+        { letter: 'B', text: 'Hvorfor...?' },
+      ],
+    });
+    expect(html).toContain('data-q="A"');
+    expect(html).toContain('Hvordan');
+    expect(html).toContain('data-q="B"');
+  });
+});
+
+describe('values slide type', () => {
+  it('renders two columns each with heading + items', async () => {
+    const html = await renderOne(values, {
+      eyebrow: 'Princip 5',
+      title: 'De fælles værdier',
+      columns: [
+        { heading: 'Skal leve op til:', items: ['Lige ret', 'Klima'] },
+        { heading: 'Ikke være:', items: ['Negative', 'Grønne'] },
+      ],
+    });
+    expect(html).toContain('Skal leve op til');
+    expect(html).toContain('Lige ret');
+    expect(html).toContain('Ikke være');
+  });
+});

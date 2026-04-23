@@ -44,7 +44,7 @@ slidt/
 - Modify: `src/routes/healthz/+server.ts`
 - Test: `tests/health.test.ts`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 `tests/health.test.ts`:
 ```ts
@@ -76,12 +76,12 @@ describe('getHealthStatus', () => {
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `pnpm test tests/health.test.ts`
 Expected: FAIL — `Cannot find module '../src/lib/server/health.ts'`
 
-- [ ] **Step 3: Write the health module**
+- [x] **Step 3: Write the health module**
 
 `src/lib/server/health.ts`:
 ```ts
@@ -111,7 +111,7 @@ export async function getHealthStatus(
 }
 ```
 
-- [ ] **Step 4: Update the healthz route**
+- [x] **Step 4: Update the healthz route**
 
 `src/routes/healthz/+server.ts`:
 ```ts
@@ -129,12 +129,12 @@ export async function GET() {
 }
 ```
 
-- [ ] **Step 5: Run test to verify it passes**
+- [x] **Step 5: Run test to verify it passes**
 
 Run: `pnpm test tests/health.test.ts`
 Expected: PASS — 3 tests passed
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```
 git add src/lib/server/health.ts src/routes/healthz/+server.ts tests/health.test.ts

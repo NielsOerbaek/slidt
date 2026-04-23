@@ -1136,7 +1136,7 @@ git commit -m "Wrap slide content with page chrome (corner logo + page counter)"
 - Create: `src/renderer/page-shell.ts`
 - Create: `tests/page-shell.test.ts`
 
-- [ ] **Step 1: Write failing tests**
+- [x] **Step 1: Write failing tests**
 
 Create `tests/page-shell.test.ts`:
 
@@ -1182,12 +1182,12 @@ describe('pageShell', () => {
 });
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `pnpm test tests/page-shell.test.ts`
 Expected: FAIL with "Cannot find module '../src/renderer/page-shell.ts'".
 
-- [ ] **Step 3: Write `src/renderer/base-styles.ts`**
+- [x] **Step 3: Write `src/renderer/base-styles.ts`**
 
 Create `src/renderer/base-styles.ts` (this is the global stylesheet — a port of the "base" half of the existing `styles.css`):
 
@@ -1267,7 +1267,7 @@ html, body {
 
 Note: this is a minimal port. When Task 15 runs the full golden test against the ANTAL deck, the engineer should copy additional shared rules from the original `styles.css` into `baseStyles` as needed — anything referenced by multiple slide types or by page chrome. The original file is at `/home/niec/ogtal.onedrive/osogdata/møde_bilag/antal-diskussion-april-2026/slides/styles.css`.
 
-- [ ] **Step 4: Write `src/renderer/page-shell.ts`**
+- [x] **Step 4: Write `src/renderer/page-shell.ts`**
 
 Create `src/renderer/page-shell.ts`:
 
@@ -1303,12 +1303,12 @@ ${opts.body}
 }
 ```
 
-- [ ] **Step 5: Run tests to verify they pass**
+- [x] **Step 5: Run tests to verify they pass**
 
 Run: `pnpm test tests/page-shell.test.ts`
 Expected: 3 tests pass.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```sh
 git add src/renderer/base-styles.ts src/renderer/page-shell.ts tests/page-shell.test.ts

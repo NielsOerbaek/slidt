@@ -917,7 +917,7 @@ Auto-prefix every selector in a SlideType's `css` block with `.st-<name> `. Hand
 - Create: `src/renderer/scope-css.ts`
 - Create: `tests/scope-css.test.ts`
 
-- [ ] **Step 1: Write failing tests**
+- [x] **Step 1: Write failing tests**
 
 Create `tests/scope-css.test.ts`:
 
@@ -966,12 +966,12 @@ describe('scopeCss', () => {
 });
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `pnpm test tests/scope-css.test.ts`
 Expected: FAIL with "Cannot find module '../src/renderer/scope-css.ts'".
 
-- [ ] **Step 3: Implement `scopeCss`**
+- [x] **Step 3: Implement `scopeCss`**
 
 Create `src/renderer/scope-css.ts`:
 
@@ -1019,12 +1019,12 @@ export async function scopeCss(css: string, scope: string): Promise<string> {
 }
 ```
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `pnpm test tests/scope-css.test.ts`
 Expected: 7 tests pass.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```sh
 git add src/renderer/scope-css.ts tests/scope-css.test.ts

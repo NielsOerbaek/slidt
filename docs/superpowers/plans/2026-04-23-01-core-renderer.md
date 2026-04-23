@@ -1535,7 +1535,7 @@ Port 4 slide types that have the simplest shape: `title`, `closing`, `section`, 
 - Create: `src/slide-types/agenda.ts`
 - Create: `tests/slide-types.test.ts`
 
-- [ ] **Step 1: Write failing parametrized tests**
+- [x] **Step 1: Write failing parametrized tests**
 
 Create `tests/slide-types.test.ts`:
 
@@ -1620,12 +1620,12 @@ describe('agenda slide type', () => {
 });
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `pnpm test tests/slide-types.test.ts`
 Expected: FAIL with "Cannot find module '../src/slide-types/title.ts'".
 
-- [ ] **Step 3: Implement `title`**
+- [x] **Step 3: Implement `title`**
 
 Asset URL selection inside Handlebars is awkward, so the pattern is: callers resolve `mark` to an absolute `markUrl` before handing the slide to `render()`. The `TITLE_MARKS` export gives them the lookup table. The template uses `{{default markUrl "..."}}` with the violet mark as fallback.
 
@@ -1690,7 +1690,7 @@ Also update the tests to pass `markUrl` through (the "renders eyebrow, title..."
 
 The "falls back" test is already correct as written above — when `markUrl` is absent, the template's `{{default}}` fallback produces `ood-mark-violet.svg`.
 
-- [ ] **Step 4: Implement `closing`**
+- [x] **Step 4: Implement `closing`**
 
 Create `src/slide-types/closing.ts`:
 
@@ -1747,7 +1747,7 @@ Add a test for `&` handling in `tests/scope-css.test.ts`:
   });
 ```
 
-- [ ] **Step 5: Implement `section`**
+- [x] **Step 5: Implement `section`**
 
 Create `src/slide-types/section.ts`:
 
@@ -1780,7 +1780,7 @@ h2 { font-size: 120px; line-height: 1; }
 };
 ```
 
-- [ ] **Step 6: Implement `agenda`**
+- [x] **Step 6: Implement `agenda`**
 
 Create `src/slide-types/agenda.ts`:
 
@@ -1812,12 +1812,12 @@ ol li::before { content: counter(item, decimal-leading-zero); position: absolute
 };
 ```
 
-- [ ] **Step 7: Run tests to verify they pass**
+- [x] **Step 7: Run tests to verify they pass**
 
 Run: `pnpm test`
 Expected: all previous tests still pass, and the 6 new slide-type tests (title×2, closing×1, section×1, agenda×1) plus the `&` scope-css test pass.
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```sh
 git add src/slide-types/title.ts src/slide-types/closing.ts src/slide-types/section.ts src/slide-types/agenda.ts src/renderer/scope-css.ts tests/slide-types.test.ts tests/scope-css.test.ts

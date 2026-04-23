@@ -227,7 +227,7 @@ Co-authored-by: Ralphify <noreply@ralphify.co>"
 - Create: `drizzle.config.ts`
 - Create: `docker-compose.yml`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `tests/api/schema.test.ts`:
 
@@ -263,12 +263,12 @@ describe('Drizzle schema', () => {
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `pnpm vitest run tests/api/schema.test.ts`
 Expected: FAIL — `Cannot find module '../../src/lib/server/db/schema.ts'`
 
-- [ ] **Step 3: Install Drizzle and write the schema**
+- [x] **Step 3: Install Drizzle and write the schema**
 
 Run:
 ```
@@ -411,12 +411,12 @@ export const sessions = pgTable('sessions', {
 });
 ```
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `pnpm vitest run tests/api/schema.test.ts`
 Expected: PASS — 3 tests passed
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```
 git add src/lib/server/db/schema.ts drizzle.config.ts docker-compose.yml tests/api/schema.test.ts pnpm-lock.yaml

@@ -435,7 +435,7 @@ Co-authored-by: Ralphify <noreply@ralphify.co>"
 - Create: `tests/api/setup.ts`
 - Run: `pnpm db:generate` and `pnpm db:migrate` (needs DB up)
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `tests/api/db.test.ts`:
 
@@ -452,7 +452,7 @@ describe('DB client', () => {
 });
 ```
 
-- [ ] **Step 2: Create the DB client and integration test infrastructure**
+- [x] **Step 2: Create the DB client and integration test infrastructure**
 
 Create `src/lib/server/db/index.ts`:
 
@@ -515,7 +515,7 @@ export default defineConfig({
 });
 ```
 
-- [ ] **Step 3: Start DB, generate migration, and apply it**
+- [x] **Step 3: Start DB, generate migration, and apply it**
 
 ```bash
 docker compose up -d postgres-test
@@ -526,7 +526,7 @@ DATABASE_URL=postgres://slidt:slidt@localhost:5433/slidt_test pnpm db:migrate
 
 Expected output from migrate: `[✓] migrations applied` (or similar Drizzle Kit success message)
 
-- [ ] **Step 4: Run integration test to verify it passes**
+- [x] **Step 4: Run integration test to verify it passes**
 
 ```
 DATABASE_URL=postgres://slidt:slidt@localhost:5433/slidt_test pnpm test:integration tests/api/db.test.ts
@@ -534,7 +534,7 @@ DATABASE_URL=postgres://slidt:slidt@localhost:5433/slidt_test pnpm test:integrat
 
 Expected: PASS — 1 test passed
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```
 git add src/lib/server/db/index.ts vitest.integration.config.ts tests/api/setup.ts tests/api/db.test.ts drizzle/

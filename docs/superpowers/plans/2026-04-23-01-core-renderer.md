@@ -2621,7 +2621,7 @@ Extract the `:root` tokens from the existing `styles.css` into a `Theme` object.
 - Create: `src/themes/antal-theta-default.ts`
 - Create: `tests/themes.test.ts`
 
-- [ ] **Step 1: Write failing test**
+- [x] **Step 1: Write failing test**
 
 Create `tests/themes.test.ts`:
 
@@ -2652,12 +2652,12 @@ describe('antalThetaDefault theme', () => {
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `pnpm test tests/themes.test.ts`
 Expected: FAIL with "Cannot find module '../src/themes/antal-theta-default.ts'".
 
-- [ ] **Step 3: Implement the theme**
+- [x] **Step 3: Implement the theme**
 
 Create `src/themes/antal-theta-default.ts` (values taken directly from the existing `styles.css` `:root` block):
 
@@ -2686,12 +2686,12 @@ export const antalThetaDefault: Theme = {
 };
 ```
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `pnpm test tests/themes.test.ts`
 Expected: 3 tests pass.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```sh
 git add src/themes/antal-theta-default.ts tests/themes.test.ts

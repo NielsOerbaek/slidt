@@ -33,6 +33,7 @@
     "@sveltejs/vite-plugin-svelte": "^7.0.0",
     "@types/node": "^20.11.0",
     "drizzle-kit": "^0.31.10",
+    "playwright": "^1.59.1",
     "tsx": "^4.7.0",
     "typescript": "^5.4.2",
     "vite": "^8.0.10",

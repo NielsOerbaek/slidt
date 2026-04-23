@@ -617,7 +617,7 @@ Validates a slide's `data` against the referenced `SlideType.fields`. This is th
 - Create: `src/renderer/validate.ts`
 - Create: `tests/validate.test.ts`
 
-- [ ] **Step 1: Write failing tests**
+- [x] **Step 1: Write failing tests**
 
 Create `tests/validate.test.ts`:
 
@@ -698,12 +698,12 @@ describe('validate', () => {
 });
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `pnpm test tests/validate.test.ts`
 Expected: FAIL with "Cannot find module '../src/renderer/validate.ts'".
 
-- [ ] **Step 3: Implement `validate`**
+- [x] **Step 3: Implement `validate`**
 
 Create `src/renderer/validate.ts`:
 
@@ -805,12 +805,12 @@ export function validate(data: unknown, fields: Field[]): void {
 }
 ```
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `pnpm test tests/validate.test.ts`
 Expected: 10 tests pass.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```sh
 git add src/renderer/validate.ts tests/validate.test.ts

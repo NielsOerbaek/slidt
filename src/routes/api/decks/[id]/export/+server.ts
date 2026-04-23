@@ -17,7 +17,7 @@ export async function GET(event: RequestEvent) {
 
   const pdf = await renderDeckToPdf(deckId);
 
-  return new Response(pdf, {
+  return new Response(new Uint8Array(pdf), {
     headers: {
       'Content-Type': 'application/pdf',
       'Content-Disposition': `attachment; filename="deck-${deckId}.pdf"`,

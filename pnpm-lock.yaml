@@ -39,6 +39,9 @@ importers:
         specifier: ^5.55.4
         version: 5.55.4
     devDependencies:
+      '@playwright/test':
+        specifier: ^1.59.1
+        version: 1.59.1
       '@sveltejs/vite-plugin-svelte':
         specifier: ^7.0.0
         version: 7.0.0(svelte@5.55.4)(vite@8.0.10(@types/node@20.19.39)(esbuild@0.27.7)(tsx@4.21.0))
@@ -799,6 +802,11 @@ packages:
 
   '@pdf-lib/upng@1.0.1':
     resolution: {integrity: sha512-dQK2FUMQtowVP00mtIksrlZhdFXQZPC+taih1q4CvPZ5vqdxR/LKBaFg0oAfzd1GlHZXXSPdQfzQnt+ViGvEIQ==}
+
+  '@playwright/test@1.59.1':
+    resolution: {integrity: sha512-PG6q63nQg5c9rIi4/Z5lR5IVF7yU5MqmKaPOe0HSc0O2cX1fPi96sUQu5j7eo4gKCkB2AnNGoWt7y4/Xx3Kcqg==}
+    engines: {node: '>=18'}
+    hasBin: true
 
   '@polka/url@1.0.0-next.29':
     resolution: {integrity: sha512-wwQAWhWSuHaag8c4q/KN/vCoeOJYshAIvMQwD4GpSb3OiZklFfvAgmj0VCBBImRpuF/aFgIRzllXlVX93Jevww==}
@@ -2319,6 +2327,10 @@ snapshots:
   '@pdf-lib/upng@1.0.1':
     dependencies:
       pako: 1.0.11
+
+  '@playwright/test@1.59.1':
+    dependencies:
+      playwright: 1.59.1
 
   '@polka/url@1.0.0-next.29': {}
 

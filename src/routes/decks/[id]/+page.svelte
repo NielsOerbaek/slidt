@@ -5,6 +5,7 @@
   import SlidePreview from '$lib/components/SlidePreview.svelte';
   import { debounce } from '$lib/utils/debounce.ts';
   import { buildDefaultData } from '$lib/utils/field-defaults.ts';
+  import AgentPanel from '$lib/components/AgentPanel.svelte';
 
   let { data }: { data: PageData } = $props();
 
@@ -197,7 +198,7 @@
           <span>Agent</span>
           <button onclick={() => showAgent = false}>×</button>
         </div>
-        <p class="agent-placeholder">Agent chat will be wired up in Plan 5.</p>
+        <AgentPanel deckId={data.deck.id} onclose={() => showAgent = false} />
       </aside>
     {/if}
   </div>

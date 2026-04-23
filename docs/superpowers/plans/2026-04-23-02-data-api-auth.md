@@ -1918,7 +1918,7 @@ Co-authored-by: Ralphify <noreply@ralphify.co>"
 - Create: `src/routes/api/assets/[id]/+server.ts`
 - Test: `tests/api/assets.test.ts`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `tests/api/assets.test.ts`:
 
@@ -1982,14 +1982,14 @@ describe('Asset upload + serve', () => {
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 ```
 DATABASE_URL=postgres://slidt:slidt@localhost:5433/slidt_test pnpm test:integration tests/api/assets.test.ts
 ```
 Expected: FAIL — `Cannot find module '../../src/routes/api/assets/+server.ts'`
 
-- [ ] **Step 3: Write the asset storage module and routes**
+- [x] **Step 3: Write the asset storage module and routes**
 
 Create `src/lib/server/assets.ts`:
 
@@ -2131,14 +2131,14 @@ export async function DELETE(event: RequestEvent) {
 }
 ```
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 ```
 DATABASE_URL=postgres://slidt:slidt@localhost:5433/slidt_test pnpm test:integration tests/api/assets.test.ts
 ```
 Expected: PASS — 2 tests passed
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```
 git add src/lib/server/assets.ts src/routes/api/assets/ tests/api/assets.test.ts

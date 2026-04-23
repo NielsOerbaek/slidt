@@ -1325,7 +1325,7 @@ Ties everything together: for each slide in the deck, looks up its SlideType, va
 - Create: `src/renderer/index.ts`
 - Create: `tests/render.test.ts`
 
-- [ ] **Step 1: Write failing tests (using a minimal made-up slide type, before the real ones are seeded)**
+- [x] **Step 1: Write failing tests (using a minimal made-up slide type, before the real ones are seeded)**
 
 Create `tests/render.test.ts`:
 
@@ -1415,12 +1415,12 @@ describe('render', () => {
 });
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `pnpm test tests/render.test.ts`
 Expected: FAIL with "Cannot find module '../src/renderer/index.ts'".
 
-- [ ] **Step 3: Implement `render`**
+- [x] **Step 3: Implement `render`**
 
 Create `src/renderer/index.ts`:
 
@@ -1508,12 +1508,12 @@ Also update the public API — overwrite `src/index.ts`:
 export * from './renderer/index.ts';
 ```
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `pnpm test tests/render.test.ts`
 Expected: 6 tests pass.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```sh
 git add src/renderer/index.ts src/index.ts tests/render.test.ts

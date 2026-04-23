@@ -827,7 +827,7 @@ Turns a `Theme.tokens` map into a `:root` block with CSS custom properties.
 - Create: `src/renderer/theme-css.ts`
 - Create: `tests/theme-css.test.ts`
 
-- [ ] **Step 1: Write failing tests**
+- [x] **Step 1: Write failing tests**
 
 Create `tests/theme-css.test.ts`:
 
@@ -867,12 +867,12 @@ describe('themeCss', () => {
 });
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `pnpm test tests/theme-css.test.ts`
 Expected: FAIL with "Cannot find module '../src/renderer/theme-css.ts'".
 
-- [ ] **Step 3: Implement `themeCss`**
+- [x] **Step 3: Implement `themeCss`**
 
 Create `src/renderer/theme-css.ts`:
 
@@ -895,12 +895,12 @@ export function themeCss(theme: Theme): string {
 }
 ```
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `pnpm test tests/theme-css.test.ts`
 Expected: 5 tests pass.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```sh
 git add src/renderer/theme-css.ts tests/theme-css.test.ts

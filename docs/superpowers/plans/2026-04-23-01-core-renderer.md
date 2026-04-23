@@ -1837,7 +1837,7 @@ Port `content`, `principles`, `discussion`, `values`. These have list and group 
 - Create: `src/slide-types/values.ts`
 - Modify: `tests/slide-types.test.ts` (add describes)
 
-- [ ] **Step 1: Write failing tests — append to `tests/slide-types.test.ts`**
+- [x] **Step 1: Write failing tests — append to `tests/slide-types.test.ts`**
 
 Append to `tests/slide-types.test.ts`:
 
@@ -1910,12 +1910,12 @@ describe('values slide type', () => {
 });
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `pnpm test tests/slide-types.test.ts`
 Expected: FAIL with "Cannot find module '../src/slide-types/content.ts'".
 
-- [ ] **Step 3: Implement `content`**
+- [x] **Step 3: Implement `content`**
 
 Create `src/slide-types/content.ts`:
 
@@ -1950,7 +1950,7 @@ ul li::marker { color: var(--ood-deep-violet); }`,
 };
 ```
 
-- [ ] **Step 4: Implement `principles`**
+- [x] **Step 4: Implement `principles`**
 
 Create `src/slide-types/principles.ts`:
 
@@ -1993,7 +1993,7 @@ h2 { font-family: 'Neureal', sans-serif; font-size: 72px; margin-bottom: 48px; }
 };
 ```
 
-- [ ] **Step 5: Implement `discussion`**
+- [x] **Step 5: Implement `discussion`**
 
 Create `src/slide-types/discussion.ts`:
 
@@ -2033,7 +2033,7 @@ h2 { font-family: 'Neureal', sans-serif; font-size: 80px; margin-bottom: 48px; }
 };
 ```
 
-- [ ] **Step 6: Implement `values`**
+- [x] **Step 6: Implement `values`**
 
 Create `src/slide-types/values.ts`:
 
@@ -2084,12 +2084,12 @@ h2 { font-family: 'Neureal', sans-serif; font-size: 64px; margin-bottom: 40px; }
 };
 ```
 
-- [ ] **Step 7: Run tests to verify they pass**
+- [x] **Step 7: Run tests to verify they pass**
 
 Run: `pnpm test`
 Expected: all tests from prior tasks still pass + 4 new slide-type tests pass.
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```sh
 git add src/slide-types/content.ts src/slide-types/principles.ts src/slide-types/discussion.ts src/slide-types/values.ts tests/slide-types.test.ts

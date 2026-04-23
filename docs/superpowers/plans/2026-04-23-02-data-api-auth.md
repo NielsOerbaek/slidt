@@ -79,7 +79,7 @@ slidt/
 - Modify: `package.json`
 - Create: `svelte.config.js`, `vite.config.ts`, `src/app.html`, `src/app.d.ts`, `src/routes/healthz/+server.ts`, `.env.example`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `tests/api/healthz.test.ts`:
 
@@ -97,12 +97,12 @@ describe('GET /healthz', () => {
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `pnpm vitest run tests/api/healthz.test.ts`
 Expected: FAIL — `Cannot find module '../../src/routes/healthz/+server.ts'`
 
-- [ ] **Step 3: Add SvelteKit dependencies**
+- [x] **Step 3: Add SvelteKit dependencies**
 
 Run:
 ```
@@ -200,7 +200,7 @@ SESSION_SECRET=change-me-in-production
 APP_URL=http://localhost:5173
 ```
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `pnpm vitest run tests/api/healthz.test.ts`
 Expected: PASS — 1 test passed
@@ -209,7 +209,7 @@ Also verify existing tests still pass:
 Run: `pnpm test`
 Expected: PASS — 85 tests passed (all existing)
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```
 git add package.json svelte.config.js vite.config.ts src/app.html src/app.d.ts src/routes/healthz/+server.ts .env.example tests/api/healthz.test.ts pnpm-lock.yaml

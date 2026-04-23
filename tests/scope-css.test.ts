@@ -39,4 +39,10 @@ describe('scopeCss', () => {
   it('throws on @import (security guard)', async () => {
     await expect(scopeCss("@import 'evil.css';", 'c')).rejects.toThrow(/@import/);
   });
+
+  it('treats "&" as the scope root', async () => {
+    const out = await scopeCss('& { flex-direction: column; }', 'closing');
+    expect(out).toContain('.st-closing {');
+    expect(out).not.toContain('.st-closing & {');
+  });
 });

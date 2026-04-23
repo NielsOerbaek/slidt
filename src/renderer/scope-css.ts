@@ -12,6 +12,14 @@ function scopePlugin(scope: string): Plugin {
           throw new Error('CSS @import is not allowed');
         }
       });
+      // Translate leading "& { ... }" (scope-root selector) into the bare
+      // prefix so the walker below doesn't prepend twice.
+      root.walkRules((rule) => {
+        rule.selectors = rule.selectors.map((s) =>
+          s.trim() === '&' ? '__SCOPE_ROOT__' : s,
+        );
+      });
+
       root.walkRules((rule) => {
         // Skip rules inside untouched at-rules.
         let parent = rule.parent;
@@ -26,6 +34,7 @@ function scopePlugin(scope: string): Plugin {
         rule.selectors = rule.selectors.map((sel) => {
           const s = sel.trim();
           if (s === ':root' || s === 'html' || s === 'body') return s;
+          if (s === '__SCOPE_ROOT__') return prefix;
           return `${prefix} ${s}`;
         });
       });

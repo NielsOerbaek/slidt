@@ -77,7 +77,7 @@ Rationale for this layout: each renderer concern (fmt, validate, scoping, wrappi
 - Create: `src/index.ts`
 - Create: `README.md`
 
-- [ ] **Step 1: Write `package.json`**
+- [x] **Step 1: Write `package.json`**
 
 Create `package.json`:
 
@@ -110,7 +110,7 @@ Create `package.json`:
 }
 ```
 
-- [ ] **Step 2: Write `tsconfig.json`**
+- [x] **Step 2: Write `tsconfig.json`**
 
 Create `tsconfig.json`:
 
@@ -137,7 +137,7 @@ Create `tsconfig.json`:
 }
 ```
 
-- [ ] **Step 3: Write `vitest.config.ts`**
+- [x] **Step 3: Write `vitest.config.ts`**
 
 Create `vitest.config.ts`:
 
@@ -152,7 +152,7 @@ export default defineConfig({
 });
 ```
 
-- [ ] **Step 4: Write `.gitignore`**
+- [x] **Step 4: Write `.gitignore`**
 
 Create `.gitignore`:
 
@@ -164,7 +164,7 @@ coverage/
 *.log
 ```
 
-- [ ] **Step 5: Write `src/index.ts` (empty public API for now)**
+- [x] **Step 5: Write `src/index.ts` (empty public API for now)**
 
 Create `src/index.ts`:
 
@@ -172,7 +172,7 @@ Create `src/index.ts`:
 export {};
 ```
 
-- [ ] **Step 6: Write a minimal `README.md`**
+- [x] **Step 6: Write a minimal `README.md`**
 
 Create `README.md`:
 
@@ -193,7 +193,7 @@ pnpm typecheck
 ```
 ```
 
-- [ ] **Step 7: Install deps and verify the toolchain works**
+- [x] **Step 7: Install deps and verify the toolchain works**
 
 Run: `cd ~/Documents/repos/slidt && pnpm install && pnpm typecheck`
 Expected: install succeeds and produces `pnpm-lock.yaml`; `tsc --noEmit` exits with code 0 and no output (nothing to type-check yet).
@@ -201,7 +201,7 @@ Expected: install succeeds and produces `pnpm-lock.yaml`; `tsc --noEmit` exits w
 Run: `pnpm test`
 Expected: vitest exits successfully with "No test files found" (since `tests/` doesn't exist yet — this is fine; the next task adds the first test).
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```sh
 cd ~/Documents/repos/slidt

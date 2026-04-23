@@ -5,7 +5,7 @@ import { themeCss } from './theme-css.ts';
 import { scopeCss } from './scope-css.ts';
 import { wrapSlide } from './slide-wrap.ts';
 import { pageShell } from './page-shell.ts';
-import { baseStyles } from './base-styles.ts';
+import { baseStyles, cornerStyles } from './base-styles.ts';
 
 export * from './types.ts';
 
@@ -36,7 +36,7 @@ export async function render(
         name: type.name,
         pageNum: i + 1,
         total,
-        showCorner: type.name !== 'section',
+        showCorner: !type.hideCorner,
       }),
     );
   }
@@ -49,7 +49,11 @@ export async function render(
     }
   }
 
-  const css = [themeCss(theme), baseStyles, ...perTypeCss].join('\n');
+  const hasCorner = slides.some((s) => {
+    const t = byName.get(s.typeName);
+    return t && !t.hideCorner;
+  });
+  const css = [themeCss(theme), baseStyles, ...(hasCorner ? [cornerStyles] : []), ...perTypeCss].join('\n');
 
   return pageShell({
     lang: deck.lang,

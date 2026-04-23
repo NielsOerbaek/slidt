@@ -36,6 +36,8 @@ export interface SlideType {
   htmlTemplate: string;
   /** CSS written without an outer wrapper — the renderer auto-scopes it to `.st-<name>` */
   css: string;
+  /** Set true on section-divider slides that should omit the corner logo. */
+  hideCorner?: boolean;
 }
 
 export interface Theme {

@@ -12,6 +12,19 @@
  * `.st-<name>` at render time. Fonts are expected to be loaded by the host
  * (Plan 2 serves them from /fonts).
  */
+export const cornerStyles = `.corner-logo {
+  position: absolute;
+  right: 60px;
+  bottom: 60px;
+  font-family: 'Neureal Mono', monospace;
+  font-size: 14px;
+  line-height: 1.15;
+  color: var(--ood-dark-matter-light);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}`;
+
 export const baseStyles = `
 @page { size: 1920px 1080px; margin: 0; }
 
@@ -37,19 +50,6 @@ html, body {
   display: flex;
   padding: 80px 120px;
   background: var(--ood-big-cloud);
-}
-
-.corner-logo {
-  position: absolute;
-  right: 60px;
-  bottom: 60px;
-  font-family: 'Neureal Mono', monospace;
-  font-size: 14px;
-  line-height: 1.15;
-  color: var(--ood-dark-matter-light);
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
 }
 
 .page-num {

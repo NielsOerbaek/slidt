@@ -2521,7 +2521,7 @@ If no fixes needed, just note that verification passed.
 **Files:**
 - Modify: `docs/superpowers/plans/2026-04-23-roadmap.md`
 
-- [ ] **Step 1: Update roadmap to mark Plan 2 as written**
+- [x] **Step 1: Update roadmap to mark Plan 2 as written**
 
 In `docs/superpowers/plans/2026-04-23-roadmap.md`, update the Plan 2 entry:
 
@@ -2534,12 +2534,12 @@ To:
 **Plan:** `2026-04-23-02-data-api-auth.md` (written).
 ```
 
-- [ ] **Step 2: Run full test suite one final time**
+- [x] **Step 2: Run full test suite one final time**
 
 Run: `pnpm test`
 Expected: PASS — 85+ tests passed
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```
 git add docs/superpowers/plans/2026-04-23-roadmap.md

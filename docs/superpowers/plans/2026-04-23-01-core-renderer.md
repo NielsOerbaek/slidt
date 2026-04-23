@@ -2109,7 +2109,7 @@ Port `reserve`, `purposes`, `ownership`, `friction`. These have mixed layouts.
 - Create: `src/slide-types/friction.ts`
 - Modify: `tests/slide-types.test.ts`
 
-- [ ] **Step 1: Write failing tests — append to `tests/slide-types.test.ts`**
+- [x] **Step 1: Write failing tests — append to `tests/slide-types.test.ts`**
 
 Append to `tests/slide-types.test.ts`:
 
@@ -2194,12 +2194,12 @@ describe('friction slide type', () => {
 });
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `pnpm test tests/slide-types.test.ts`
 Expected: FAIL with "Cannot find module '../src/slide-types/reserve.ts'".
 
-- [ ] **Step 3: Implement `reserve`**
+- [x] **Step 3: Implement `reserve`**
 
 Create `src/slide-types/reserve.ts`:
 
@@ -2236,7 +2236,7 @@ h2 { font-family: 'Neureal', sans-serif; font-size: 96px; line-height: 1; }
 };
 ```
 
-- [ ] **Step 4: Implement `purposes`**
+- [x] **Step 4: Implement `purposes`**
 
 Create `src/slide-types/purposes.ts`:
 
@@ -2285,7 +2285,7 @@ h2 { font-family: 'Neureal', sans-serif; font-size: 80px; margin-bottom: 48px; }
 };
 ```
 
-- [ ] **Step 5: Implement `ownership`**
+- [x] **Step 5: Implement `ownership`**
 
 Create `src/slide-types/ownership.ts`:
 
@@ -2335,7 +2335,7 @@ h2 { font-family: 'Neureal', sans-serif; font-size: 64px; margin-bottom: 24px; }
 };
 ```
 
-- [ ] **Step 6: Implement `friction`**
+- [x] **Step 6: Implement `friction`**
 
 Create `src/slide-types/friction.ts`:
 
@@ -2414,12 +2414,12 @@ h2 { font-family: 'Neureal', sans-serif; font-size: 56px; line-height: 1.05; }
 };
 ```
 
-- [ ] **Step 7: Run tests to verify they pass**
+- [x] **Step 7: Run tests to verify they pass**
 
 Run: `pnpm test`
 Expected: all previous tests pass + 4 new slide-type tests pass.
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```sh
 git add src/slide-types/reserve.ts src/slide-types/purposes.ts src/slide-types/ownership.ts src/slide-types/friction.ts tests/slide-types.test.ts

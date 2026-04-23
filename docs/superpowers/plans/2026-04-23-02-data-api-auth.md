@@ -2432,19 +2432,19 @@ Co-authored-by: Ralphify <noreply@ralphify.co>"
 **Files:**
 - No new files — verification pass
 
-- [ ] **Step 1: Run all integration tests**
+- [x] **Step 1: Run all integration tests**
 
 ```
 DATABASE_URL=postgres://slidt:slidt@localhost:5433/slidt_test pnpm test:integration
 ```
 Expected: PASS — all integration tests pass (auth, decks, slides, themes, templates, assets, share, seed, hooks, cli, healthz)
 
-- [ ] **Step 2: Run all unit tests**
+- [x] **Step 2: Run all unit tests**
 
 Run: `pnpm test`
 Expected: PASS — 85 tests passed (all original renderer tests)
 
-- [ ] **Step 3: Typecheck**
+- [x] **Step 3: Typecheck**
 
 Run: `pnpm typecheck`
 Expected: no TypeScript errors
@@ -2453,7 +2453,7 @@ If there are TypeScript errors, fix them. Common issues:
 - `exactOptionalPropertyTypes: true` means `undefined` can't be assigned to optional fields — use `null` or omit the field
 - SvelteKit's `RequestEvent` type needs `params` to be `Record<string, string>` — cast with `as unknown as RequestEvent`
 
-- [ ] **Step 4: Verify curl works against the dev server**
+- [x] **Step 4: Verify curl works against the dev server**
 
 Start the dev Postgres:
 ```bash
@@ -2502,7 +2502,7 @@ curl -b /tmp/cookies.txt -X POST http://localhost:5173/api/auth/logout
 # Expected: {"ok":true}
 ```
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 If any fixes were made during typecheck:
 ```

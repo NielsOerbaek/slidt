@@ -27,12 +27,14 @@ fi
 
 mkdir -p "$LOG_DIR"
 
-# IS_SANDBOX=1 lets claude CLI run in --yolo mode under root
+# IS_SANDBOX=1 lets claude CLI run in --yolo mode under root.
+# PATH prepend: ralph lives in ~/.local/bin (pipx install location) which
+# non-interactive tmux shells don't inherit.
 # -d 5      : 5s pause between iterations (don't hammer API on transient errors)
 # -t 1800   : 30-minute timeout per iteration (a task should finish well under)
 # -l …      : per-iteration stream-json logs for after-the-fact debugging
 tmux new-session -d -s "$SESSION" -c "$REPO_DIR" \
-  "IS_SANDBOX=1 ralph run . -d 5 -t 1800 -l '$LOG_DIR' 2>&1 | tee -a '$LOG_DIR/loop.log'"
+  "PATH=\"\$HOME/.local/bin:\$PATH\" IS_SANDBOX=1 ralph run . -d 5 -t 1800 -l '$LOG_DIR' 2>&1 | tee -a '$LOG_DIR/loop.log'"
 
 echo "Started ralph loop in tmux session '$SESSION'."
 echo "  Attach:   tmux attach -t $SESSION"

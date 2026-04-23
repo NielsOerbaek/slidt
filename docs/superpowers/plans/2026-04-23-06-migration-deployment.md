@@ -521,7 +521,7 @@ Co-authored-by: Ralphify <noreply@ralphify.co>"
 - Create: `scripts/import-deck.ts`
 - Modify: `package.json`
 
-- [ ] **Step 1: Write the CLI**
+- [x] **Step 1: Write the CLI**
 
 `scripts/import-deck.ts`:
 ```ts
@@ -688,7 +688,7 @@ console.log(`Done. Imported ${slideIds.length} slide(s)${skipped ? `, skipped ${
 console.log(`Deck URL: ${process.env.APP_URL ?? 'http://localhost:3000'}/decks/${deck.id}`);
 ```
 
-- [ ] **Step 2: Add the script to package.json**
+- [x] **Step 2: Add the script to package.json**
 
 In `package.json`, add `"import-deck": "tsx scripts/import-deck.ts"` to the `"scripts"` object.
 
@@ -709,17 +709,17 @@ The scripts section should look like:
 },
 ```
 
-- [ ] **Step 3: Run typecheck to verify the CLI compiles**
+- [x] **Step 3: Run typecheck to verify the CLI compiles**
 
 Run: `pnpm typecheck`
 Expected: no errors, exit code 0
 
-- [ ] **Step 4: Run full test suite to confirm nothing is broken**
+- [x] **Step 4: Run full test suite to confirm nothing is broken**
 
 Run: `pnpm test`
 Expected: PASS — all existing tests pass (168+ tests)
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```
 git add scripts/import-deck.ts package.json

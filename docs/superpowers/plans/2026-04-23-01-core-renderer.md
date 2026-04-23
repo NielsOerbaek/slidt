@@ -2708,7 +2708,7 @@ End-to-end test — render the actual ANTAL deck data against all 13 built-ins +
 - Create: `tests/fixtures/deck-antal.json`
 - Create: `tests/render-antal.test.ts`
 
-- [ ] **Step 1: Copy the deck fixture**
+- [x] **Step 1: Copy the deck fixture**
 
 Run: `cp "/home/niec/ogtal.onedrive/osogdata/møde_bilag/antal-diskussion-april-2026/slides/slides.json" ~/Documents/repos/slidt/tests/fixtures/deck-antal-raw.json`
 
@@ -2761,11 +2761,11 @@ Expected: `tests/fixtures/deck-antal.json` created.
 Verify: `node -e "const d=require('./tests/fixtures/deck-antal.json'); console.log(d.slides.length, 'slides;', d.appendix?.length, 'appendix items')"`
 Expected: output like `15 slides; 2 appendix items`.
 
-- [ ] **Step 2: Delete the helper script and the raw file (they're not shipped)**
+- [x] **Step 2: Delete the helper script and the raw file (they're not shipped)**
 
 Run: `rm tests/fixtures/_transform.ts tests/fixtures/deck-antal-raw.json`
 
-- [ ] **Step 3: Write the end-to-end test**
+- [x] **Step 3: Write the end-to-end test**
 
 Create `tests/render-antal.test.ts`:
 
@@ -2821,7 +2821,7 @@ describe('full ANTAL deck render', () => {
 });
 ```
 
-- [ ] **Step 4: Run the test**
+- [x] **Step 4: Run the test**
 
 Run: `pnpm test tests/render-antal.test.ts`
 Expected: 6 tests pass.
@@ -2830,12 +2830,12 @@ If any fail because a required field is missing in the fixture (validation error
 
 If any fail because of CSS scoping edge cases in specific slide types, update the relevant slide type's CSS (leaving `h1`, `h2`, etc. as plain element selectors — the scoper prepends `.st-<name>`).
 
-- [ ] **Step 5: Run the full test suite**
+- [x] **Step 5: Run the full test suite**
 
 Run: `pnpm test && pnpm typecheck`
 Expected: all tests pass; typecheck exits 0.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```sh
 git add tests/fixtures/deck-antal.json tests/render-antal.test.ts

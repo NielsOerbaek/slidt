@@ -151,7 +151,7 @@ Co-authored-by: Ralphify <noreply@ralphify.co>"
 - Create: `Dockerfile`
 - Create: `.dockerignore`
 
-- [ ] **Step 1: Write the Dockerfile**
+- [x] **Step 1: Write the Dockerfile**
 
 `Dockerfile`:
 ```dockerfile
@@ -182,7 +182,7 @@ EXPOSE 3000
 ENTRYPOINT ["sh", "-c", "pnpm db:migrate && pnpm db:seed && node build"]
 ```
 
-- [ ] **Step 2: Write .dockerignore**
+- [x] **Step 2: Write .dockerignore**
 
 `.dockerignore`:
 ```
@@ -199,7 +199,7 @@ test-results
 docs
 ```
 
-- [ ] **Step 3: Verify the Dockerfile syntax is valid**
+- [x] **Step 3: Verify the Dockerfile syntax is valid**
 
 Run: `docker build --no-cache --progress=plain -t slidt-test . 2>&1 | tail -5`
 
@@ -209,7 +209,7 @@ Expected output ends with a line like:
 ```
 (If Docker is not available in this environment, run `python3 -c "print('skip')"` and proceed — the Dockerfile syntax will be caught by the compose-config check in Task 3.)
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```
 git add Dockerfile .dockerignore

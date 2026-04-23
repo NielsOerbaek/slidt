@@ -1,0 +1,195 @@
+{
+  "title": "ANTAL og Theta",
+  "lang": "da",
+  "slides": [
+    {
+      "typeName": "title",
+      "data": {
+        "eyebrow": "April 2026",
+        "title": "ANTAL",
+        "titleAlt": "og Theta",
+        "markUrl": "assets/ood-mark-green.svg"
+      }
+    },
+    {
+      "typeName": "agenda",
+      "data": {
+        "title": "Dagsorden",
+        "items": [
+          "Baggrund og formål",
+          "Theta-modellen",
+          "Ejerskabsmodel",
+          "Drøftelse og spørgsmål"
+        ]
+      }
+    },
+    {
+      "typeName": "section",
+      "data": {
+        "bigMark": "01",
+        "title": "Baggrund",
+        "subtitle": "Om ANTAL og dets formål"
+      }
+    },
+    {
+      "typeName": "content",
+      "data": {
+        "eyebrow": "ANTAL",
+        "title": "Hvad er ANTAL?",
+        "bullets": [
+          "En demokratisk forening med fælles formål",
+          "Ejer og driver teknologiplatforme",
+          "Bygger bro mellem data og beslutninger"
+        ]
+      }
+    },
+    {
+      "typeName": "principles",
+      "data": {
+        "eyebrow": "Principper",
+        "title": "Grundprincipper",
+        "items": [
+          { "title": "Åbenhed", "body": "Transparens i alle beslutninger og processer." },
+          { "title": "Ansvarlighed", "body": "Alle medlemmer bærer ansvar for fællesskabet." },
+          { "title": "Solidaritet", "body": "Fælles løft frem for individuelle fordele." }
+        ]
+      }
+    },
+    {
+      "typeName": "section",
+      "data": {
+        "bigMark": "02",
+        "title": "Theta-modellen",
+        "subtitle": "Et nyt ejerskabsparadigme"
+      }
+    },
+    {
+      "typeName": "values",
+      "data": {
+        "eyebrow": "Værdier",
+        "title": "ANTAL-værdier",
+        "columns": [
+          {
+            "heading": "Fællesskab",
+            "items": ["Tillid", "Gensidig respekt", "Delt ansvar"]
+          },
+          {
+            "heading": "Innovation",
+            "items": ["Eksperimenterende kultur", "Læring af fejl", "Fremadskuende"]
+          }
+        ]
+      }
+    },
+    {
+      "typeName": "reserve",
+      "data": {
+        "eyebrow": "Reserve",
+        "title": "Kapitalreserve",
+        "paragraphs": [
+          "Foreningen opretholder en reserve til uforudsete udgifter.",
+          "Reserven udgør minimum 10% af den samlede kapital."
+        ],
+        "callout": "Ingen udlodning uden generalforsamlingens godkendelse."
+      }
+    },
+    {
+      "typeName": "purposes",
+      "data": {
+        "eyebrow": "Formål",
+        "title": "ANTALs fire formål",
+        "cards": [
+          { "num": "01", "title": "Ejerskab", "body": "Sikre demokratisk ejerskab af fælles ressourcer." },
+          { "num": "02", "title": "Drift", "body": "Drive platforme og infrastruktur til fælles bedste." },
+          { "num": "03", "title": "Udvikling", "body": "Investere i nye løsninger og eksperimenter." },
+          { "num": "04", "title": "Fællesskab", "body": "Skabe rammer for samarbejde og videndeling." }
+        ]
+      }
+    },
+    {
+      "typeName": "section",
+      "data": {
+        "bigMark": "03",
+        "title": "Ejerskabsmodel",
+        "subtitle": "Hvem ejer hvad?"
+      }
+    },
+    {
+      "typeName": "ownership",
+      "data": {
+        "eyebrow": "Ejerskab",
+        "title": "Ejerskabsstrukturen",
+        "source": "Kilde: ANTALs vedtægter §3",
+        "cards": [
+          { "title": "Individuelle medlemmer", "sub": "Personligt ejerskab", "body": "Stemmer og deltager i generalforsamling." },
+          { "title": "Organisatoriske medlemmer", "sub": "Kollektivt ejerskab", "body": "Repræsenteres via delegerede." },
+          { "title": "Fonden ANTAL", "sub": "Institutionelt ejerskab", "body": "Holder og forvalter fællesaktiver." }
+        ]
+      }
+    },
+    {
+      "typeName": "section",
+      "data": {
+        "bigMark": "04",
+        "title": "Drøftelse",
+        "subtitle": "Kernespørgsmål for i dag"
+      }
+    },
+    {
+      "typeName": "friction",
+      "data": {
+        "eyebrow": "Spænding",
+        "title": "Centrale friktioner i Theta",
+        "sideA": {
+          "label": "Frihed",
+          "head": "Individuel autonomi",
+          "body": [
+            "Medlemmer ønsker selv at bestemme.",
+            "Lokal tilpasning er vigtig."
+          ]
+        },
+        "sideB": {
+          "label": "Fællesskab",
+          "head": "Kollektiv koordination",
+          "body": [
+            "Fælles regler sikrer sammenhæng.",
+            "Central styring letter administration."
+          ]
+        },
+        "question": "Hvordan balancerer vi individuel frihed med kollektiv koordination?"
+      }
+    },
+    {
+      "typeName": "discussion",
+      "data": {
+        "eyebrow": "Diskussion",
+        "title": "Spørgsmål til drøftelse",
+        "items": [
+          { "letter": "A", "text": "Hvad er den rette balance mellem frihed og fællesskab?" },
+          { "letter": "B", "text": "Hvordan sikrer vi demokratisk deltagelse i alle beslutninger?" },
+          { "letter": "C", "text": "Hvilke ressourcer bør holdes fælles, og hvilke individuelt?" }
+        ]
+      }
+    },
+    {
+      "typeName": "closing",
+      "data": {
+        "title": "Tak",
+        "subtitle": "Spørgsmål og kommentarer er velkomne."
+      }
+    }
+  ],
+  "appendix": [
+    {
+      "path": "vedtaegter.pdf",
+      "mark": "§",
+      "title": "Vedtægter",
+      "subtitle": "ANTALs gældende vedtægter, revideret 2025"
+    },
+    {
+      "path": "principgrundlag.pdf",
+      "mark": "§",
+      "title": "Principgrundlag",
+      "subtitle": "ANTALs principgrundlag og værdidokument"
+    }
+  ]
+}

@@ -2277,7 +2277,7 @@ Co-authored-by: Ralphify <noreply@ralphify.co>"
 - Create: `scripts/seed.ts`
 - Test: `tests/api/seed.test.ts`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `tests/api/seed.test.ts`:
 
@@ -2324,14 +2324,14 @@ describe('runSeed', () => {
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 ```
 DATABASE_URL=postgres://slidt:slidt@localhost:5433/slidt_test pnpm test:integration tests/api/seed.test.ts
 ```
 Expected: FAIL — `Cannot find module '../../scripts/seed.ts'`
 
-- [ ] **Step 3: Write the seed script**
+- [x] **Step 3: Write the seed script**
 
 Create `scripts/seed.ts`:
 
@@ -2409,14 +2409,14 @@ Also add a `db:seed` script to `package.json`:
 "db:seed": "tsx scripts/seed.ts"
 ```
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 ```
 DATABASE_URL=postgres://slidt:slidt@localhost:5433/slidt_test pnpm test:integration tests/api/seed.test.ts
 ```
 Expected: PASS — 3 tests passed
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```
 git add scripts/seed.ts tests/api/seed.test.ts package.json

@@ -14,9 +14,9 @@ describe('parseImportInput', () => {
     expect(result.title).toBe('ANTAL-Theta april 2026');
     expect(result.lang).toBe('da');
     expect(result.slides).toHaveLength(2);
-    expect(result.slides[0].typeName).toBe('title');
-    expect(result.slides[0].data).toEqual({ title: 'ANTAL og Theta', eyebrow: 'Møde' });
-    expect(result.slides[1].typeName).toBe('content');
+    expect(result.slides[0]!.typeName).toBe('title');
+    expect(result.slides[0]!.data).toEqual({ title: 'ANTAL og Theta', eyebrow: 'Møde' });
+    expect(result.slides[1]!.typeName).toBe('content');
   });
 
   it('defaults lang to da when omitted', () => {
@@ -34,7 +34,7 @@ describe('parseImportInput', () => {
       title: 'T',
       slides: [{ typeName: 'section' }],
     });
-    expect(result.slides[0].data).toEqual({});
+    expect(result.slides[0]!.data).toEqual({});
   });
 
   it('throws on non-object input', () => {

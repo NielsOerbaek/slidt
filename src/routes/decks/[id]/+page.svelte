@@ -1,6 +1,7 @@
 <script lang="ts">
   import { invalidateAll } from '$app/navigation';
-  import type { PageData } from './$types.js';
+  import type { PageData, ActionData } from './$types.js';
+  import { enhance } from '$app/forms';
   import FieldEditor from '$lib/components/FieldEditor.svelte';
   import SlidePreview from '$lib/components/SlidePreview.svelte';
   import STField from '$lib/components/st/STField.svelte';
@@ -13,7 +14,7 @@
   import { t } from '$lib/i18n/index.ts';
   import { goto } from '$app/navigation';
 
-  let { data }: { data: PageData } = $props();
+  let { data, form }: { data: PageData; form: ActionData } = $props();
 
   let slideDataMap = $state<Record<string, Record<string, unknown>>>(
     Object.fromEntries(
@@ -438,6 +439,37 @@
         </div>
       {:else if shareError}
         <div class="share-error">{t('editor.share_failed')} ({shareError})</div>
+      {/if}
+
+      {#if data.isOwner}
+        <div class="collab-section">
+          <div class="collab-label">COLLABORATORS</div>
+
+          {#if form?.collabError}
+            <p class="collab-error">{form.collabError}</p>
+          {/if}
+
+          {#each data.collaborators as c (c.userId)}
+            <div class="collab-row">
+              <span class="collab-name">{c.name}</span>
+              <span class="collab-email">{c.email}</span>
+              <span class="collab-role">{c.role.toUpperCase()}</span>
+              <form method="POST" action="?/removeCollaborator" use:enhance>
+                <input type="hidden" name="userId" value={c.userId} />
+                <button type="submit" class="collab-remove">✕</button>
+              </form>
+            </div>
+          {/each}
+
+          <form method="POST" action="?/addCollaborator" use:enhance class="collab-add">
+            <input type="email" name="email" placeholder="colleague@example.com" required />
+            <select name="role">
+              <option value="editor">Editor</option>
+              <option value="viewer">Viewer</option>
+            </select>
+            <button type="submit" class="btn-sm">Add</button>
+          </form>
+        </div>
       {/if}
     </div>
   </div>
@@ -874,4 +906,43 @@
     letter-spacing: 0.18em;
     color: var(--st-ink-dim);
   }
+
+  /* ── Collaborators section ────────────────────────────── */
+  .collab-section { margin-top: 20px; padding: 0 20px 20px; }
+  .collab-label {
+    font-family: var(--st-font-mono);
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    color: var(--st-ink-dim);
+    margin-bottom: 10px;
+  }
+  .collab-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 0;
+    border-bottom: var(--st-rule-thin);
+    font-family: var(--st-font-mono);
+    font-size: 11px;
+  }
+  .collab-name { font-weight: 500; }
+  .collab-email { color: var(--st-ink-dim); flex: 1; }
+  .collab-role { color: var(--st-cobalt); letter-spacing: 0.1em; font-size: 9px; }
+  .collab-remove { background: none; border: none; color: var(--st-ink-dim); cursor: pointer; padding: 0 4px; }
+  .collab-remove:hover { color: #ff6060; }
+  .collab-add { display: flex; gap: 8px; margin-top: 12px; align-items: center; }
+  .collab-add input { flex: 1; padding: 6px 10px; border: 2px solid var(--st-ink); background: var(--st-bg); color: var(--st-ink); font-family: var(--st-font-mono); font-size: 12px; border-radius: 0; }
+  .collab-add select { padding: 6px 8px; border: 2px solid var(--st-ink); background: var(--st-bg); color: var(--st-ink); font-family: var(--st-font-mono); font-size: 11px; border-radius: 0; }
+  .collab-error { font-family: var(--st-font-mono); font-size: 11px; color: #ff6060; margin: 0 0 8px; }
+  .btn-sm {
+    padding: 6px 14px;
+    background: var(--st-cobalt);
+    color: var(--st-bg);
+    border: none;
+    font-family: var(--st-font-mono);
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    cursor: pointer;
+  }
+  .btn-sm:hover { background: #0e34b8; }
 </style>

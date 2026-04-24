@@ -27,6 +27,7 @@ export const messages = {
   'nav.docs': { da: 'DOCS', en: 'DOCS' },
   'nav.admin': { da: 'ADMIN', en: 'ADMIN' },
   'nav.settings': { da: 'NØGLER', en: 'KEYS' },
+  'nav.more': { da: 'MERE', en: 'MORE' },
 
   // ── Login ────────────────────────────────────────────────────────────
   'login.tag': { da: '§ 01 — LOG IND', en: '§ 01 — SIGN IN' },
@@ -212,6 +213,9 @@ export const messages = {
   'settings.language_name': { da: 'SPROG', en: 'LANGUAGE' },
   'settings.language_desc': { da: 'Brugergrænsefladesprog på tværs af platformen', en: 'UI language across the platform' },
   'settings.save_prefs': { da: 'Gem præferencer', en: 'Save preferences' },
+  'settings.agent_model_name': { da: 'AGENT-MODEL', en: 'AGENT MODEL' },
+  'settings.agent_model_desc': { da: 'LLM til agent-sessioner', en: 'LLM for agent sessions' },
+  'settings.agent_model_unavailable': { da: 'Ollama utilgængeligt', en: 'Ollama unavailable' },
 
   'settings.api_keys': { da: 'API-NØGLER', en: 'API KEYS' },
   'settings.key_new_label': { da: 'NY NØGLE — KOPIÉR NU, DEN VISES IKKE IGEN', en: 'NEW KEY — COPY NOW, IT WILL NOT BE SHOWN AGAIN' },

@@ -1,19 +1,21 @@
 import { render } from '../../renderer/index.ts';
 import { buildFontCss } from './font-css.ts';
 import { injectFontCss } from './pdf.ts';
-import { db, decks, slideTypes, themes } from './db/index.ts';
-import { eq } from 'drizzle-orm';
+import { db, decks, slides, slideTypes, themes } from './db/index.ts';
+import { eq, and } from 'drizzle-orm';
 import { buildDummyData } from '$lib/utils/field-defaults.ts';
 import type { Deck, SlideType, Theme } from '../../renderer/types.ts';
 
 /**
- * Render a single slide of the given slide type (filled with dummy data) and
- * return a PNG screenshot. Used by the agent's `inspect_slide_type` tool to
- * visually verify a template after creation.
+ * Render a single slide of the given slide type and return a PNG screenshot.
+ * Used by the agent's `inspect_slide_type` tool to visually verify a template
+ * after creation. When `slideId` is given, uses that slide's actual data
+ * instead of auto-generated dummies — useful right after `add_slide`.
  */
 export async function screenshotSlideType(
   slideTypeId: string,
   deckId: string,
+  options: { slideId?: string } = {},
 ): Promise<Buffer> {
   const [st] = await db
     .select()
@@ -24,6 +26,20 @@ export async function screenshotSlideType(
 
   const [deck] = await db.select().from(decks).where(eq(decks.id, deckId)).limit(1);
   if (!deck) throw new Error(`deck ${deckId} not found`);
+
+  let slideData: Record<string, unknown> | null = null;
+  if (options.slideId) {
+    const [slide] = await db
+      .select()
+      .from(slides)
+      .where(and(eq(slides.id, options.slideId), eq(slides.deckId, deckId)))
+      .limit(1);
+    if (!slide) throw new Error(`slide ${options.slideId} not found in this deck`);
+    if (slide.typeId !== slideTypeId) {
+      throw new Error(`slide ${options.slideId} uses a different slide type than ${slideTypeId}`);
+    }
+    slideData = slide.data as Record<string, unknown>;
+  }
 
   // Theme: deck's theme → first preset → error.
   let theme: typeof themes.$inferSelect | null = null;
@@ -45,11 +61,11 @@ export async function screenshotSlideType(
     css: st.css,
   };
 
-  const dummy = buildDummyData(renderType.fields);
+  const data = slideData ?? buildDummyData(renderType.fields);
   const deckObj: Deck = {
     title: deck.title,
     lang: deck.lang ?? 'da',
-    slides: [{ typeName: renderType.name, data: dummy }],
+    slides: [{ typeName: renderType.name, data }],
   };
   const renderTheme: Theme = { name: theme.name, tokens: theme.tokens as Record<string, string> };
 

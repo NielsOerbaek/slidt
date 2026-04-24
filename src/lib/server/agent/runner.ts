@@ -10,7 +10,7 @@ You help users edit presentations using the available tools.
 
 Guidelines:
 - Keep all content in Danish unless the user explicitly asks otherwise
-- When using create_slide_type, only use these Handlebars helpers: fmt, eq, default, each, if, unless
+- When using create_slide_type / patch_slide_type, only use these Handlebars helpers: fmt, eq, default, each, if, unless
 - CSS in templates must not contain @import, external url(), expression(), or behavior:
 - After using tools, briefly describe what you changed
 - Be concise — let the tools do the work
@@ -19,11 +19,26 @@ Template rules (IMPORTANT — violations cause "[object Object]" in output):
 - {{fmt value}} only works on STRING fields. Never pass an object or array to fmt.
 - For list fields (type: "list"), iterate with {{#each items}}...{{/each}} and access string properties inside: {{fmt this.propertyName}}
 - For group fields (type: "group"), access each sub-field directly: {{fmt field.subField}}
-- Always call list_slide_types before add_slide to check the exact field names and types for that slide type
-- When add_slide data must contain a list field, pass an array of strings or objects matching the field schema — never a plain string
+- Always call list_slide_types before add_slide to check the exact field names and types
 
-Visual verification:
-- Immediately after create_slide_type (or any change to a slide type's template/css), call inspect_slide_type with the new id to see how it actually renders. The tool returns a PNG you should look at — check for overflow, missing content, wrong colors, broken layout, text outside the slide frame. Iterate until it looks right before reporting back.`;
+Field-shape rules for add_slide / patch_slide data (READ CAREFULLY — these are the most common bugs):
+- Pass real JSON objects/arrays in 'data', NEVER a JSON-encoded string. data: { eyebrow: "X" }, NOT data: "{\\"eyebrow\\":\\"X\\"}".
+- A list of STRINGS is a flat array of strings. The inner schema's 'name' is a label, NOT a wrapper key.
+    Example field: { name: "items", type: "list", items: { name: "item", type: "richtext" } }
+    WRONG:  items: [{ "item": "First bullet" }, { "item": "Second" }]
+    RIGHT:  items: ["First bullet", "Second"]
+- A list of OBJECTS uses each sub-field by name, no wrapper key.
+    Example field: { name: "cards", type: "list", items: { type: "group", fields: [{name:"title"},{name:"body"}] } }
+    WRONG:  cards: [{ "card": { "title": "X", "body": "Y" } }]
+    RIGHT:  cards: [{ "title": "X", "body": "Y" }]
+- A 'group' field is an object with the sub-field names as keys, no wrapper.
+- Lists of strings inside groups follow the same flat-array rule.
+
+Visual verification (USE THE INSPECT TOOL):
+- Immediately after create_slide_type or patch_slide_type, call inspect_slide_type with the new id (no slideId) to see the dummy-data render. Iterate until it looks right.
+- After the FIRST add_slide for any slide type you haven't already verified in this session, call inspect_slide_type with the slide's id (passed as slideId) to see the real content fit. Catches overflow, line-wrapping, "[object Object]", colour clashes.
+- If the screenshot reveals a template bug, use patch_slide_type to fix it and inspect again. delete_slide_type is available for deck-scoped types you decide not to keep.
+- Look at the PNG. Check: text inside the 1920x1080 frame, no overflow, content where you expect it, no literal {{handlebars}} or [object Object] showing.`;
 
 type SseEvent =
   | { type: 'text'; delta: string }
@@ -88,7 +103,10 @@ export function runAgentStream(
 
         // Agentic loop — repeat until end_turn or max iterations
         let iterCount = 0;
-        const MAX_ITERATIONS = 10;
+        const MAX_ITERATIONS = 25;
+        // Accumulates text across ALL iterations so the persisted assistant
+        // message reflects everything the user saw streaming, not just the
+        // final iteration (which is often pure tool calls with no text).
         let finalText = '';
         const allToolCallsThisSession: unknown[] = [];
 
@@ -184,10 +202,12 @@ export function runAgentStream(
             }
           }
 
-          // Extend session messages with assistant response + tool results
+          // Extend session messages with assistant response + tool results.
+          // Note: do NOT reset finalText here — we want to keep accumulating
+          // narrative across the whole turn so the persisted message includes
+          // everything the user saw streaming.
           sessionMessages.push({ role: 'assistant', content: finalMessage.content });
           sessionMessages.push({ role: 'user', content: toolResults });
-          finalText = ''; // reset for next iteration's text
         }
 
         // Save final assistant message

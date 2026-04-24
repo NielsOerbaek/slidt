@@ -1,7 +1,34 @@
 import { db, decks, slides, slideTypes, themes } from '$lib/server/db/index.ts';
 import { eq, and, or, inArray } from 'drizzle-orm';
 import { checkHandlebarsTemplate, checkCss } from '$lib/server/agent/guardrails.ts';
+import { validate, ValidationError } from '../../../renderer/validate.ts';
 import type { Field } from '../../../renderer/types.ts';
+
+/**
+ * Defensive coercion for tool inputs that should be objects. Anthropic's
+ * tool input occasionally arrives as a JSON-encoded string (especially on
+ * deeply nested payloads), which silently breaks downstream code that
+ * treats `data` as an object. Try a single JSON.parse pass when we see a
+ * string; otherwise return the value as-is.
+ */
+function coerceObject(value: unknown): Record<string, unknown> | undefined {
+  if (value === undefined || value === null) return undefined;
+  if (typeof value === 'string') {
+    try {
+      const parsed = JSON.parse(value);
+      if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+        return parsed as Record<string, unknown>;
+      }
+    } catch {
+      return undefined;
+    }
+    return undefined;
+  }
+  if (typeof value === 'object' && !Array.isArray(value)) {
+    return value as Record<string, unknown>;
+  }
+  return undefined;
+}
 
 export interface ToolResult {
   result: string;
@@ -118,6 +145,32 @@ export const AGENT_TOOLS: ToolDefinition[] = [
     },
   },
   {
+    name: 'patch_slide_type',
+    description:
+      "Update a deck-scoped slide type's label, fields, htmlTemplate, or css. Only deck-scoped types can be patched (global types are read-only). Use this after inspect_slide_type reveals the template needs fixing.",
+    input_schema: {
+      type: 'object',
+      properties: {
+        id: { type: 'string', description: 'SlideType ID (UUID)' },
+        label: { type: 'string', description: 'New human-readable label (optional)' },
+        fields: { type: 'array', description: 'Replacement field schema array (optional)', items: { type: 'object' } },
+        htmlTemplate: { type: 'string', description: 'Replacement Handlebars template (optional)' },
+        css: { type: 'string', description: 'Replacement scoped CSS (optional)' },
+      },
+      required: ['id'],
+    },
+  },
+  {
+    name: 'delete_slide_type',
+    description:
+      'Delete a deck-scoped slide type. Refuses if any slide in the deck still uses it (delete those slides first). Global types cannot be deleted.',
+    input_schema: {
+      type: 'object',
+      properties: { id: { type: 'string', description: 'SlideType ID (UUID)' } },
+      required: ['id'],
+    },
+  },
+  {
     name: 'fetch_url',
     description:
       'Fetch the text content of a web page or URL. Use this to read articles, documents, or any web content the user wants to base slides on. Returns plain text (HTML stripped).',
@@ -137,11 +190,15 @@ export const AGENT_TOOLS: ToolDefinition[] = [
   {
     name: 'inspect_slide_type',
     description:
-      'Render the given slide type with auto-generated dummy data and return a PNG screenshot you can look at. Call this immediately after create_slide_type (and after any patch_slide_type) to visually verify the template — check for overflow, missing content, wrong colors, broken layout — and iterate until it looks right.',
+      "Render a slide type and return a PNG screenshot you can look at. Pass slideId to render an existing slide's actual data (use this after add_slide to see how real content fits the template); omit slideId to render with auto-generated dummy data (use this right after create_slide_type or patch_slide_type to verify the template). Always call this when you've created or modified a template, or when you've added the first slide of a slide type you haven't seen render before.",
     input_schema: {
       type: 'object',
       properties: {
-        id: { type: 'string', description: 'SlideType ID (UUID), e.g. the id returned from create_slide_type' },
+        id: { type: 'string', description: 'SlideType ID (UUID)' },
+        slideId: {
+          type: 'string',
+          description: 'Optional Slide ID — when given, the screenshot uses that slide\'s real data instead of dummy data. The slide must belong to this deck.',
+        },
       },
       required: ['id'],
     },
@@ -194,24 +251,57 @@ export async function executeTool(
 
     case 'patch_slide': {
       const id = input.id as string;
-      const patch = input.patch as Record<string, unknown>;
+      const patch = coerceObject(input.patch);
+      if (!patch) {
+        return { result: 'error: patch must be an object (got string or other type)' };
+      }
       const [slide] = await db
         .select()
         .from(slides)
         .where(and(eq(slides.id, id), eq(slides.deckId, deckId)))
         .limit(1);
       if (!slide) return { result: `error: slide ${id} not found` };
+      const [type] = await db
+        .select()
+        .from(slideTypes)
+        .where(eq(slideTypes.id, slide.typeId))
+        .limit(1);
       const before = slide.data as Record<string, unknown>;
-      await db.update(slides).set({ data: { ...before, ...patch } }).where(eq(slides.id, id));
+      const merged = { ...before, ...patch };
+      if (type) {
+        try {
+          validate(merged, type.fields as Field[]);
+        } catch (err) {
+          if (err instanceof ValidationError) {
+            return { result: `error: ${err.message}` };
+          }
+          throw err;
+        }
+      }
+      await db.update(slides).set({ data: merged }).where(eq(slides.id, id));
       await db.update(decks).set({ updatedAt: new Date() }).where(eq(decks.id, deckId));
       return { result: 'ok', undoPatch: { type: 'patch_slide', id, before } };
     }
 
     case 'add_slide': {
       const typeId = input.typeId as string;
-      const data = (input.data ?? {}) as Record<string, unknown>;
+      const data = coerceObject(input.data) ?? {};
       const [deck] = await db.select().from(decks).where(eq(decks.id, deckId)).limit(1);
       if (!deck) return { result: 'error: deck not found' };
+      const [type] = await db
+        .select()
+        .from(slideTypes)
+        .where(eq(slideTypes.id, typeId))
+        .limit(1);
+      if (!type) return { result: `error: slide type ${typeId} not found` };
+      try {
+        validate(data, type.fields as Field[]);
+      } catch (err) {
+        if (err instanceof ValidationError) {
+          return { result: `error: ${err.message}` };
+        }
+        throw err;
+      }
       const orderIndex = deck.slideOrder.length;
       const [slide] = await db
         .insert(slides)
@@ -331,14 +421,89 @@ export async function executeTool(
       }
     }
 
+    case 'patch_slide_type': {
+      const id = input.id as string;
+      const [st] = await db
+        .select()
+        .from(slideTypes)
+        .where(eq(slideTypes.id, id))
+        .limit(1);
+      if (!st) return { result: `error: slide type ${id} not found` };
+      if (st.scope !== 'deck' || st.deckId !== deckId) {
+        return { result: 'error: only deck-scoped slide types belonging to this deck can be patched' };
+      }
+      const updates: Partial<typeof slideTypes.$inferInsert> = {};
+      if (typeof input.label === 'string') updates.label = input.label;
+      if (Array.isArray(input.fields)) updates.fields = input.fields as Field[];
+      if (typeof input.htmlTemplate === 'string') {
+        checkHandlebarsTemplate(input.htmlTemplate);
+        updates.htmlTemplate = input.htmlTemplate;
+      }
+      if (typeof input.css === 'string') {
+        checkCss(input.css);
+        updates.css = input.css;
+      }
+      if (Object.keys(updates).length === 0) {
+        return { result: 'error: nothing to update (provide at least one of label/fields/htmlTemplate/css)' };
+      }
+      const before = {
+        label: st.label,
+        fields: st.fields,
+        htmlTemplate: st.htmlTemplate,
+        css: st.css,
+      };
+      await db.update(slideTypes).set(updates).where(eq(slideTypes.id, id));
+      return {
+        result: 'ok',
+        undoPatch: { type: 'patch_slide_type', id, before },
+      };
+    }
+
+    case 'delete_slide_type': {
+      const id = input.id as string;
+      const [st] = await db
+        .select()
+        .from(slideTypes)
+        .where(eq(slideTypes.id, id))
+        .limit(1);
+      if (!st) return { result: `error: slide type ${id} not found` };
+      if (st.scope !== 'deck' || st.deckId !== deckId) {
+        return { result: 'error: only deck-scoped slide types belonging to this deck can be deleted' };
+      }
+      const inUse = await db
+        .select({ id: slides.id })
+        .from(slides)
+        .where(and(eq(slides.deckId, deckId), eq(slides.typeId, id)))
+        .limit(1);
+      if (inUse.length > 0) {
+        return {
+          result: `error: slide type still in use by at least one slide (${inUse[0]!.id}); delete those slides first`,
+        };
+      }
+      await db.delete(slideTypes).where(eq(slideTypes.id, id));
+      return {
+        result: 'ok',
+        undoPatch: {
+          type: 'create_slide_type',
+          name: st.name,
+          label: st.label,
+          fields: st.fields,
+          htmlTemplate: st.htmlTemplate,
+          css: st.css,
+        },
+      };
+    }
+
     case 'inspect_slide_type': {
       const id = input.id as string;
+      const slideId = typeof input.slideId === 'string' && input.slideId ? input.slideId : null;
       try {
         const { screenshotSlideType } = await import('$lib/server/screenshot.ts');
-        const png = await screenshotSlideType(id, deckId);
+        const png = await screenshotSlideType(id, deckId, slideId ? { slideId } : {});
         const base64 = png.toString('base64');
+        const dataNote = slideId ? `slide=${slideId}` : 'dummy data';
         return {
-          result: `ok — rendered ${png.byteLength} bytes at 1920x1080`,
+          result: `ok — rendered ${png.byteLength} bytes at 1920x1080 (${dataNote})`,
           image: { base64, mediaType: 'image/png' },
         };
       } catch (err) {

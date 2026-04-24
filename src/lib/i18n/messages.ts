@@ -24,6 +24,7 @@ export const messages = {
   'nav.decks': { da: 'DÆK', en: 'DECKS' },
   'nav.themes': { da: 'TEMAER', en: 'THEMES' },
   'nav.templates': { da: 'SKABELONER', en: 'TEMPLATES' },
+  'nav.docs': { da: 'DOCS', en: 'DOCS' },
   'nav.admin': { da: 'ADMIN', en: 'ADMIN' },
   'nav.settings': { da: 'NØGLER', en: 'KEYS' },
 

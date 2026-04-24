@@ -7,11 +7,12 @@
 
   let { data, children }: { data: LayoutData; children: Snippet } = $props();
 
-  type Tab = 'decks' | 'themes' | 'templates' | 'admin' | 'settings';
+  type Tab = 'decks' | 'themes' | 'templates' | 'docs' | 'admin' | 'settings';
   function activeFromPath(pathname: string): Tab | null {
     if (pathname.startsWith('/decks')) return 'decks';
     if (pathname.startsWith('/themes')) return 'themes';
     if (pathname.startsWith('/templates')) return 'templates';
+    if (pathname.startsWith('/docs')) return 'docs';
     if (pathname.startsWith('/admin')) return 'admin';
     if (pathname.startsWith('/settings')) return 'settings';
     return null;

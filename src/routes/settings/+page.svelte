@@ -10,6 +10,7 @@
 
 <svelte:head><title>{t('settings.title')}</title></svelte:head>
 
+<div class="page-wrap">
 <div class="head-band">
   <div class="head-index">SET</div>
   <div class="head-title">
@@ -192,8 +193,18 @@
 
   </div>
 </section>
+</div>
 
 <style>
+  /* ── Page wrapper ─────────────────────────────────────────── */
+  .page-wrap {
+    max-width: 960px;
+    margin: 0 auto;
+    border-left: var(--st-rule-thick);
+    border-right: var(--st-rule-thick);
+    min-height: 100vh;
+  }
+
   /* ── Header ───────────────────────────────────────────────── */
   .head-band {
     display: grid;
@@ -466,6 +477,7 @@
 
   /* ── Mobile ───────────────────────────────────────────────── */
   @media (max-width: 768px) {
+    .page-wrap { border-left: none; border-right: none; }
     .head-band { grid-template-columns: 1fr; }
     .head-index { display: none; }
     .head-title { padding: 20px 20px; }

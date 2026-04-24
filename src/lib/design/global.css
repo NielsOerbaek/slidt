@@ -33,10 +33,11 @@ a, button, input, textarea, select, label, [role="button"] {
   touch-action: manipulation;
 }
 
-/* iOS Safari zooms on focus when font-size < 16px — override at mobile only */
+/* iOS Safari zooms on focus when font-size < 16px — override at mobile only.
+   !important is needed to beat component-scoped styles that set smaller sizes. */
 @media (max-width: 768px) {
   input, textarea, select {
-    font-size: 16px;
+    font-size: 16px !important;
   }
 }
 

@@ -98,3 +98,13 @@ export const sessions = pgTable('sessions', {
   userId: uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
   expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
 });
+
+export const deckCollaborators = pgTable('deck_collaborators', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  deckId: uuid('deck_id').notNull().references(() => decks.id, { onDelete: 'cascade' }),
+  userId: uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  role: text('role').notNull().default('editor').$type<'editor' | 'viewer'>(),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [
+  unique('deck_collaborators_deck_user_unique').on(t.deckId, t.userId),
+]);

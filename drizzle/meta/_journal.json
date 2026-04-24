@@ -16,5 +16,12 @@
       "tag": "0001_features",
       "breakpoints": true
     }
+    ,{
+      "idx": 2,
+      "version": "7",
+      "when": 1745532000000,
+      "tag": "0002_collaborators",
+      "breakpoints": true
+    }
   ]
 }

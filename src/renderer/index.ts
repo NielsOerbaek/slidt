@@ -28,7 +28,7 @@ export async function render(
       throw new Error(`Unknown slide type: ${slide.typeName}`);
     }
     usedTypeNames.add(type.name);
-    validate(slide.data, type.fields);
+    if (!options.skipValidation) validate(slide.data, type.fields);
     const tpl = compile(type.htmlTemplate);
     const inner = tpl(slide.data);
     slideHtml.push(

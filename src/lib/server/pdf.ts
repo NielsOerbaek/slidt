@@ -1,4 +1,3 @@
-import { chromium } from 'playwright';
 import { readFile } from 'fs/promises';
 import { render } from '../../renderer/index.ts';
 import { buildFontCss } from './font-css.ts';
@@ -16,7 +15,7 @@ export function injectFontCss(html: string, fontCss: string): string {
   return html.replace('<style>', `<style>\n${fontCss}\n`);
 }
 
-export async function renderDeckToPdf(deckId: string): Promise<Buffer> {
+async function loadDeckHtml(deckId: string): Promise<{ html: string; appendixAssets: typeof assets.$inferSelect[] }> {
   // 1. Load deck
   const [deck] = await db.select().from(decks).where(eq(decks.id, deckId)).limit(1);
   if (!deck) throw new Error(`Deck not found: ${deckId}`);
@@ -50,7 +49,7 @@ export async function renderDeckToPdf(deckId: string): Promise<Buffer> {
   }
   if (!theme) throw new Error('No theme configured for this deck');
 
-  // 5. Load appendix-pdf assets (stitched onto the end of the PDF)
+  // 5. Load appendix-pdf assets
   const deckAssets = await db.select().from(assets).where(eq(assets.deckId, deckId));
   const appendixAssets = deckAssets.filter((a) => a.kind === 'appendix-pdf');
 
@@ -76,9 +75,94 @@ export async function renderDeckToPdf(deckId: string): Promise<Buffer> {
   // 7. Render HTML and inject fonts
   const html = await render(renderDeck, renderTheme, renderTypes);
   const fontCss = await buildFontCss();
-  const htmlWithFonts = injectFontCss(html, fontCss);
+  return { html: injectFontCss(html, fontCss), appendixAssets };
+}
+
+export async function renderDeckToHtml(deckId: string): Promise<string> {
+  const { html } = await loadDeckHtml(deckId);
+  return html;
+}
+
+const PRESENTATION_CSS = `
+html, body {
+  margin: 0; padding: 0;
+  width: 100vw; height: 100vh;
+  overflow: hidden;
+  background: #000;
+  font-family: inherit;
+}
+.slide {
+  display: none !important;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(var(--slide-scale, 1));
+  transform-origin: center center;
+}
+.slide.active { display: flex !important; }
+#prs-counter {
+  position: fixed;
+  bottom: 14px;
+  right: 20px;
+  font-family: monospace;
+  font-size: 12px;
+  color: rgba(255,255,255,0.35);
+  pointer-events: none;
+  z-index: 9999;
+}
+`;
+
+const PRESENTATION_JS = `
+(function() {
+  var slides = Array.from(document.querySelectorAll('.slide'));
+  var n = slides.length;
+  var cur = 0;
+
+  var counter = document.getElementById('prs-counter');
+
+  function show(i) {
+    slides[cur].classList.remove('active');
+    cur = ((i % n) + n) % n;
+    slides[cur].classList.add('active');
+    if (counter) counter.textContent = (cur + 1) + ' / ' + n;
+  }
+
+  function resize() {
+    var scale = Math.min(window.innerWidth / 1920, window.innerHeight / 1080);
+    document.documentElement.style.setProperty('--slide-scale', scale);
+  }
+  window.addEventListener('resize', resize);
+  resize();
+
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ' || e.key === 'PageDown') {
+      e.preventDefault(); show(cur + 1);
+    } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp' || e.key === 'PageUp') {
+      e.preventDefault(); show(cur - 1);
+    }
+  });
+
+  document.addEventListener('click', function(e) {
+    if (e.clientX >= window.innerWidth / 2) show(cur + 1);
+    else show(cur - 1);
+  });
+
+  show(0);
+})();
+`;
+
+export async function renderDeckToPresentation(deckId: string): Promise<string> {
+  const { html } = await loadDeckHtml(deckId);
+  return html
+    .replace('</style>', PRESENTATION_CSS + '</style>')
+    .replace('</body>', `<div id="prs-counter"></div><script>${PRESENTATION_JS}</script></body>`);
+}
+
+export async function renderDeckToPdf(deckId: string): Promise<Buffer> {
+  const { html: htmlWithFonts, appendixAssets } = await loadDeckHtml(deckId);
 
   // 8. Print to PDF via Playwright
+  const { chromium } = await import('playwright');
   const browser = await chromium.launch();
   let pdfBuf: Buffer;
   try {

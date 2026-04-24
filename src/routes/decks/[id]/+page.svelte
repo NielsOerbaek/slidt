@@ -156,6 +156,8 @@
   <div class="toolbar">
     <a href="/decks" class="back">← Decks</a>
     <span class="deck-title">{data.deck.title}</span>
+    <a href="/api/decks/{data.deck.id}/present" target="_blank" class="btn-toolbar">Present</a>
+    <a href="/api/decks/{data.deck.id}/export" class="btn-toolbar">Export PDF</a>
     <span class="save-status">
       {#if saving}Saving…{:else if saveError}<span class="err">{saveError}</span>{:else}Saved{/if}
     </span>
@@ -282,6 +284,7 @@
   .save-status { font-size: 12px; color: #aaa; margin-left: auto; }
   .err { color: #c00; }
   .agent-toggle { background: #6e31ff; color: white; border: none; border-radius: 6px; padding: 6px 14px; font-size: 13px; cursor: pointer; }
+  .btn-toolbar { background: transparent; color: #6e31ff; border: 1px solid #6e31ff; border-radius: 6px; padding: 5px 12px; font-size: 13px; cursor: pointer; text-decoration: none; }
 
   /* ── Editor body ──────────────────────────────────────────────── */
   .editor-body { display: flex; flex: 1; overflow: hidden; }

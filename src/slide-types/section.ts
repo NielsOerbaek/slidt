@@ -22,6 +22,6 @@ export const section: SlideType = {
 .num-col { flex: 1; display: flex; align-items: center; justify-content: center; }
 .big-num { font-family: 'Neureal', sans-serif; font-size: 400px; color: var(--ood-deep-violet-light); line-height: 1; }
 .title-col { flex: 1; display: flex; align-items: center; }
-h2 { font-size: 120px; line-height: 1; }
+h2 { font-family: 'Neureal', sans-serif; font-size: 120px; line-height: 1; }
 .subtitle { font-size: 28px; color: var(--ood-dark-matter-bright); margin-top: 24px; display: block; }`,
 };

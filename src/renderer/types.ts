@@ -70,4 +70,6 @@ export interface Deck {
 export interface RenderOptions {
   /** Omit appendix list slide even if appendix items are present. Default false. */
   skipAppendixList?: boolean;
+  /** Skip field validation (useful for preview with empty/partial data). Default false. */
+  skipValidation?: boolean;
 }

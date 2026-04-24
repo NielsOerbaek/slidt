@@ -30,7 +30,12 @@
           lang: 'da',
           slides: [{ typeName: st.name, data: sd }],
         };
-        previewHtml = await render(deck, th, [st], { skipAppendixList: true });
+        const html = await render(deck, th, [st], { skipAppendixList: true, skipValidation: true });
+        // Inject font-face rules (iframe has allow-same-origin so it can load from /fonts/)
+        previewHtml = html.replace('<style>', `<style>
+@font-face{font-family:'Neureal';font-weight:400;font-style:normal;src:url('/fonts/Neureal-Regular.woff2') format('woff2')}
+@font-face{font-family:'Neureal Mono';font-weight:400;font-style:normal;src:url('/fonts/NeurealMono-Regular.woff2') format('woff2')}
+`);
       } catch {
         previewHtml = '';
       }

@@ -34,7 +34,7 @@
  *   slidt template validate <file.json>
  *   slidt template delete <id>
  *
- *   slidt agent chat <deckId> --message "Add a title slide"
+ *   slidt agent chat <deckId> --message "..." [--json] [--quiet] [--no-stream]
  *   slidt agent history <deckId>
  *
  *   slidt key list
@@ -437,7 +437,10 @@ async function main() {
           const message = getFlag('message');
           if (!message) { console.error('--message required'); process.exit(1); }
 
-          // Stream SSE response
+          const jsonMode   = hasFlag('json');
+          const quietMode  = hasFlag('quiet');
+          const noStream   = hasFlag('no-stream');
+
           const res = await fetch(`${BASE_URL}/api/decks/${pos1}/agent`, {
             method: 'POST',
             headers: { ...HEADERS, 'Accept': 'text/event-stream' },
@@ -452,7 +455,7 @@ async function main() {
           const reader = res.body!.getReader();
           const dec = new TextDecoder();
           let buf = '';
-          process.stdout.write('');
+          let accumulated = '';
 
           while (true) {
             const { done, value } = await reader.read();
@@ -464,11 +467,28 @@ async function main() {
               if (!line.startsWith('data: ')) continue;
               try {
                 const evt = JSON.parse(line.slice(6));
-                if (evt.type === 'text') process.stdout.write(evt.delta);
-                else if (evt.type === 'tool_start') process.stderr.write(`\n[tool: ${evt.tool}]\n`);
-                else if (evt.type === 'tool_done') process.stderr.write(`[done: ${evt.tool}: ${evt.result.slice(0, 80)}]\n`);
-                else if (evt.type === 'done') process.stdout.write('\n');
-                else if (evt.type === 'error') { console.error('\nAgent error:', evt.message); process.exit(1); }
+                if (jsonMode) {
+                  // NDJSON: emit every event as a JSON line on stdout
+                  process.stdout.write(JSON.stringify(evt) + '\n');
+                } else if (noStream) {
+                  // Buffer mode: accumulate text, print once at end
+                  if (evt.type === 'text') accumulated += evt.delta;
+                  else if (evt.type === 'tool_start' && !quietMode)
+                    process.stderr.write(`[tool: ${evt.tool}]\n`);
+                  else if (evt.type === 'tool_done' && !quietMode)
+                    process.stderr.write(`[done: ${evt.tool}: ${String(evt.result).slice(0, 80)}]\n`);
+                  else if (evt.type === 'done') process.stdout.write(accumulated + '\n');
+                  else if (evt.type === 'error') { console.error('\nAgent error:', evt.message); process.exit(1); }
+                } else {
+                  // Default streaming mode
+                  if (evt.type === 'text') process.stdout.write(evt.delta);
+                  else if (evt.type === 'tool_start' && !quietMode)
+                    process.stderr.write(`\n[tool: ${evt.tool}]\n`);
+                  else if (evt.type === 'tool_done' && !quietMode)
+                    process.stderr.write(`[done: ${evt.tool}: ${String(evt.result).slice(0, 80)}]\n`);
+                  else if (evt.type === 'done') process.stdout.write('\n');
+                  else if (evt.type === 'error') { console.error('\nAgent error:', evt.message); process.exit(1); }
+                }
               } catch { /* skip malformed */ }
             }
           }
@@ -567,7 +587,7 @@ Commands:
   template delete <id>
   template validate <file.json>
 
-  agent chat <deckId> --message "..."    Send a message, stream response
+  agent chat <deckId> --message "..."    Stream response (--json NDJSON, --quiet no tools, --no-stream buffer)
   agent history <deckId>                 (see web UI for full history)
 
   key list                       List your API keys

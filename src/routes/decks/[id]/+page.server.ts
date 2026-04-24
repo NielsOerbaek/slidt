@@ -83,6 +83,7 @@ export const load: PageServerLoad = async ({ params, locals }) => {
     isOwner: access === 'owner',
     canEdit: access === 'owner' || access === 'editor',
     collaborators,
+    vim: locals.user?.preferences?.vim ?? false,
   };
 };
 

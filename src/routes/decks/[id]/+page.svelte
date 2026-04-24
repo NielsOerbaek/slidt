@@ -264,7 +264,15 @@
       return;
     }
 
-    // All other bindings only fire when not editing text
+    // Global shortcuts (always active when not editing text)
+    if (!target?.matches('input, textarea, [contenteditable]') && !e.metaKey && !e.ctrlKey && !e.altKey) {
+      if (e.key === 'n') { e.preventDefault(); showTypePicker = true; return; }
+    }
+
+    // Vim bindings are opt-in via user preferences
+    if (!data.vim) return;
+
+    // All other vim bindings only fire when not editing text
     if (target?.matches('input, textarea, [contenteditable]')) return;
     if (e.metaKey || e.ctrlKey || e.altKey) return;
 

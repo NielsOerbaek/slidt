@@ -9,3 +9,6 @@ coverage/
 .svelte-kit/
 design.zip
 docs/superpowers/
+data/
+.env.backup
+test-results/

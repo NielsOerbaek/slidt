@@ -6,5 +6,8 @@ export const load: LayoutServerLoad = async ({ locals, url }) => {
   if (!locals.user && !isPublicPath(url.pathname)) {
     throw redirect(302, `/login?next=${encodeURIComponent(url.pathname)}`);
   }
-  return { user: locals.user };
+  return {
+    user: locals.user,
+    locale: (locals.user?.preferences?.locale ?? 'da') as 'da' | 'en',
+  };
 };

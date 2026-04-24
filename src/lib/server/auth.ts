@@ -1,6 +1,7 @@
 import { hash, verify } from '@node-rs/argon2';
 import { db, sessions, users, apiKeys } from './db/index.ts';
 import { eq } from 'drizzle-orm';
+import type { UserPreferences } from './db/schema.ts';
 
 // ── Password hashing ──────────────────────────────────────────────
 
@@ -32,7 +33,7 @@ export async function createSession(userId: string): Promise<string> {
 
 export async function resolveSession(
   token: string,
-): Promise<{ id: string; email: string; name: string; isAdmin: boolean } | null> {
+): Promise<{ id: string; email: string; name: string; isAdmin: boolean; preferences: UserPreferences } | null> {
   const now = new Date();
   const rows = await db
     .select({
@@ -40,6 +41,7 @@ export async function resolveSession(
       email: users.email,
       name: users.name,
       isAdmin: users.isAdmin,
+      preferences: users.preferences,
     })
     .from(sessions)
     .innerJoin(users, eq(sessions.userId, users.id))
@@ -94,7 +96,7 @@ export async function createApiKey(
 
 export async function resolveApiKey(
   token: string,
-): Promise<{ id: string; email: string; name: string; isAdmin: boolean } | null> {
+): Promise<{ id: string; email: string; name: string; isAdmin: boolean; preferences: UserPreferences } | null> {
   if (!token.startsWith(KEY_PREFIX)) return null;
   const keyHash = await hashApiKey(token);
   const rows = await db
@@ -103,6 +105,7 @@ export async function resolveApiKey(
       email: users.email,
       name: users.name,
       isAdmin: users.isAdmin,
+      preferences: users.preferences,
     })
     .from(apiKeys)
     .innerJoin(users, eq(apiKeys.userId, users.id))
@@ -133,4 +136,45 @@ export async function deleteApiKey(id: string, userId: string): Promise<boolean>
     .where(eq(apiKeys.id, id))
     .returning({ id: apiKeys.id });
   return result.length > 0;
+}
+
+// ── User profile & preferences ────────────────────────────────────
+
+export async function updateProfile(
+  userId: string,
+  name: string,
+): Promise<void> {
+  await db.update(users).set({ name }).where(eq(users.id, userId));
+}
+
+export async function changePassword(
+  userId: string,
+  currentPassword: string,
+  newPassword: string,
+): Promise<{ ok: boolean; error?: string }> {
+  const row = await db
+    .select({ passwordHash: users.passwordHash })
+    .from(users)
+    .where(eq(users.id, userId))
+    .limit(1);
+  if (!row[0]) return { ok: false, error: 'User not found' };
+  const valid = await verifyPassword(row[0].passwordHash, currentPassword);
+  if (!valid) return { ok: false, error: 'Current password incorrect' };
+  const newHash = await hashPassword(newPassword);
+  await db.update(users).set({ passwordHash: newHash }).where(eq(users.id, userId));
+  return { ok: true };
+}
+
+export async function updatePreferences(
+  userId: string,
+  patch: UserPreferences,
+): Promise<void> {
+  // Merge patch into existing preferences via jsonb concat
+  const existing = await db
+    .select({ preferences: users.preferences })
+    .from(users)
+    .where(eq(users.id, userId))
+    .limit(1);
+  const merged = { ...(existing[0]?.preferences ?? {}), ...patch };
+  await db.update(users).set({ preferences: merged }).where(eq(users.id, userId));
 }

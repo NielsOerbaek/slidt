@@ -5,6 +5,11 @@ import {
 import { sql } from 'drizzle-orm';
 import type { Field } from '../../../renderer/types.ts';
 
+export type UserPreferences = {
+  vim?: boolean;
+  locale?: 'da' | 'en';
+};
+
 export const users = pgTable('users', {
   id: uuid('id').primaryKey().defaultRandom(),
   email: text('email').notNull().unique(),
@@ -12,6 +17,7 @@ export const users = pgTable('users', {
   name: text('name').notNull(),
   isAdmin: boolean('is_admin').notNull().default(false),
   lastSeenAt: timestamp('last_seen_at', { withTimezone: true }),
+  preferences: jsonb('preferences').notNull().default({}).$type<UserPreferences>(),
 });
 
 export const themes = pgTable('themes', {

@@ -13,77 +13,164 @@
   <div class="head-index">SET</div>
   <div class="head-title">
     <div class="meta">SETTINGS</div>
-    <h1>API Keys</h1>
-  </div>
-  <div class="head-cta">
-    <button class="btn-accent" onclick={() => { showCreate = !showCreate; newToken = null; }}>+ New Key</button>
+    <h1>Settings</h1>
   </div>
 </div>
 
-{#if newToken}
-  <div class="token-reveal">
-    <div class="token-label">NEW KEY — COPY NOW, IT WILL NOT BE SHOWN AGAIN</div>
-    <code class="token-value">{newToken}</code>
-    <div class="token-hint">Set as: <code>SLIDT_API_KEY={newToken}</code></div>
-    <button class="btn" onclick={() => { newToken = null; }}>Dismiss</button>
+<!-- ── Profile ──────────────────────────────────────────────── -->
+<section class="section">
+  <div class="section-label">PROFILE</div>
+  <div class="section-body">
+
+    <form method="POST" action="?/updateProfile" use:enhance class="form-row">
+      <label class="field-label" for="profile-name">DISPLAY NAME</label>
+      <input id="profile-name" type="text" name="name" value={data.user.name} required />
+      <button type="submit" class="btn-accent">Save</button>
+      {#if form?.profileSuccess}<span class="ok">Saved.</span>{/if}
+      {#if form?.profileError}<span class="err">{form.profileError}</span>{/if}
+    </form>
+
+    <div class="divider"></div>
+
+    <form method="POST" action="?/changePassword" use:enhance class="form-stack">
+      <div class="form-row">
+        <label class="field-label" for="pw-current">CURRENT PASSWORD</label>
+        <input id="pw-current" type="password" name="current" autocomplete="current-password" required />
+      </div>
+      <div class="form-row">
+        <label class="field-label" for="pw-next">NEW PASSWORD</label>
+        <input id="pw-next" type="password" name="next" autocomplete="new-password" minlength="8" required />
+      </div>
+      <div class="form-row">
+        <label class="field-label" for="pw-confirm">CONFIRM NEW</label>
+        <input id="pw-confirm" type="password" name="confirm" autocomplete="new-password" required />
+      </div>
+      <div class="form-row">
+        <span class="field-label"></span>
+        <button type="submit" class="btn-accent">Change password</button>
+        {#if form?.pwSuccess}<span class="ok">Password changed.</span>{/if}
+        {#if form?.pwError}<span class="err">{form.pwError}</span>{/if}
+      </div>
+    </form>
+
   </div>
-{/if}
+</section>
 
-{#if showCreate}
-  <form method="POST" action="?/createKey"
-    use:enhance={({ }) => {
-      return async ({ result, update }) => {
-        await update({ reset: false });
-        if (result.type === 'success' && result.data?.token) {
-          newToken = result.data.token as string;
-          showCreate = false;
-        }
-      };
-    }}
-    class="create-form"
-  >
-    <span class="create-label">KEY NAME</span>
-    <input type="text" name="name" placeholder="e.g. my-agent, ci-pipeline" required autofocus />
-    <button type="submit" class="btn-accent">Create</button>
-    <button type="button" class="btn" onclick={() => showCreate = false}>Cancel</button>
-  </form>
-{/if}
+<!-- ── Preferences ──────────────────────────────────────────── -->
+<section class="section">
+  <div class="section-label">PREFERENCES</div>
+  <div class="section-body">
 
-{#if data.keys.length === 0}
-  <p class="empty">No API keys yet. Create one to allow CLI or agent access.</p>
-{:else}
-  <table class="key-table">
-    <thead>
-      <tr>
-        <th>Name</th>
-        <th>Created</th>
-        <th>Last used</th>
-        <th></th>
-      </tr>
-    </thead>
-    <tbody>
-      {#each data.keys as key (key.id)}
-        <tr>
-          <td class="key-name">{key.name}</td>
-          <td class="meta-cell">{new Date(key.createdAt).toLocaleDateString('da-DK')}</td>
-          <td class="meta-cell">{key.lastUsedAt ? new Date(key.lastUsedAt).toLocaleDateString('da-DK') : '—'}</td>
-          <td>
-            <form method="POST" action="?/revokeKey" use:enhance
-              onsubmit={(e) => { if (!confirm('Revoke this key?')) e.preventDefault(); }}>
-              <input type="hidden" name="id" value={key.id} />
-              <button type="submit" class="btn-sm danger">Revoke</button>
-            </form>
-          </td>
-        </tr>
-      {/each}
-    </tbody>
-  </table>
-{/if}
+    <form method="POST" action="?/updatePreferences" use:enhance class="form-stack">
+      <div class="pref-row">
+        <div class="pref-info">
+          <span class="pref-name">VIM MODE</span>
+          <span class="pref-desc">j/k/d/gg/G navigation in the deck editor</span>
+        </div>
+        <label class="toggle">
+          <input type="checkbox" name="vim" role="switch"
+            checked={data.user.preferences?.vim ?? false} />
+          <span class="toggle-track"><span class="toggle-thumb"></span></span>
+        </label>
+      </div>
+
+      <div class="pref-row">
+        <div class="pref-info">
+          <span class="pref-name">LANGUAGE</span>
+          <span class="pref-desc">UI language across the platform</span>
+        </div>
+        <select name="locale">
+          <option value="da" selected={!data.user.preferences?.locale || data.user.preferences.locale === 'da'}>Dansk</option>
+          <option value="en" selected={data.user.preferences?.locale === 'en'}>English</option>
+        </select>
+      </div>
+
+      <div class="form-row pref-save">
+        <button type="submit" class="btn-accent">Save preferences</button>
+        {#if form?.prefsSuccess}<span class="ok">Saved.</span>{/if}
+      </div>
+    </form>
+
+  </div>
+</section>
+
+<!-- ── API Keys ──────────────────────────────────────────────── -->
+<section class="section">
+  <div class="section-label">API KEYS</div>
+  <div class="section-body">
+
+    {#if newToken}
+      <div class="token-reveal">
+        <div class="token-label">NEW KEY — COPY NOW, IT WILL NOT BE SHOWN AGAIN</div>
+        <code class="token-value">{newToken}</code>
+        <div class="token-hint">Set as: <code>SLIDT_API_KEY={newToken}</code></div>
+        <button class="btn" onclick={() => { newToken = null; }}>Dismiss</button>
+      </div>
+    {/if}
+
+    {#if showCreate}
+      <form method="POST" action="?/createKey"
+        use:enhance={({ }) => {
+          return async ({ result, update }) => {
+            await update({ reset: false });
+            if (result.type === 'success' && result.data?.token) {
+              newToken = result.data.token as string;
+              showCreate = false;
+            }
+          };
+        }}
+        class="create-form"
+      >
+        <span class="create-label">KEY NAME</span>
+        <input type="text" name="name" placeholder="e.g. my-agent, ci-pipeline" required autofocus />
+        <button type="submit" class="btn-accent">Create</button>
+        <button type="button" class="btn" onclick={() => showCreate = false}>Cancel</button>
+      </form>
+    {:else}
+      <div class="keys-toolbar">
+        <button class="btn-accent" onclick={() => { showCreate = true; newToken = null; }}>+ New Key</button>
+      </div>
+    {/if}
+
+    {#if data.keys.length === 0}
+      <p class="empty">No API keys yet. Create one to allow CLI or agent access.</p>
+    {:else}
+      <table class="key-table">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Created</th>
+            <th>Last used</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {#each data.keys as key (key.id)}
+            <tr>
+              <td class="key-name">{key.name}</td>
+              <td class="meta-cell">{new Date(key.createdAt).toLocaleDateString('da-DK')}</td>
+              <td class="meta-cell">{key.lastUsedAt ? new Date(key.lastUsedAt).toLocaleDateString('da-DK') : '—'}</td>
+              <td>
+                <form method="POST" action="?/revokeKey" use:enhance
+                  onsubmit={(e) => { if (!confirm('Revoke this key?')) e.preventDefault(); }}>
+                  <input type="hidden" name="id" value={key.id} />
+                  <button type="submit" class="btn-sm danger">Revoke</button>
+                </form>
+              </td>
+            </tr>
+          {/each}
+        </tbody>
+      </table>
+    {/if}
+
+  </div>
+</section>
 
 <style>
+  /* ── Header ───────────────────────────────────────────────── */
   .head-band {
     display: grid;
-    grid-template-columns: 80px 1fr auto;
+    grid-template-columns: 80px 1fr;
     border-bottom: var(--st-rule-thick);
   }
   .head-index {
@@ -95,7 +182,7 @@
     letter-spacing: 0.2em;
     color: var(--st-ink-dim);
   }
-  .head-title { padding: 32px 40px; border-right: var(--st-rule-thick); }
+  .head-title { padding: 32px 40px; }
   .meta {
     font-family: var(--st-font-mono);
     font-size: 11px;
@@ -111,12 +198,138 @@
     letter-spacing: -0.04em;
     margin: 0;
   }
-  .head-cta { padding: 32px 24px; display: flex; align-items: flex-end; }
 
-  .token-reveal {
-    padding: 20px 40px;
-    background: #001a00;
+  /* ── Sections ─────────────────────────────────────────────── */
+  .section {
+    display: grid;
+    grid-template-columns: 80px 1fr;
     border-bottom: var(--st-rule-thick);
+  }
+  .section-label {
+    border-right: var(--st-rule-thick);
+    padding: 32px 0;
+    writing-mode: vertical-rl;
+    text-orientation: mixed;
+    transform: rotate(180deg);
+    text-align: center;
+    font-family: var(--st-font-mono);
+    font-size: 10px;
+    letter-spacing: 0.25em;
+    color: var(--st-ink-dim);
+  }
+  .section-body { padding: 32px 40px; display: flex; flex-direction: column; gap: 0; }
+  .divider { border-top: var(--st-rule-thin); margin: 28px 0; }
+
+  /* ── Form rows ────────────────────────────────────────────── */
+  .form-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+  .form-row:last-child { margin-bottom: 0; }
+  .form-stack { display: flex; flex-direction: column; }
+  .field-label {
+    font-family: var(--st-font-mono);
+    font-size: 10px;
+    letter-spacing: 0.25em;
+    color: var(--st-ink-dim);
+    width: 180px;
+    flex-shrink: 0;
+  }
+  input[type="text"],
+  input[type="password"] {
+    flex: 1;
+    max-width: 400px;
+    font-family: var(--st-font-display);
+    font-size: 18px;
+    background: var(--st-bg);
+    border: var(--st-rule-thick);
+    padding: 8px 12px;
+    color: var(--st-ink);
+  }
+  .ok {
+    font-family: var(--st-font-mono);
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    color: #60cc60;
+  }
+  .err {
+    font-family: var(--st-font-mono);
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    color: #ff6060;
+  }
+
+  /* ── Preferences ──────────────────────────────────────────── */
+  .pref-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 0;
+    border-bottom: var(--st-rule-thin);
+    gap: 24px;
+  }
+  .pref-row:first-child { padding-top: 0; }
+  .pref-info { display: flex; flex-direction: column; gap: 4px; }
+  .pref-name {
+    font-family: var(--st-font-mono);
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    color: var(--st-ink);
+  }
+  .pref-desc {
+    font-family: var(--st-font-mono);
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    color: var(--st-ink-dim);
+  }
+  select {
+    font-family: var(--st-font-mono);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    background: var(--st-bg);
+    border: var(--st-rule-thick);
+    color: var(--st-ink);
+    padding: 8px 12px;
+    border-radius: 0;
+    cursor: pointer;
+  }
+  .pref-save { margin-top: 24px; }
+
+  /* Toggle switch */
+  .toggle { display: flex; align-items: center; cursor: pointer; flex-shrink: 0; }
+  .toggle input { position: absolute; opacity: 0; width: 0; height: 0; }
+  .toggle-track {
+    width: 44px;
+    height: 24px;
+    background: var(--st-bg-deep);
+    border: var(--st-rule-thick);
+    position: relative;
+    transition: background 120ms;
+  }
+  .toggle input:checked ~ .toggle-track { background: var(--st-cobalt); }
+  .toggle-thumb {
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 14px;
+    height: 14px;
+    background: var(--st-ink-dim);
+    transition: left 120ms, background 120ms;
+  }
+  .toggle input:checked ~ .toggle-track .toggle-thumb {
+    left: 23px;
+    background: var(--st-bg);
+  }
+
+  /* ── API Keys ─────────────────────────────────────────────── */
+  .keys-toolbar { margin-bottom: 20px; }
+  .token-reveal {
+    padding: 20px;
+    background: #001a00;
+    border: 1px solid #90ff90;
+    margin-bottom: 20px;
     display: flex;
     flex-direction: column;
     gap: 10px;
@@ -136,17 +349,13 @@
     border: 1px solid #90ff90;
     word-break: break-all;
   }
-  .token-hint {
-    font-family: var(--st-font-mono);
-    font-size: 11px;
-    color: #60cc60;
-  }
+  .token-hint { font-family: var(--st-font-mono); font-size: 11px; color: #60cc60; }
   .token-hint code { font-size: 12px; }
 
   .create-form {
     border-bottom: var(--st-rule-thin);
-    padding: 18px 40px;
-    background: var(--st-bg-deep);
+    padding: 0 0 20px;
+    margin-bottom: 20px;
     display: flex;
     align-items: center;
     gap: 16px;
@@ -160,6 +369,7 @@
   }
   .create-form input {
     flex: 1;
+    max-width: 320px;
     font-family: var(--st-font-display);
     font-size: 22px;
     background: var(--st-bg);
@@ -167,6 +377,7 @@
     padding: 10px 14px;
     color: var(--st-ink);
   }
+
   .btn-accent {
     background: var(--st-ink);
     color: var(--st-bg);
@@ -192,7 +403,6 @@
     white-space: nowrap;
   }
   .empty {
-    padding: 40px;
     font-family: var(--st-font-mono);
     font-size: 12px;
     color: var(--st-ink-dim);
@@ -201,17 +411,18 @@
   thead tr { border-bottom: var(--st-rule-thick); }
   th {
     text-align: left;
-    padding: 12px 40px;
+    padding: 12px 0;
     font-family: var(--st-font-mono);
     font-size: 10px;
     letter-spacing: 0.2em;
     color: var(--st-ink-dim);
     font-weight: 400;
+    padding-right: 40px;
   }
   tbody tr { border-bottom: var(--st-rule-thin); }
   tbody tr:hover { background: var(--st-bg-deep); }
-  td { padding: 16px 40px; }
-  .key-name { font-family: var(--st-font-display); font-size: 22px; }
+  td { padding: 14px 0; padding-right: 40px; }
+  .key-name { font-family: var(--st-font-display); font-size: 20px; }
   .meta-cell { font-family: var(--st-font-mono); font-size: 11px; color: var(--st-ink-dim); }
   .btn-sm {
     background: transparent;
@@ -225,4 +436,28 @@
     border-radius: 0;
   }
   .btn-sm.danger:hover { background: #2a0000; }
+
+  /* ── Mobile ───────────────────────────────────────────────── */
+  @media (max-width: 768px) {
+    .head-band { grid-template-columns: 1fr; }
+    .head-index { display: none; }
+    .head-title { padding: 20px 20px; }
+    h1 { font-size: 48px; }
+    .section { grid-template-columns: 1fr; }
+    .section-label {
+      writing-mode: horizontal-tb;
+      transform: none;
+      padding: 12px 20px;
+      text-align: left;
+      border-right: none;
+      border-bottom: var(--st-rule-thin);
+      background: var(--st-bg-deep);
+    }
+    .section-body { padding: 20px; }
+    .form-row { flex-wrap: wrap; }
+    .field-label { width: 100%; margin-bottom: 4px; }
+    input[type="text"],
+    input[type="password"] { max-width: 100%; }
+    .pref-row { gap: 12px; }
+  }
 </style>

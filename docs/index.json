@@ -1,0 +1,22 @@
+[
+  {"path":"guide/getting-started.md","title":"Getting Started","tags":["guide","gui"],"summary":"First login, create deck, prompt the agent"},
+  {"path":"guide/decks.md","title":"Decks","tags":["guide","gui"],"summary":"Create, duplicate, share, collaborate, export PDF"},
+  {"path":"guide/slides.md","title":"Slides","tags":["guide","gui"],"summary":"Slide types, editing fields, reordering"},
+  {"path":"guide/themes.md","title":"Themes","tags":["guide","gui"],"summary":"Color tokens, system prompt, applying themes"},
+  {"path":"guide/agent.md","title":"Agent","tags":["guide","gui"],"summary":"Chat, undo history, cross-session memory, prompting tips"},
+  {"path":"guide/admin.md","title":"Admin","tags":["guide","gui","admin"],"summary":"User management, API keys"},
+  {"path":"cli/README.md","title":"CLI Setup","tags":["cli","agent"],"summary":"Auth setup, SLIDT_API_KEY, SLIDT_URL, global flags"},
+  {"path":"cli/deck.md","title":"CLI: deck","tags":["cli","agent"],"summary":"deck list/get/create/patch/delete/duplicate/collaborator"},
+  {"path":"cli/slide.md","title":"CLI: slide","tags":["cli","agent"],"summary":"slide list/get/add/patch/delete/reorder"},
+  {"path":"cli/theme.md","title":"CLI: theme","tags":["cli","agent"],"summary":"theme list/get/create/patch/delete/validate + system prompt"},
+  {"path":"cli/template.md","title":"CLI: template","tags":["cli","agent"],"summary":"template list/get/create/patch/delete/validate"},
+  {"path":"cli/agent.md","title":"CLI: agent","tags":["cli","agent"],"summary":"agent chat with --json/--quiet/--no-stream modes"},
+  {"path":"cli/key.md","title":"CLI: key","tags":["cli","agent"],"summary":"API key list/create/revoke"},
+  {"path":"cli/export.md","title":"CLI: export","tags":["cli","agent"],"summary":"PDF export"},
+  {"path":"reference/slide-types.md","title":"Slide Types Reference","tags":["reference"],"summary":"Built-in types with field schemas and data shapes"},
+  {"path":"reference/field-types.md","title":"Field Types Reference","tags":["reference"],"summary":"text, richtext, list, group — JSON data shapes and rules"},
+  {"path":"reference/handlebars.md","title":"Handlebars Reference","tags":["reference"],"summary":"Allowed helpers, fmt usage, list/group patterns, anti-patterns"},
+  {"path":"reference/theme-tokens.md","title":"Theme Tokens Reference","tags":["reference"],"summary":"CSS variable naming, antal-theta-default full palette"},
+  {"path":"reference/sse-events.md","title":"SSE Events Reference","tags":["reference","agent"],"summary":"All streaming event types from /api/decks/:id/agent"},
+  {"path":"reference/collaborators.md","title":"Collaborator Roles","tags":["reference"],"summary":"owner/editor/viewer permission matrix for all operations"}
+]

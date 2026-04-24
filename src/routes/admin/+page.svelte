@@ -105,6 +105,46 @@
   </tbody>
 </table>
 
+<!-- ── Issues ──────────────────────────────────────────────── -->
+<div class="section-head">
+  <span class="section-label">ISSUES</span>
+  <span class="section-count">{data.issues.length} total · {data.issues.filter(i => i.status === 'open').length} open</span>
+</div>
+
+{#if data.issues.length === 0}
+  <p class="empty">No issues reported yet.</p>
+{:else}
+  {#each data.issues as issue (issue.id)}
+    <div class="issue-row" class:resolved={issue.status === 'resolved'}>
+      <div class="issue-meta">
+        <span class="issue-sev sev-{issue.severity}">{issue.severity.toUpperCase()}</span>
+        <span class="issue-status">{issue.status}</span>
+        <span class="issue-date">{new Date(issue.createdAt).toLocaleDateString('da-DK')}</span>
+        {#if issue.deckId}
+          <a class="issue-deck" href="/decks/{issue.deckId}" target="_blank">deck ↗</a>
+        {/if}
+      </div>
+      <div class="issue-title">{issue.title}</div>
+      {#if issue.body}
+        <div class="issue-body">{issue.body}</div>
+      {/if}
+      <div class="issue-actions">
+        {#if issue.status === 'open'}
+          <form method="POST" action="?/resolveIssue" use:enhance class="inline-form">
+            <input type="hidden" name="id" value={issue.id} />
+            <button type="submit" class="btn-sm">Resolve</button>
+          </form>
+        {/if}
+        <form method="POST" action="?/deleteIssue" use:enhance class="inline-form"
+          onsubmit={(e) => { if (!confirm('Delete this issue?')) e.preventDefault(); }}>
+          <input type="hidden" name="id" value={issue.id} />
+          <button type="submit" class="btn-sm danger">Delete</button>
+        </form>
+      </div>
+    </div>
+  {/each}
+{/if}
+
 <style>
   .head-band {
     display: grid;
@@ -266,5 +306,85 @@
     font-size: 12px;
     border-radius: 0;
     width: 140px;
+  }
+
+  /* ── Issues ── */
+  .section-head {
+    display: flex;
+    align-items: baseline;
+    gap: 16px;
+    padding: 24px 20px 12px;
+    border-top: var(--st-rule-thick);
+  }
+  .section-label {
+    font-family: var(--st-font-mono);
+    font-size: 10px;
+    letter-spacing: 0.25em;
+    color: var(--st-ink-dim);
+  }
+  .section-count {
+    font-family: var(--st-font-mono);
+    font-size: 11px;
+    color: var(--st-ink-dim);
+  }
+  .empty {
+    padding: 24px 20px;
+    font-family: var(--st-font-mono);
+    font-size: 12px;
+    color: var(--st-ink-dim);
+  }
+  .issue-row {
+    padding: 16px 20px;
+    border-bottom: var(--st-rule-thin);
+  }
+  .issue-row.resolved { opacity: 0.45; }
+  .issue-meta {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 6px;
+  }
+  .issue-sev {
+    font-family: var(--st-font-mono);
+    font-size: 9px;
+    letter-spacing: 0.2em;
+    padding: 2px 7px;
+    border: 1px solid;
+  }
+  .sev-low    { border-color: var(--st-ink-dim); color: var(--st-ink-dim); }
+  .sev-medium { border-color: orange; color: orange; }
+  .sev-high   { border-color: #ff6060; color: #ff6060; }
+  .issue-status {
+    font-family: var(--st-font-mono);
+    font-size: 10px;
+    color: var(--st-ink-dim);
+    letter-spacing: 0.1em;
+  }
+  .issue-date {
+    font-family: var(--st-font-mono);
+    font-size: 10px;
+    color: var(--st-ink-dim);
+  }
+  .issue-deck {
+    font-family: var(--st-font-mono);
+    font-size: 10px;
+    color: var(--st-cobalt);
+  }
+  .issue-title {
+    font-family: var(--st-font-display);
+    font-size: 18px;
+    margin-bottom: 4px;
+  }
+  .issue-body {
+    font-family: var(--st-font-mono);
+    font-size: 12px;
+    color: var(--st-ink-dim);
+    white-space: pre-wrap;
+    margin-bottom: 8px;
+  }
+  .issue-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 8px;
   }
 </style>

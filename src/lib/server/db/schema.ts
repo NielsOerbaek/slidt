@@ -105,6 +105,17 @@ export const sessions = pgTable('sessions', {
   expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
 });
 
+export const issues = pgTable('issues', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('user_id').references(() => users.id, { onDelete: 'set null' }),
+  deckId: uuid('deck_id').references(() => decks.id, { onDelete: 'set null' }),
+  title: text('title').notNull(),
+  body: text('body').notNull().default(''),
+  severity: text('severity').notNull().default('medium').$type<'low' | 'medium' | 'high'>(),
+  status: text('status').notNull().default('open').$type<'open' | 'resolved'>(),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+});
+
 export const deckCollaborators = pgTable('deck_collaborators', {
   id: uuid('id').primaryKey().defaultRandom(),
   deckId: uuid('deck_id').notNull().references(() => decks.id, { onDelete: 'cascade' }),

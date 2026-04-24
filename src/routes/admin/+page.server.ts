@@ -1,8 +1,8 @@
 import type { Actions, PageServerLoad } from './$types.js';
 import { error, fail } from '@sveltejs/kit';
-import { db, users, sessions } from '$lib/server/db/index.ts';
+import { db, users, sessions, issues } from '$lib/server/db/index.ts';
 import { eq, desc } from 'drizzle-orm';
-import { hashPassword, createApiKey, listApiKeys } from '$lib/server/auth.ts';
+import { hashPassword } from '$lib/server/auth.ts';
 
 function requireAdmin(locals: App.Locals) {
   if (!locals.user) throw error(401, 'Not authenticated');
@@ -21,7 +21,21 @@ export const load: PageServerLoad = async ({ locals }) => {
     })
     .from(users)
     .orderBy(desc(users.lastSeenAt));
-  return { users: allUsers };
+  const allIssues = await db
+    .select({
+      id: issues.id,
+      title: issues.title,
+      body: issues.body,
+      severity: issues.severity,
+      status: issues.status,
+      createdAt: issues.createdAt,
+      userId: issues.userId,
+      deckId: issues.deckId,
+    })
+    .from(issues)
+    .orderBy(desc(issues.createdAt));
+
+  return { users: allUsers, issues: allIssues };
 };
 
 export const actions: Actions = {
@@ -76,5 +90,23 @@ export const actions: Actions = {
     // Invalidate all sessions for this user
     await db.delete(sessions).where(eq(sessions.userId, id));
     return { success: true, action: 'resetPassword' };
+  },
+
+  resolveIssue: async ({ locals, request }) => {
+    requireAdmin(locals);
+    const fd = await request.formData();
+    const id = fd.get('id') as string;
+    if (!id) return fail(400, { error: 'id required' });
+    await db.update(issues).set({ status: 'resolved' }).where(eq(issues.id, id));
+    return { success: true, action: 'resolveIssue' };
+  },
+
+  deleteIssue: async ({ locals, request }) => {
+    requireAdmin(locals);
+    const fd = await request.formData();
+    const id = fd.get('id') as string;
+    if (!id) return fail(400, { error: 'id required' });
+    await db.delete(issues).where(eq(issues.id, id));
+    return { success: true, action: 'deleteIssue' };
   },
 };

@@ -1,4 +1,4 @@
-import { db, decks, slides, slideTypes, themes } from '$lib/server/db/index.ts';
+import { db, decks, slides, slideTypes, themes, issues } from '$lib/server/db/index.ts';
 import { eq, and, or, inArray } from 'drizzle-orm';
 import { checkHandlebarsTemplate, checkCss } from '$lib/server/agent/guardrails.ts';
 import { validate, ValidationError } from '../../../renderer/validate.ts';
@@ -188,6 +188,24 @@ export const AGENT_TOOLS: ToolDefinition[] = [
     input_schema: { type: 'object', properties: {}, required: [] },
   },
   {
+    name: 'report_issue',
+    description:
+      'Submit a bug report or feedback about the slidt platform itself (not deck content). Use this when you encounter a platform limitation, unexpected behavior, a missing feature, or something that seems broken. Admins review these reports.',
+    input_schema: {
+      type: 'object',
+      properties: {
+        title: { type: 'string', description: 'Short one-line summary of the issue' },
+        body: { type: 'string', description: 'Full description: what happened, what was expected, any relevant context' },
+        severity: {
+          type: 'string',
+          enum: ['low', 'medium', 'high'],
+          description: 'low = minor inconvenience, medium = blocks some work, high = critical failure',
+        },
+      },
+      required: ['title', 'body'],
+    },
+  },
+  {
     name: 'inspect_slide_type',
     description:
       "Render a slide type and return a PNG screenshot you can look at. Pass slideId to render an existing slide's actual data (use this after add_slide to see how real content fits the template); omit slideId to render with auto-generated dummy data (use this right after create_slide_type or patch_slide_type to verify the template). Always call this when you've created or modified a template, or when you've added the first slide of a slide type you haven't seen render before.",
@@ -211,6 +229,7 @@ export async function executeTool(
   deckId: string,
   toolName: string,
   input: ToolInput,
+  userId?: string,
 ): Promise<ToolResult> {
   switch (toolName) {
     case 'list_slides': {
@@ -522,6 +541,23 @@ export async function executeTool(
           ),
         );
       return { result: JSON.stringify(rows, null, 2) };
+    }
+
+    case 'report_issue': {
+      const title = (input.title as string)?.trim();
+      const body = (input.body as string)?.trim() ?? '';
+      const severity = (['low', 'medium', 'high'].includes(input.severity as string)
+        ? input.severity
+        : 'medium') as 'low' | 'medium' | 'high';
+      if (!title) return { result: 'error: title is required' };
+      await db.insert(issues).values({
+        userId: userId ?? null,
+        deckId,
+        title,
+        body,
+        severity,
+      });
+      return { result: `ok — issue reported: "${title}"` };
     }
 
     default:

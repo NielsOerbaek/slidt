@@ -203,6 +203,7 @@ export function runAgentStream(
                 deckId,
                 toolUse.name,
                 toolUse.input as Record<string, unknown>,
+                userId,
               );
               emit({
                 type: 'tool_done',

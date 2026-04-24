@@ -105,50 +105,82 @@
   input[type="text"], select {
     width: 100%;
     padding: 8px 10px;
-    border: 1px solid #ddd;
-    border-radius: 6px;
+    border: 2px solid var(--st-ink);
+    background: var(--st-bg);
+    color: var(--st-ink);
+    border-radius: 0;
+    font: inherit;
     font-size: 14px;
   }
   input[type="text"]:focus, select:focus, textarea:focus {
-    outline: 2px solid #6e31ff;
-    border-color: transparent;
+    outline: 2px solid var(--st-cobalt);
+    outline-offset: -2px;
+    border-color: var(--st-ink);
   }
   textarea {
     width: 100%;
     padding: 8px 10px;
-    border: 1px solid #ddd;
-    border-radius: 6px;
+    border: 2px solid var(--st-ink);
+    background: var(--st-bg);
+    color: var(--st-ink);
+    border-radius: 0;
+    font: inherit;
     font-size: 14px;
     resize: vertical;
-    font-family: inherit;
   }
-  .bool-label { display: flex; align-items: center; gap: 8px; font-size: 14px; }
-  .list-field { display: flex; flex-direction: column; gap: 6px; }
-  .list-row { display: flex; gap: 6px; align-items: flex-start; }
+  .bool-label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: var(--st-font-mono);
+    font-size: 12px;
+    letter-spacing: 0.06em;
+  }
+  .list-field { display: flex; flex-direction: column; gap: 8px; }
+  .list-row { display: flex; gap: 8px; align-items: flex-start; }
   .list-row > :global(*:first-child) { flex: 1; }
   .remove-btn {
     flex-shrink: 0;
-    background: none;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    padding: 6px 8px;
+    background: var(--st-bg);
+    border: 2px solid var(--st-ink);
+    border-radius: 0;
+    padding: 4px 10px;
     cursor: pointer;
-    color: #888;
+    color: var(--st-ink-dim);
     line-height: 1;
+    font-family: var(--st-font-mono);
+    font-size: 14px;
   }
-  .remove-btn:hover { color: #e00; border-color: #fcc; }
+  .remove-btn:hover { color: var(--st-bg); background: var(--st-ink); }
   .add-item-btn {
-    background: none;
-    border: 1px dashed #ccc;
-    border-radius: 6px;
-    padding: 6px 12px;
-    font-size: 13px;
-    color: #666;
+    background: transparent;
+    border: 2px dashed var(--st-ink-dim);
+    border-radius: 0;
+    padding: 8px 12px;
+    font-family: var(--st-font-mono);
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--st-ink-dim);
     cursor: pointer;
     width: 100%;
   }
-  .add-item-btn:hover { border-color: #6e31ff; color: #6e31ff; }
-  .group-field { display: flex; flex-direction: column; gap: 10px; padding: 12px; background: #f9f9fb; border-radius: 8px; border: 1px solid #eee; }
-  .group-row { display: flex; flex-direction: column; gap: 4px; }
-  .sub-label { font-size: 12px; font-weight: 500; color: #666; text-transform: capitalize; }
+  .add-item-btn:hover { border-color: var(--st-cobalt); color: var(--st-cobalt); }
+  .group-field {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 14px;
+    background: var(--st-bg-deep);
+    border: 2px solid var(--st-ink);
+    border-radius: 0;
+  }
+  .group-row { display: flex; flex-direction: column; gap: 6px; }
+  .sub-label {
+    font-family: var(--st-font-mono);
+    font-size: 10px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--st-ink-dim);
+  }
 </style>

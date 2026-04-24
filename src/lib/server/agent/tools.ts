@@ -6,6 +6,9 @@ import type { Field } from '../../../renderer/types.ts';
 export interface ToolResult {
   result: string;
   undoPatch?: unknown;
+  /** Optional image attached to the tool result, surfaced to the model so it
+   *  can visually inspect renderer output. */
+  image?: { base64: string; mediaType: 'image/png' };
 }
 
 interface ToolDefinition {
@@ -130,6 +133,18 @@ export const AGENT_TOOLS: ToolDefinition[] = [
     name: 'list_slide_types',
     description: 'List all slide types available for this deck (global + deck-scoped).',
     input_schema: { type: 'object', properties: {}, required: [] },
+  },
+  {
+    name: 'inspect_slide_type',
+    description:
+      'Render the given slide type with auto-generated dummy data and return a PNG screenshot you can look at. Call this immediately after create_slide_type (and after any patch_slide_type) to visually verify the template — check for overflow, missing content, wrong colors, broken layout — and iterate until it looks right.',
+    input_schema: {
+      type: 'object',
+      properties: {
+        id: { type: 'string', description: 'SlideType ID (UUID), e.g. the id returned from create_slide_type' },
+      },
+      required: ['id'],
+    },
   },
 ];
 
@@ -311,6 +326,21 @@ export async function executeTool(
           .trim()
           .slice(0, 8000);
         return { result: text };
+      } catch (err) {
+        return { result: `error: ${err instanceof Error ? err.message : String(err)}` };
+      }
+    }
+
+    case 'inspect_slide_type': {
+      const id = input.id as string;
+      try {
+        const { screenshotSlideType } = await import('$lib/server/screenshot.ts');
+        const png = await screenshotSlideType(id, deckId);
+        const base64 = png.toString('base64');
+        return {
+          result: `ok — rendered ${png.byteLength} bytes at 1920x1080`,
+          image: { base64, mediaType: 'image/png' },
+        };
       } catch (err) {
         return { result: `error: ${err instanceof Error ? err.message : String(err)}` };
       }

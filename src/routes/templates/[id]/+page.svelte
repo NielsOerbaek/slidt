@@ -6,6 +6,9 @@
   import { buildDummyData } from '$lib/utils/field-defaults.ts';
   import type { SlideType, Theme } from '../../../renderer/types.ts';
 
+  import STBtn from '$lib/components/st/STBtn.svelte';
+  import { t } from '$lib/i18n/index.ts';
+
   let { data, form }: { data: PageData; form: ActionData } = $props();
 
   let label = $state(data.slideType.label);
@@ -62,7 +65,7 @@
 <svelte:head><title>{data.slideType.label} — Templates — slidt</title></svelte:head>
 
 <div class="page">
-  <div class="breadcrumb"><a href="/templates">Templates</a> / {data.slideType.name}</div>
+  <div class="breadcrumb"><a href="/templates">{t('template_edit.crumb')}</a> / {data.slideType.name}</div>
 
   <div class="layout">
     <form
@@ -82,14 +85,14 @@
       <div class="form-toolbar">
         <input class="label-input" type="text" name="label" bind:value={label} />
         <span class="type-name">{data.slideType.name}</span>
-        <button type="submit" class="btn-save">{saved ? '✓ Saved' : 'Save'}</button>
+        <STBtn type="submit" variant="accent">{saved ? t('theme_edit.saved') : t('theme_edit.save')}</STBtn>
       </div>
 
       {#if form?.error}<p class="error">{form.error}</p>{/if}
 
       <div class="editors">
         <div class="editor-section">
-          <label class="editor-label">Fields (JSON)</label>
+          <label class="editor-label">{t('template_edit.fields_label')}</label>
           {#if fieldsError}<p class="inline-error">{fieldsError}</p>{/if}
           <textarea
             class="code-editor"
@@ -101,7 +104,7 @@
         </div>
 
         <div class="editor-section">
-          <label class="editor-label">Handlebars template</label>
+          <label class="editor-label">{t('template_edit.template_label')}</label>
           <textarea
             class="code-editor"
             bind:value={htmlTemplate}
@@ -111,7 +114,7 @@
         </div>
 
         <div class="editor-section">
-          <label class="editor-label">CSS (auto-scoped to .st-{data.slideType.name})</label>
+          <label class="editor-label">{t('template_edit.css_label', { name: data.slideType.name })}</label>
           <textarea
             class="code-editor"
             bind:value={css}
@@ -123,7 +126,7 @@
     </form>
 
     <div class="preview-col">
-      <p class="preview-label">Live preview (dummy data)</p>
+      <p class="preview-label">{t('template_edit.preview_label')}</p>
       <SlidePreview
         slideType={previewSlideType}
         slideData={previewData}
@@ -134,31 +137,76 @@
 </div>
 
 <style>
-  .page { max-width: 1200px; margin: 0 auto; padding: 32px 24px; }
-  .breadcrumb { font-size: 13px; color: #888; margin-bottom: 20px; }
-  .breadcrumb a { color: #6e31ff; text-decoration: none; }
+  .page { padding: 32px 40px; }
+  .breadcrumb {
+    font-family: var(--st-font-mono);
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    color: var(--st-ink-dim);
+    margin-bottom: 20px;
+  }
+  .breadcrumb a { color: var(--st-cobalt); text-decoration: none; }
   .layout { display: grid; grid-template-columns: 1fr 380px; gap: 32px; }
-  .form-toolbar { display: flex; gap: 12px; align-items: center; margin-bottom: 20px; }
-  .label-input { flex: 1; padding: 8px 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 16px; font-weight: 600; }
-  .type-name { font-family: monospace; font-size: 13px; color: #888; }
-  .btn-save { background: #6e31ff; color: white; border: none; border-radius: 8px; padding: 10px 20px; font-size: 14px; font-weight: 600; cursor: pointer; }
-  .error, .inline-error { color: #c00; font-size: 12px; margin: 0 0 6px; }
-  .editors { display: flex; flex-direction: column; gap: 16px; }
-  .editor-section { display: flex; flex-direction: column; gap: 4px; }
-  .editor-label { font-size: 12px; font-weight: 600; color: #666; text-transform: uppercase; letter-spacing: 0.06em; }
+  .form-toolbar { display: flex; gap: 12px; align-items: center; margin-bottom: 24px; }
+  .label-input {
+    flex: 1;
+    padding: 10px 14px;
+    border: 3px solid var(--st-ink);
+    background: var(--st-bg);
+    color: var(--st-ink);
+    border-radius: 0;
+    font-family: var(--st-font-display);
+    font-size: 22px;
+  }
+  .type-name {
+    font-family: var(--st-font-mono);
+    font-size: 11px;
+    letter-spacing: 0.16em;
+    color: var(--st-ink-dim);
+  }
+  .error, .inline-error {
+    color: var(--st-ink);
+    background: var(--st-bg-deep);
+    padding: 6px 10px;
+    border-left: 3px solid var(--st-ink);
+    font-family: var(--st-font-mono);
+    font-size: 11px;
+    margin: 0 0 6px;
+  }
+  .editors { display: flex; flex-direction: column; gap: 18px; }
+  .editor-section { display: flex; flex-direction: column; gap: 6px; }
+  .editor-label {
+    font-family: var(--st-font-mono);
+    font-size: 10px;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--st-ink-dim);
+  }
   .code-editor {
-    font-family: 'Menlo', 'Monaco', 'Courier New', monospace;
+    font-family: var(--st-font-mono);
     font-size: 13px;
     line-height: 1.5;
     padding: 12px;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    background: #1a1a2e;
-    color: #e8e8f8;
+    border: 3px solid var(--st-ink);
+    border-radius: 0;
+    background: var(--st-ink);
+    color: var(--st-bg);
     resize: vertical;
     width: 100%;
   }
-  .code-editor:focus { outline: 2px solid #6e31ff; border-color: transparent; }
-  .preview-col { display: flex; flex-direction: column; gap: 8px; position: sticky; top: 72px; }
-  .preview-label { font-size: 12px; font-weight: 600; color: #888; text-transform: uppercase; letter-spacing: 0.06em; margin: 0; }
+  .code-editor:focus { outline: 2px solid var(--st-cobalt); outline-offset: -2px; }
+  .preview-col {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    position: sticky;
+    top: 72px;
+  }
+  .preview-label {
+    font-family: var(--st-font-mono);
+    font-size: 10px;
+    letter-spacing: 0.25em;
+    color: var(--st-ink-dim);
+    margin: 0;
+  }
 </style>

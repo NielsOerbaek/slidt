@@ -1,0 +1,17 @@
+/* Swiss-terminal design tokens. Imported once from src/routes/+layout.svelte.
+   Slide-content tokens live in src/themes/*.ts and are unaffected. */
+:root {
+  --st-bg: #fafaf7;
+  --st-bg-deep: #f0efe8;
+  --st-ink: #080807;
+  --st-ink-dim: #6a685f;
+  --st-cobalt: #1440d4;
+  --st-hilite: #fff4b8;
+
+  --st-rule-thick: 3px solid var(--st-ink);
+  --st-rule-thin: 1px solid var(--st-ink);
+  --st-rule-medium: 2px solid var(--st-ink);
+
+  --st-font-display: 'Neureal', 'Inter', sans-serif;
+  --st-font-mono: 'JetBrains Mono', ui-monospace, monospace;
+}

@@ -1,67 +1,209 @@
 <script lang="ts">
   import { enhance } from '$app/forms';
   import type { ActionData } from './$types.js';
+  import STMetaBar from '$lib/components/st/STMetaBar.svelte';
+  import STBtn from '$lib/components/st/STBtn.svelte';
+  import STFace from '$lib/components/st/STFace.svelte';
+  import { t } from '$lib/i18n/index.ts';
 
   let { form }: { form: ActionData } = $props();
 </script>
 
-<svelte:head><title>Log in — slidt</title></svelte:head>
+<svelte:head><title>{t('login.title')}</title></svelte:head>
 
-<div class="login-wrap">
-  <div class="login-card">
-    <h1>-_-</h1>
-    <p class="sub">Sign in to continue</p>
+<div class="login">
+  <STMetaBar index="00">
+    <span>{t('meta.product')}</span>
+    <span class="dim">·</span>
+    <span class="dim">{t('meta.internal')}</span>
+    <span class="dim">·</span>
+    <span class="dim">{t('meta.version')}</span>
+    {#snippet right()}<span>{t('meta.cph')}</span>{/snippet}
+  </STMetaBar>
 
-    {#if form?.error}
-      <p class="error" role="alert">{form.error}</p>
-    {/if}
+  <div class="body">
+    <aside class="gutter">
+      <span>A</span>
+      <span>B</span>
+      <span>C</span>
+      <span class="spacer"></span>
+      <span>—</span>
+    </aside>
 
-    <form method="POST" use:enhance>
-      <label>
-        Email
-        <input type="email" name="email" required autocomplete="email" />
-      </label>
-      <label>
-        Password
-        <input type="password" name="password" required autocomplete="current-password" />
-      </label>
-      <button type="submit">Log in</button>
-    </form>
+    <section class="hero">
+      <div class="tag">{t('login.tag')}</div>
+      <div class="word">slidt</div>
+      <div class="mark">-_-</div>
+    </section>
+
+    <aside class="form-side">
+      <div class="form-tag">{t('login.form_tag')}</div>
+
+      {#if form?.error}
+        <div class="error" role="alert">{form.error}</div>
+      {/if}
+
+      <form method="POST" use:enhance>
+        <label class="field">
+          <span class="label">{t('login.email_label')}</span>
+          <span class="value">
+            <input type="email" name="email" required autocomplete="email" />
+          </span>
+        </label>
+
+        <label class="field">
+          <span class="label">{t('login.password_label')}</span>
+          <span class="value">
+            <input type="password" name="password" required autocomplete="current-password" />
+          </span>
+        </label>
+
+        <STBtn type="submit" variant="accent" size="lg" block>
+          {t('login.submit')}
+        </STBtn>
+      </form>
+
+      <div class="agent-row">
+        <STFace size={22} color="var(--st-cobalt)" />
+        <span class="agent-line">{t('login.agent_ready')}</span>
+      </div>
+
+      <div class="footer">{t('login.help')}</div>
+    </aside>
   </div>
 </div>
 
 <style>
-  .login-wrap {
+  .login {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background: var(--st-bg);
+  }
+  .dim { color: var(--st-ink-dim); }
+
+  .body {
+    display: grid;
+    grid-template-columns: 80px 1fr 440px;
+    flex: 1;
+    min-height: 0;
+  }
+
+  .gutter {
+    border-right: var(--st-rule-thick);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 40px 0;
+    gap: 80px;
+    font-family: var(--st-font-mono);
+    font-size: 11px;
+    letter-spacing: 0.22em;
+    color: var(--st-ink-dim);
+  }
+  .gutter .spacer { flex: 1; }
+
+  .hero {
+    padding: 48px;
+    border-right: var(--st-rule-thick);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+  .tag {
+    font-family: var(--st-font-mono);
+    font-size: 12px;
+    letter-spacing: 0.3em;
+    color: var(--st-cobalt);
+    margin-bottom: 20px;
+  }
+  .word {
+    font-family: var(--st-font-display);
+    font-size: clamp(120px, 18vw, 240px);
+    line-height: 0.9;
+    letter-spacing: -0.05em;
+  }
+  .mark {
+    font-family: var(--st-font-mono);
+    font-size: clamp(100px, 15vw, 200px);
+    line-height: 1;
+    letter-spacing: 0.02em;
+    color: var(--st-ink-dim);
+    margin-top: 12px;
+  }
+
+  .form-side {
+    padding: 44px;
+    background: var(--st-bg-deep);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+  .form-tag {
+    font-family: var(--st-font-mono);
+    font-size: 11px;
+    letter-spacing: 0.3em;
+    color: var(--st-cobalt);
+    margin-bottom: 32px;
+  }
+  .error {
+    border: var(--st-rule-thin);
+    padding: 10px 14px;
+    margin-bottom: 16px;
+    color: var(--st-ink);
+    font-family: var(--st-font-mono);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    background: var(--st-bg);
+  }
+  .field {
+    display: block;
+    margin-bottom: 24px;
+  }
+  .label {
+    display: block;
+    font-family: var(--st-font-mono);
+    font-size: 10px;
+    letter-spacing: 0.25em;
+    color: var(--st-ink-dim);
+    margin-bottom: 8px;
+  }
+  .value {
+    display: block;
+    background: var(--st-bg);
+    border: var(--st-rule-thick);
+    padding: 12px 14px;
+  }
+  .value input {
+    font: inherit;
+    font-size: 18px;
+    width: 100%;
+    background: transparent;
+    border: 0;
+    outline: 0;
+    color: var(--st-ink);
+    letter-spacing: 0;
+  }
+  .value input[type="password"] { letter-spacing: 0.3em; }
+
+  .agent-row {
+    margin-top: 36px;
     display: flex;
     align-items: center;
-    justify-content: center;
-    min-height: 100vh;
-    background: #f0eeff;
+    gap: 12px;
   }
-  .login-card {
-    background: white;
-    border-radius: 12px;
-    padding: 40px 48px;
-    width: 360px;
-    box-shadow: 0 4px 24px rgba(110,49,255,0.12);
+  .agent-line {
+    font-family: var(--st-font-mono);
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    color: var(--st-ink-dim);
   }
-  h1 { font-size: 32px; font-weight: 700; color: #6e31ff; margin: 0 0 4px; font-family: monospace, ui-monospace; letter-spacing: -1px; }
-  .sub { color: #666; margin: 0 0 28px; font-size: 14px; }
-  .error { color: #c00; background: #fff0f0; border: 1px solid #fcc; border-radius: 6px; padding: 8px 12px; font-size: 13px; margin-bottom: 16px; }
-  label { display: flex; flex-direction: column; gap: 6px; font-size: 13px; font-weight: 500; color: #444; margin-bottom: 16px; }
-  input { padding: 10px 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 15px; outline-offset: 2px; }
-  input:focus { outline: 2px solid #6e31ff; border-color: transparent; }
-  button[type="submit"] {
-    width: 100%;
-    padding: 12px;
-    background: #6e31ff;
-    color: white;
-    border: none;
-    border-radius: 8px;
-    font-size: 15px;
-    font-weight: 600;
-    cursor: pointer;
-    margin-top: 8px;
+
+  .footer {
+    margin-top: 24px;
+    font-family: var(--st-font-mono);
+    font-size: 10px;
+    letter-spacing: 0.22em;
+    color: var(--st-ink-dim);
   }
-  button[type="submit"]:hover { background: #5a28d4; }
 </style>

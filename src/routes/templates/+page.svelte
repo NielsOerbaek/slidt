@@ -1,37 +1,104 @@
 <script lang="ts">
   import type { PageData } from './$types.js';
+  import { t } from '$lib/i18n/index.ts';
   let { data }: { data: PageData } = $props();
 </script>
 
-<svelte:head><title>Templates — slidt</title></svelte:head>
+<svelte:head><title>{t('templates.title')}</title></svelte:head>
 
-<div class="page">
-  <div class="page-header">
-    <h1>Templates</h1>
+<div class="head-band">
+  <div class="head-index">§03</div>
+  <div class="head-title">
+    <div class="meta">{t('templates.items_label')} {String(data.slideTypes.length).padStart(2, '0')} {t('themes.items_suffix')}</div>
+    <h1>{t('templates.headline')}</h1>
   </div>
-  <ul class="list">
-    {#each data.slideTypes as st (st.id)}
-      <li class="item">
-        <a href="/templates/{st.id}">
-          <span class="name">{st.label}</span>
-          <span class="code">{st.name}</span>
-        </a>
-        <span class="badge {st.scope}">{st.scope}</span>
-      </li>
-    {/each}
-  </ul>
 </div>
 
+<ul class="list">
+  {#each data.slideTypes as st (st.id)}
+    <li class="row">
+      <a href="/templates/{st.id}" class="row-link">
+        <span class="name">{st.label}</span>
+        <span class="code">{st.name}</span>
+      </a>
+      <span class="scope-badge {st.scope}">{st.scope.toUpperCase()}</span>
+    </li>
+  {/each}
+</ul>
+
 <style>
-  .page { max-width: 720px; margin: 0 auto; padding: 40px 24px; }
-  .page-header { margin-bottom: 24px; }
-  h1 { font-size: 28px; font-weight: 700; margin: 0; }
-  .list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 8px; }
-  .item { background: white; border: 1px solid #eee; border-radius: 10px; padding: 14px 20px; display: flex; align-items: center; justify-content: space-between; }
-  .item a { display: flex; flex-direction: column; gap: 2px; text-decoration: none; color: inherit; }
-  .name { font-size: 15px; font-weight: 600; color: #1a1a2e; }
-  .code { font-size: 12px; color: #888; font-family: monospace; }
-  .badge { font-size: 11px; font-weight: 600; padding: 3px 8px; border-radius: 4px; }
-  .badge.global { background: #e8f4ff; color: #0066cc; }
-  .badge.deck { background: #f0eeff; color: #6e31ff; }
+  .head-band {
+    display: grid;
+    grid-template-columns: 80px 1fr;
+    border-bottom: var(--st-rule-thick);
+  }
+  .head-index {
+    border-right: var(--st-rule-thick);
+    padding: 36px 0;
+    text-align: center;
+    font-family: var(--st-font-mono);
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    color: var(--st-ink-dim);
+  }
+  .head-title { padding: 32px 40px; }
+  .meta {
+    font-family: var(--st-font-mono);
+    font-size: 11px;
+    letter-spacing: 0.25em;
+    color: var(--st-ink-dim);
+    margin-bottom: 10px;
+  }
+  h1 {
+    font-family: var(--st-font-display);
+    font-weight: 400;
+    font-size: 76px;
+    line-height: 0.9;
+    letter-spacing: -0.04em;
+    margin: 0;
+  }
+
+  .list { list-style: none; padding: 0; margin: 0; }
+  .row {
+    display: grid;
+    grid-template-columns: 80px 1fr auto;
+    border-bottom: var(--st-rule-thin);
+    background: var(--st-bg);
+  }
+  .row::before {
+    content: '';
+    border-right: var(--st-rule-thick);
+  }
+  .row-link {
+    padding: 20px;
+    text-decoration: none;
+    color: inherit;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    border-right: var(--st-rule-thin);
+  }
+  .row-link:hover { background: var(--st-bg-deep); }
+  .name {
+    font-family: var(--st-font-display);
+    font-size: 24px;
+    letter-spacing: -0.02em;
+  }
+  .code {
+    font-family: var(--st-font-mono);
+    font-size: 11px;
+    letter-spacing: 0.16em;
+    color: var(--st-ink-dim);
+  }
+  .scope-badge {
+    align-self: center;
+    margin-right: 22px;
+    font-family: var(--st-font-mono);
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    padding: 4px 10px;
+    border: 2px solid var(--st-ink);
+  }
+  .scope-badge.global { background: var(--st-bg); color: var(--st-ink); }
+  .scope-badge.deck { background: var(--st-cobalt); color: var(--st-bg); border-color: var(--st-cobalt); }
 </style>

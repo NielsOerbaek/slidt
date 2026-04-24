@@ -20,12 +20,15 @@ Template rules (IMPORTANT — violations cause "[object Object]" in output):
 - For list fields (type: "list"), iterate with {{#each items}}...{{/each}} and access string properties inside: {{fmt this.propertyName}}
 - For group fields (type: "group"), access each sub-field directly: {{fmt field.subField}}
 - Always call list_slide_types before add_slide to check the exact field names and types for that slide type
-- When add_slide data must contain a list field, pass an array of strings or objects matching the field schema — never a plain string`;
+- When add_slide data must contain a list field, pass an array of strings or objects matching the field schema — never a plain string
+
+Visual verification:
+- Immediately after create_slide_type (or any change to a slide type's template/css), call inspect_slide_type with the new id to see how it actually renders. The tool returns a PNG you should look at — check for overflow, missing content, wrong colors, broken layout, text outside the slide frame. Iterate until it looks right before reporting back.`;
 
 type SseEvent =
   | { type: 'text'; delta: string }
   | { type: 'tool_start'; tool: string; toolUseId: string; input: unknown }
-  | { type: 'tool_done'; tool: string; toolUseId: string; result: string; undoPatch?: unknown }
+  | { type: 'tool_done'; tool: string; toolUseId: string; result: string; undoPatch?: unknown; image?: { base64: string; mediaType: string } }
   | { type: 'done' }
   | { type: 'error'; message: string };
 
@@ -131,7 +134,7 @@ export function runAgentStream(
               input: toolUse.input,
             });
             try {
-              const { result, undoPatch } = await executeTool(
+              const { result, undoPatch, image } = await executeTool(
                 deckId,
                 toolUse.name,
                 toolUse.input as Record<string, unknown>,
@@ -142,6 +145,7 @@ export function runAgentStream(
                 toolUseId: toolUse.id,
                 result,
                 undoPatch,
+                ...(image ? { image: { base64: image.base64, mediaType: image.mediaType } } : {}),
               });
               allToolCallsThisSession.push({
                 name: toolUse.name,
@@ -149,7 +153,20 @@ export function runAgentStream(
                 result,
                 undoPatch,
               });
-              toolResults.push({ type: 'tool_result', tool_use_id: toolUse.id, content: result });
+              const content: Anthropic.ToolResultBlockParam['content'] = image
+                ? [
+                    {
+                      type: 'image',
+                      source: {
+                        type: 'base64',
+                        media_type: image.mediaType,
+                        data: image.base64,
+                      },
+                    },
+                    { type: 'text', text: result },
+                  ]
+                : result;
+              toolResults.push({ type: 'tool_result', tool_use_id: toolUse.id, content });
             } catch (err) {
               const errMsg = err instanceof Error ? err.message : String(err);
               emit({

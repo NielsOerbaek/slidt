@@ -6,6 +6,9 @@
   import type { Theme, SlideType } from '../../../renderer/types.ts';
   import { content as contentType } from '../../../slide-types/content.ts';
 
+  import STBtn from '$lib/components/st/STBtn.svelte';
+  import { t } from '$lib/i18n/index.ts';
+
   let { data, form }: { data: PageData; form: ActionData } = $props();
 
   let tokens = $state<Record<string, string>>({ ...data.theme.tokens });
@@ -27,7 +30,7 @@
 <svelte:head><title>{data.theme.name} — Themes — slidt</title></svelte:head>
 
 <div class="page">
-  <div class="breadcrumb"><a href="/themes">Themes</a> / {data.theme.name}</div>
+  <div class="breadcrumb"><a href="/themes">{t('theme_edit.crumb')}</a> / {data.theme.name}</div>
 
   <div class="layout">
     <form
@@ -44,7 +47,7 @@
     >
       <div class="form-header">
         <input class="name-input" type="text" name="name" bind:value={name} />
-        <button type="submit" class="btn-save">{saved ? '✓ Saved' : 'Save'}</button>
+        <STBtn type="submit" variant="accent">{saved ? t('theme_edit.saved') : t('theme_edit.save')}</STBtn>
       </div>
 
       {#if form?.error}<p class="error">{form.error}</p>{/if}
@@ -79,27 +82,79 @@
     </form>
 
     <div class="preview-col">
-      <p class="preview-label">Live preview</p>
+      <p class="preview-label">{t('theme_edit.preview_label')}</p>
       <SlidePreview slideType={previewSlideType} slideData={previewSlideData} theme={previewTheme} />
     </div>
   </div>
 </div>
 
 <style>
-  .page { max-width: 1100px; margin: 0 auto; padding: 32px 24px; }
-  .breadcrumb { font-size: 13px; color: #888; margin-bottom: 20px; }
-  .breadcrumb a { color: #6e31ff; text-decoration: none; }
+  .page { padding: 32px 40px; }
+  .breadcrumb {
+    font-family: var(--st-font-mono);
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    color: var(--st-ink-dim);
+    margin-bottom: 20px;
+  }
+  .breadcrumb a { color: var(--st-cobalt); text-decoration: none; }
   .layout { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; }
-  .form-header { display: flex; gap: 12px; align-items: center; margin-bottom: 20px; }
-  .name-input { flex: 1; padding: 8px 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 18px; font-weight: 600; }
-  .btn-save { background: #6e31ff; color: white; border: none; border-radius: 8px; padding: 10px 20px; font-size: 14px; font-weight: 600; cursor: pointer; }
-  .error { color: #c00; font-size: 13px; margin-bottom: 12px; }
+  .form-header { display: flex; gap: 12px; align-items: center; margin-bottom: 24px; }
+  .name-input {
+    flex: 1;
+    padding: 10px 14px;
+    border: 3px solid var(--st-ink);
+    background: var(--st-bg);
+    color: var(--st-ink);
+    border-radius: 0;
+    font-family: var(--st-font-display);
+    font-size: 22px;
+  }
+  .error {
+    color: var(--st-ink);
+    background: var(--st-bg-deep);
+    padding: 8px 12px;
+    border-left: 3px solid var(--st-ink);
+    font-family: var(--st-font-mono);
+    font-size: 11px;
+    margin-bottom: 12px;
+  }
   .token-list { display: flex; flex-direction: column; gap: 8px; }
-  .token-row { display: flex; align-items: center; gap: 8px; }
-  .token-key { font-size: 12px; font-family: monospace; color: #555; min-width: 200px; flex-shrink: 0; }
-  input[type="color"] { width: 40px; height: 32px; border: 1px solid #ddd; border-radius: 4px; padding: 2px; cursor: pointer; }
-  .token-text { flex: 1; padding: 6px 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 13px; font-family: monospace; }
-  .token-text.full { flex: 1; }
-  .preview-col { display: flex; flex-direction: column; gap: 8px; }
-  .preview-label { font-size: 12px; font-weight: 600; color: #888; text-transform: uppercase; letter-spacing: 0.06em; margin: 0; }
+  .token-row { display: flex; align-items: center; gap: 10px; }
+  .token-key {
+    font-family: var(--st-font-mono);
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    color: var(--st-ink);
+    min-width: 200px;
+    flex-shrink: 0;
+  }
+  input[type="color"] {
+    width: 40px;
+    height: 32px;
+    border: 2px solid var(--st-ink);
+    border-radius: 0;
+    padding: 2px;
+    cursor: pointer;
+    background: var(--st-bg);
+  }
+  .token-text {
+    flex: 1;
+    padding: 6px 10px;
+    border: 2px solid var(--st-ink);
+    border-radius: 0;
+    background: var(--st-bg);
+    color: var(--st-ink);
+    font-family: var(--st-font-mono);
+    font-size: 12px;
+  }
+  .token-text:focus { outline: 2px solid var(--st-cobalt); outline-offset: -2px; }
+  .preview-col { display: flex; flex-direction: column; gap: 10px; }
+  .preview-label {
+    font-family: var(--st-font-mono);
+    font-size: 10px;
+    letter-spacing: 0.25em;
+    color: var(--st-ink-dim);
+    margin: 0;
+  }
 </style>

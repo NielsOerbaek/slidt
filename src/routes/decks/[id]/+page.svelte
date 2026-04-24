@@ -3,13 +3,18 @@
   import type { PageData } from './$types.js';
   import FieldEditor from '$lib/components/FieldEditor.svelte';
   import SlidePreview from '$lib/components/SlidePreview.svelte';
+  import STField from '$lib/components/st/STField.svelte';
+  import STBtn from '$lib/components/st/STBtn.svelte';
+  import STFace from '$lib/components/st/STFace.svelte';
+  import STAgentDrawer from '$lib/components/st/STAgentDrawer.svelte';
   import { debounce } from '$lib/utils/debounce.ts';
   import { buildDefaultData } from '$lib/utils/field-defaults.ts';
-  import AgentPanel from '$lib/components/AgentPanel.svelte';
+  import { slideSnippet } from '$lib/utils/slide-snippet.ts';
+  import { t } from '$lib/i18n/index.ts';
+  import { goto } from '$app/navigation';
 
   let { data }: { data: PageData } = $props();
 
-  // Local mutable slide data keyed by slide ID (initialized once from server)
   let slideDataMap = $state<Record<string, Record<string, unknown>>>(
     Object.fromEntries(
       data.slides.map((s) => [s.id, { ...(s.data as Record<string, unknown>) }]),
@@ -20,27 +25,12 @@
   let saving = $state(false);
   let saveError = $state('');
   let showTypePicker = $state(false);
-  let showAgent = $state(false);
   let exporting = $state(false);
+  let lastSavedAt = $state<number>(Date.now());
+  let agentOpen = $state(false);
+  let shareUrl = $state('');
+  let shareError = $state('');
 
-  async function exportPdf() {
-    exporting = true;
-    try {
-      const res = await fetch(`/api/decks/${data.deck.id}/export`);
-      if (!res.ok) throw new Error('Export failed');
-      const blob = await res.blob();
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `${data.deck.title}.pdf`;
-      a.click();
-      URL.revokeObjectURL(url);
-    } finally {
-      exporting = false;
-    }
-  }
-
-  // When new slides arrive from server (after invalidateAll), add them to the map
   $effect(() => {
     for (const slide of data.slides) {
       if (!(slide.id in slideDataMap)) {
@@ -56,6 +46,12 @@
   let selectedData = $derived(
     selectedSlideId ? (slideDataMap[selectedSlideId] ?? {}) : {},
   );
+  const selectedIdx = $derived(
+    selectedSlideId
+      ? data.slides.findIndex((s) => s.id === selectedSlideId)
+      : -1,
+  );
+  const saveLabel = $derived(saving ? t('editor.save_busy') : saveError ? t('editor.save_error') : t('editor.save_idle'));
 
   const autosave = debounce(async (slideId: string, slideData: Record<string, unknown>) => {
     saving = true;
@@ -67,6 +63,7 @@
         body: JSON.stringify({ data: slideData }),
       });
       if (!res.ok) saveError = 'Save failed';
+      else lastSavedAt = Date.now();
     } catch {
       saveError = 'Save failed';
     } finally {
@@ -89,27 +86,86 @@
     await invalidateAll();
   }
 
-  // Drag-reorder state
   let draggedId = $state<string | null>(null);
+  let dropTargetId = $state<string | null>(null);
+  let dropPosition = $state<'before' | 'after'>('before');
+  // Optimistic reorder: while a PATCH is in flight (or just landed but before
+  // invalidateAll has refetched), display the local order so the UI doesn't
+  // jump back to the old position.
+  let localOrder = $state<string[] | null>(null);
+  const displaySlides = $derived.by(() => {
+    if (!localOrder) return data.slides;
+    const map = new Map(data.slides.map((s) => [s.id, s]));
+    const ordered = localOrder.map((id) => map.get(id)).filter((s): s is NonNullable<typeof s> => Boolean(s));
+    for (const s of data.slides) {
+      if (!localOrder.includes(s.id)) ordered.push(s);
+    }
+    return ordered;
+  });
 
-  function onDragStart(slideId: string) { draggedId = slideId; }
-  function onDragOver(e: DragEvent) { e.preventDefault(); }
+  function onDragStart(e: DragEvent, slideId: string) {
+    draggedId = slideId;
+    if (e.dataTransfer) {
+      e.dataTransfer.effectAllowed = 'move';
+      // Some browsers won't initiate a drag without setData.
+      e.dataTransfer.setData('text/plain', slideId);
+    }
+  }
 
-  async function onDrop(targetId: string) {
-    if (!draggedId || draggedId === targetId) { draggedId = null; return; }
-    const order = [...data.deck.slideOrder];
-    const from = order.indexOf(draggedId);
-    const to = order.indexOf(targetId);
-    if (from < 0 || to < 0) { draggedId = null; return; }
-    order.splice(from, 1);
-    order.splice(to, 0, draggedId);
+  function onDragOver(e: DragEvent, targetId: string) {
+    e.preventDefault();
+    if (!draggedId || draggedId === targetId) return;
+    if (e.dataTransfer) e.dataTransfer.dropEffect = 'move';
+    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+    dropPosition = (e.clientY - rect.top) < rect.height / 2 ? 'before' : 'after';
+    dropTargetId = targetId;
+  }
+
+  function onDragLeave(slideId: string) {
+    if (dropTargetId === slideId) dropTargetId = null;
+  }
+
+  function onDragEnd() {
     draggedId = null;
-    await fetch(`/api/decks/${data.deck.id}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ slideOrder: order }),
-    });
-    await invalidateAll();
+    dropTargetId = null;
+  }
+
+  async function onDrop(e: DragEvent, targetId: string) {
+    e.preventDefault();
+    if (!draggedId || draggedId === targetId) {
+      onDragEnd();
+      return;
+    }
+    const baseOrder = localOrder ?? [...data.deck.slideOrder];
+    const order = [...baseOrder];
+    const from = order.indexOf(draggedId);
+    let to = order.indexOf(targetId);
+    if (from < 0 || to < 0) {
+      onDragEnd();
+      return;
+    }
+    const movedId = draggedId;
+    const insertAfter = dropPosition === 'after';
+    onDragEnd();
+    order.splice(from, 1);
+    if (from < to) to -= 1;
+    if (insertAfter) to += 1;
+    order.splice(to, 0, movedId);
+
+    // Apply the new order locally first so the slide visibly moves now.
+    localOrder = order;
+
+    try {
+      await fetch(`/api/decks/${data.deck.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ slideOrder: order }),
+      });
+      await invalidateAll();
+    } finally {
+      // Clear the override after the server-fetched data reflects the new order.
+      localOrder = null;
+    }
   }
 
   async function addSlide(typeId: string) {
@@ -129,155 +185,288 @@
     }
   }
 
-  // ── Resizable panels ────────────────────────────────────────────
-  let listWidth = $state(200);
-  let formWidth = $state(300);
-  let previewPct = $state(62); // % of right panel height for preview
-
-  type ResizeKind = 'list' | 'form' | 'vertical';
-  let resizing = $state<ResizeKind | null>(null);
-  let resizeStart = $state({ mouse: 0, val: 0 });
-  let rightPanel = $state<HTMLDivElement | undefined>(undefined);
-
-  function startHResize(panel: 'list' | 'form', e: MouseEvent) {
-    e.preventDefault();
-    resizing = panel;
-    resizeStart = { mouse: e.clientX, val: panel === 'list' ? listWidth : formWidth };
-  }
-
-  function startVResize(e: MouseEvent) {
-    e.preventDefault();
-    resizing = 'vertical';
-    resizeStart = { mouse: e.clientY, val: previewPct };
-  }
-
-  function onMouseMove(e: MouseEvent) {
-    if (!resizing) return;
-    if (resizing === 'list') {
-      listWidth = Math.max(140, Math.min(480, resizeStart.val + (e.clientX - resizeStart.mouse)));
-    } else if (resizing === 'form') {
-      formWidth = Math.max(180, Math.min(600, resizeStart.val + (e.clientX - resizeStart.mouse)));
-    } else if (resizing === 'vertical' && rightPanel) {
-      const h = rightPanel.clientHeight;
-      previewPct = Math.max(20, Math.min(85, resizeStart.val + ((e.clientY - resizeStart.mouse) / h) * 100));
+  let shareCopied = $state(false);
+  async function openShareDialog() {
+    shareError = '';
+    shareCopied = false;
+    try {
+      const res = await fetch(`/api/decks/${data.deck.id}/share`, { method: 'POST' });
+      if (!res.ok) {
+        shareError = `${res.status}`;
+        shareUrl = '';
+        return;
+      }
+      const link = await res.json();
+      shareUrl = `${location.origin}/share/${link.token}`;
+      // Try to copy automatically; the dialog stays so the user has the link
+      // visible regardless of whether the clipboard write succeeds (it can
+      // fail when the tab isn't focused or the browser blocks it).
+      try {
+        await navigator.clipboard.writeText(shareUrl);
+        shareCopied = true;
+      } catch { /* show URL for manual copy */ }
+    } catch (err) {
+      shareError = err instanceof Error ? err.message : 'failed';
+      shareUrl = '';
     }
   }
 
-  function stopResize() { resizing = null; }
+  async function copyShareUrl() {
+    if (!shareUrl) return;
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      shareCopied = true;
+    } catch { /* user can select-and-copy from the field */ }
+  }
+
+  function closeShareDialog() {
+    shareUrl = '';
+    shareError = '';
+    shareCopied = false;
+  }
+
+  async function deleteDeck() {
+    if (!confirm(t('editor.confirm_delete'))) return;
+    const res = await fetch(`/api/decks/${data.deck.id}`, { method: 'DELETE' });
+    if (res.ok) await goto('/decks');
+  }
+
+  async function exportPdf() {
+    exporting = true;
+    try {
+      const res = await fetch(`/api/decks/${data.deck.id}/export`);
+      if (!res.ok) throw new Error('Export failed');
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${data.deck.title}.pdf`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } finally {
+      exporting = false;
+    }
+  }
+
+  // Cmd+N → add slide of last selected type (or first available global)
+  function handleKeydown(e: KeyboardEvent) {
+    const target = e.target as HTMLElement;
+    if (target?.matches('input, textarea, [contenteditable]')) return;
+    if (e.key === 'n' && !e.metaKey && !e.ctrlKey) {
+      e.preventDefault();
+      showTypePicker = true;
+    }
+  }
 </script>
 
 <svelte:head><title>{data.deck.title} — slidt</title></svelte:head>
-<svelte:window onmousemove={onMouseMove} onmouseup={stopResize} />
+<svelte:window onkeydown={handleKeydown} />
 
-<div class="editor" class:resizing-h={resizing === 'list' || resizing === 'form'} class:resizing-v={resizing === 'vertical'}>
-  <!-- Toolbar -->
-  <div class="toolbar">
-    <a href="/decks" class="back">← Decks</a>
-    <span class="deck-title">{data.deck.title}</span>
-    <a href="/api/decks/{data.deck.id}/present" target="_blank" class="btn-toolbar">Present</a>
-    <button class="btn-toolbar" onclick={exportPdf} disabled={exporting}>
-      {#if exporting}<span class="spinner"></span>{/if}
-      {exporting ? 'Building…' : 'Export PDF'}
-    </button>
-    <span class="save-status">
-      {#if saving}Saving…{:else if saveError}<span class="err">{saveError}</span>{:else}Saved{/if}
-    </span>
-    <button class="agent-toggle" onclick={() => showAgent = !showAgent}>
-      {showAgent ? 'Close agent' : 'Agent ✦'}
-    </button>
+<div class="editor">
+  <!-- Breadcrumb / actions row -->
+  <div class="breadcrumb">
+    <div class="cell index">§3</div>
+    <div class="cell crumbs">
+      <a href="/decks" class="crumb-link">{t('editor.crumb_decks')}</a>
+      <span class="dim">/</span>
+      <span class="dim">{String(data.deck.slideOrder.length).padStart(2, '0')}</span>
+      <span class="dim">›</span>
+      <span class="title">{data.deck.title}</span>
+      <span class="pill" class:pill-error={saveError} class:pill-saving={saving}>
+        {saveLabel}
+      </span>
+    </div>
+    <div class="cell actions">
+      <a class="action" href="/api/decks/{data.deck.id}/present" target="_blank">{t('editor.action_present')}</a>
+      <button class="action" onclick={exportPdf} disabled={exporting}>
+        {exporting ? t('editor.action_export_busy') : t('editor.action_export')}
+      </button>
+      <button class="action" type="button" onclick={openShareDialog}>{t('editor.action_share')}</button>
+      <button class="action danger" type="button" onclick={deleteDeck}>{t('editor.action_delete')}</button>
+      <button
+        class="action accent"
+        type="button"
+        onclick={() => { agentOpen = !agentOpen; }}
+        aria-pressed={agentOpen}
+      >
+        <STFace size={14} color="var(--st-bg)" mood={agentOpen ? 'happy' : 'idle'} />
+        {agentOpen ? t('editor.agent_on') : t('editor.agent_off')}
+      </button>
+    </div>
   </div>
 
-  <div class="editor-body">
+  <!-- Body -->
+  <div class="body">
     <!-- Slide list -->
-    <aside class="slide-list" style="width: {listWidth}px">
-      {#each data.slides as slide (slide.id)}
-        {@const type = data.slideTypes.find((t) => t.id === slide.typeId)}
-        <div
-          class="slide-item {selectedSlideId === slide.id ? 'selected' : ''} {draggedId === slide.id ? 'dragging' : ''}"
-          role="button"
-          tabindex="0"
-          onclick={() => selectedSlideId = slide.id}
-          onkeydown={(e) => e.key === 'Enter' && (selectedSlideId = slide.id)}
-          draggable="true"
-          ondragstart={() => onDragStart(slide.id)}
-          ondragover={onDragOver}
-          ondrop={() => onDrop(slide.id)}
-        >
-          <span class="slide-label">{type?.label ?? 'Unknown type'}</span>
-          <button
-            class="del"
-            onclick={(e) => { e.stopPropagation(); deleteSlide(slide.id); }}
-            aria-label="Delete slide"
-          >×</button>
-        </div>
-      {/each}
-      <button class="add-slide-btn" onclick={() => showTypePicker = true}>+ Add slide</button>
+    <aside class="slide-list">
+      <div class="list-head">
+        <span>{t('editor.slides_label')}</span>
+        <span>{String(data.slides.length).padStart(2, '0')}</span>
+      </div>
+      <div class="list-body">
+        {#each displaySlides as slide, i (slide.id)}
+          {@const type = data.slideTypes.find((t) => t.id === slide.typeId)}
+          {@const active = selectedSlideId === slide.id}
+          {@const snippet = type ? slideSnippet(slideDataMap[slide.id], type.fields) : null}
+          <div
+            class="srow"
+            class:active
+            class:dragging={draggedId === slide.id}
+            class:drop-before={dropTargetId === slide.id && dropPosition === 'before'}
+            class:drop-after={dropTargetId === slide.id && dropPosition === 'after'}
+            role="button"
+            tabindex="0"
+            onclick={() => selectedSlideId = slide.id}
+            onkeydown={(e) => e.key === 'Enter' && (selectedSlideId = slide.id)}
+            draggable="true"
+            ondragstart={(e) => onDragStart(e, slide.id)}
+            ondragover={(e) => onDragOver(e, slide.id)}
+            ondragleave={() => onDragLeave(slide.id)}
+            ondragend={onDragEnd}
+            ondrop={(e) => onDrop(e, slide.id)}
+          >
+            <span class="srow-n">{String(i + 1).padStart(2, '0')}</span>
+            <span class="srow-body">
+              <span class="srow-title">{snippet ?? type?.label ?? t('editor.slide_unknown')}</span>
+              {#if snippet && type}
+                <span class="srow-type">{type.label.toUpperCase()}</span>
+              {/if}
+            </span>
+            <button
+              class="srow-del"
+              type="button"
+              onclick={(e) => { e.stopPropagation(); deleteSlide(slide.id); }}
+              title={t('editor.delete_slide')}
+              aria-label={t('editor.delete_slide')}
+            >×</button>
+            <span class="srow-grip" aria-hidden="true">⋮⋮</span>
+          </div>
+        {/each}
+      </div>
+      <button class="list-foot" onclick={() => showTypePicker = true} type="button">
+        <span>{t('editor.slides_add')}</span>
+        <span class="key">n</span>
+      </button>
     </aside>
 
-    <div class="resize-handle" class:active={resizing === 'list'} onmousedown={(e) => startHResize('list', e)} role="separator" aria-orientation="vertical"></div>
-
-    <!-- Form editor -->
-    <main class="form-panel" style="width: {formWidth}px">
+    <!-- Form -->
+    <section class="form">
       {#if selectedSlide && selectedType}
-        <div class="form-type-label">{selectedType.label}</div>
+        <div class="form-head">
+          {t('editor.form_head', { n: String(selectedIdx + 1).padStart(2, '0'), type: selectedType.name.toUpperCase() })}
+        </div>
         <div class="fields">
-          {#each selectedType.fields as field}
-            <div class="field-row">
-              <label class="field-label">{field.label ?? field.name}</label>
+          {#each selectedType.fields as field, i (field.name)}
+            <STField n={String(i + 1).padStart(2, '0')} label={field.label ?? field.name} value="">
               <FieldEditor
                 {field}
                 value={selectedData[field.name]}
                 onchange={(v) => handleFieldChange({ ...selectedData, [field.name]: v })}
               />
-            </div>
+            </STField>
           {/each}
         </div>
       {:else}
         <div class="form-empty">
-          {data.slides.length === 0 ? 'Add a slide to get started.' : 'Select a slide to edit.'}
+          {data.slides.length === 0 ? t('editor.form_empty_no_slides') : t('editor.form_empty_select')}
         </div>
       {/if}
-    </main>
+    </section>
 
-    <div class="resize-handle" class:active={resizing === 'form'} onmousedown={(e) => startHResize('form', e)} role="separator" aria-orientation="vertical"></div>
+    <!-- Preview + Agent column -->
+    <section class="right">
+      <div class="preview-wrap">
+        <div class="preview-meta">
+          <span>{t('editor.preview_meta')}</span>
+          {#if selectedSlideId}
+            <span>{t('editor.preview_slide_of', { n: String(selectedIdx + 1).padStart(2, '0'), total: String(data.slides.length).padStart(2, '0') })}</span>
+          {:else}
+            <span>—</span>
+          {/if}
+        </div>
+        <div class="preview-frame">
+          <SlidePreview
+            slideType={selectedType}
+            slideData={selectedData}
+            theme={data.theme}
+          />
+        </div>
+        <div class="thumbs">
+          {#each displaySlides as slide, i (slide.id)}
+            {@const active = selectedSlideId === slide.id}
+            <button
+              type="button"
+              class="thumb"
+              class:active
+              onclick={() => selectedSlideId = slide.id}
+              title={String(i + 1).padStart(2, '0')}
+            >{String(i + 1).padStart(2, '0')}</button>
+          {/each}
+        </div>
+      </div>
 
-    <!-- Right panel: preview on top, agent below -->
-    <div class="right-panel" bind:this={rightPanel}>
-      <section class="preview-panel" style="flex-basis: {showAgent ? previewPct + '%' : '100%'}">
-        <SlidePreview
-          slideType={selectedType}
-          slideData={selectedData}
-          theme={data.theme}
-        />
-      </section>
-
-      {#if showAgent}
-        <div class="resize-handle-h" class:active={resizing === 'vertical'} onmousedown={startVResize} role="separator" aria-orientation="horizontal"></div>
-        <aside class="agent-panel">
-          <div class="agent-header">
-            <span>Agent</span>
-            <button onclick={() => showAgent = false}>×</button>
-          </div>
-          <AgentPanel deckId={data.deck.id} themeId={data.deck.themeId} onclose={() => showAgent = false} />
-        </aside>
-      {/if}
-    </div>
+      <STAgentDrawer deckId={data.deck.id} themeId={data.deck.themeId} bind:open={agentOpen} />
+    </section>
   </div>
 </div>
 
-<!-- Type picker overlay -->
+<!-- Share dialog -->
+{#if shareUrl || shareError}
+  <div
+    class="overlay"
+    role="dialog"
+    aria-modal="true"
+    onclick={closeShareDialog}
+    onkeydown={(e) => e.key === 'Escape' && closeShareDialog()}
+  >
+    <div
+      class="share-dialog"
+      role="document"
+      onclick={(e) => e.stopPropagation()}
+      onkeydown={(e) => e.stopPropagation()}
+    >
+      <div class="share-head">
+        <span>{t('editor.share_dialog_label')}</span>
+        <button onclick={closeShareDialog} aria-label={t('editor.share_dialog_close')}>×</button>
+      </div>
+      {#if shareUrl}
+        <div class="share-body">
+          <input class="share-url" type="text" readonly value={shareUrl} onclick={(e) => (e.currentTarget as HTMLInputElement).select()} />
+          <STBtn variant="accent" onclick={copyShareUrl}>
+            {shareCopied ? t('editor.action_share_done') : t('editor.share_dialog_copy')}
+          </STBtn>
+        </div>
+      {:else if shareError}
+        <div class="share-error">{t('editor.share_failed')} ({shareError})</div>
+      {/if}
+    </div>
+  </div>
+{/if}
+
+<!-- Type picker -->
 {#if showTypePicker}
-  <div class="overlay" role="dialog" aria-modal="true">
-    <div class="picker-card">
-      <div class="picker-header">
-        <h3>Add slide</h3>
-        <button onclick={() => showTypePicker = false}>×</button>
+  <div
+    class="overlay"
+    role="dialog"
+    aria-modal="true"
+    onclick={() => showTypePicker = false}
+    onkeydown={(e) => e.key === 'Escape' && (showTypePicker = false)}
+  >
+    <div
+      class="picker"
+      role="document"
+      onclick={(e) => e.stopPropagation()}
+      onkeydown={(e) => e.stopPropagation()}
+    >
+      <div class="picker-head">
+        <span>{t('editor.picker_head')}</span>
+        <button onclick={() => showTypePicker = false} aria-label={t('editor.picker_close')}>×</button>
       </div>
       <div class="type-grid">
         {#each data.slideTypes.filter(t => t.scope === 'global' || t.deckId === data.deck.id) as type}
           <button class="type-tile" onclick={() => addSlide(type.id)}>
-            <span class="type-tile-label">{type.label}</span>
-            <span class="type-tile-name">{type.name}</span>
+            <span class="tt-label">{type.label}</span>
+            <span class="tt-name">{type.name}</span>
           </button>
         {/each}
       </div>
@@ -286,172 +475,403 @@
 {/if}
 
 <style>
-  .editor { display: flex; flex-direction: column; height: calc(100vh - 52px); overflow: hidden; }
-  .editor.resizing-h { cursor: col-resize; user-select: none; }
-  .editor.resizing-v { cursor: row-resize; user-select: none; }
-
-  .toolbar {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    padding: 0 20px;
-    height: 48px;
-    background: white;
-    border-bottom: 1px solid #eee;
-    flex-shrink: 0;
-  }
-  .back { font-size: 13px; color: #6e31ff; text-decoration: none; }
-  .deck-title { font-weight: 600; font-size: 15px; }
-  .save-status { font-size: 12px; color: #aaa; margin-left: auto; }
-  .err { color: #c00; }
-  .agent-toggle { background: #6e31ff; color: white; border: none; border-radius: 6px; padding: 6px 14px; font-size: 13px; cursor: pointer; }
-  .btn-toolbar { background: transparent; color: #6e31ff; border: 1px solid #6e31ff; border-radius: 6px; padding: 5px 12px; font-size: 13px; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; }
-  .btn-toolbar:disabled { opacity: 0.6; cursor: default; }
-  .spinner { width: 11px; height: 11px; border: 2px solid #6e31ff; border-top-color: transparent; border-radius: 50%; animation: spin 0.7s linear infinite; flex-shrink: 0; }
-  @keyframes spin { to { transform: rotate(360deg); } }
-
-  /* ── Editor body ──────────────────────────────────────────────── */
-  .editor-body { display: flex; flex: 1; overflow: hidden; }
-
-  /* ── Vertical resize handles ────────────────────────────────── */
-  .resize-handle {
-    width: 4px;
-    flex-shrink: 0;
-    cursor: col-resize;
-    background: #e8e8ee;
-    transition: background 0.15s;
-  }
-  .resize-handle:hover, .resize-handle.active { background: #6e31ff; }
-
-  /* ── Horizontal resize handle (preview / agent split) ──────── */
-  .resize-handle-h {
-    height: 4px;
-    flex-shrink: 0;
-    cursor: row-resize;
-    background: #e8e8ee;
-    transition: background 0.15s;
-  }
-  .resize-handle-h:hover, .resize-handle-h.active { background: #6e31ff; }
-
-  /* ── Slide list ─────────────────────────────────────────────── */
-  .slide-list {
-    flex-shrink: 0;
-    overflow-y: auto;
-    background: #fafafc;
-    padding: 8px;
+  .editor {
     display: flex;
     flex-direction: column;
-    gap: 4px;
-    min-width: 140px;
+    height: calc(100vh - 49px);
+    background: var(--st-bg);
+    overflow: hidden;
   }
-  .slide-item {
-    padding: 8px 10px;
-    border-radius: 6px;
+  .dim { color: var(--st-ink-dim); }
+
+  /* ── Breadcrumb ───────────────────────────────────────── */
+  .breadcrumb {
+    display: grid;
+    grid-template-columns: 80px 1fr auto;
+    border-bottom: var(--st-rule-thick);
+    font-family: var(--st-font-mono);
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    flex-shrink: 0;
+  }
+  .cell { display: flex; align-items: center; }
+  .cell.index {
+    border-right: var(--st-rule-thick);
+    padding: 12px 0;
+    justify-content: center;
+    color: var(--st-ink-dim);
+  }
+  .cell.crumbs { padding: 12px; gap: 16px; }
+  .crumb-link { color: var(--st-ink-dim); text-decoration: none; }
+  .crumb-link:hover { color: var(--st-ink); }
+  .cell.crumbs .title {
+    font-family: var(--st-font-display);
+    font-size: 16px;
+    letter-spacing: -0.01em;
+    color: var(--st-ink);
+  }
+  .pill {
+    padding: 3px 10px;
+    background: var(--st-cobalt);
+    color: var(--st-bg);
+    font-size: 9px;
+    letter-spacing: 0.22em;
+  }
+  .pill-saving { background: var(--st-ink-dim); }
+  .pill-error { background: #b91c1c; }
+
+  .cell.actions { display: flex; }
+  .action {
+    padding: 12px 20px;
+    border-left: var(--st-rule-thin);
+    background: transparent;
+    color: var(--st-ink);
+    font-family: var(--st-font-mono);
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-decoration: none;
     cursor: pointer;
     display: flex;
     align-items: center;
+    gap: 8px;
+  }
+  .action:hover { background: var(--st-bg-deep); }
+  .action:disabled { color: var(--st-ink-dim); cursor: default; }
+  .action:disabled:hover { background: transparent; }
+  .action.accent {
+    background: var(--st-cobalt);
+    color: var(--st-bg);
+  }
+  .action.accent:hover { background: #0e34b8; }
+  .action.danger { color: var(--st-ink-dim); }
+  .action.danger:hover { background: var(--st-ink); color: var(--st-bg); }
+
+  /* ── Body ─────────────────────────────────────────────── */
+  .body {
+    display: grid;
+    grid-template-columns: 260px 340px 1fr;
+    flex: 1;
+    overflow: hidden;
+    min-height: 0;
+  }
+
+  /* ── Slide list ───────────────────────────────────────── */
+  .slide-list {
+    border-right: var(--st-rule-medium);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .list-head {
+    padding: 14px 22px;
+    border-bottom: var(--st-rule-thin);
+    font-family: var(--st-font-mono);
+    font-size: 10px;
+    letter-spacing: 0.25em;
+    color: var(--st-ink-dim);
+    display: flex;
     justify-content: space-between;
-    border: 1px solid transparent;
+  }
+  .list-body { flex: 1; overflow-y: auto; }
+  .srow {
+    display: grid;
+    grid-template-columns: 40px 1fr auto auto;
+    align-items: center;
+    border-bottom: var(--st-rule-thin);
+    border-top: 2px solid transparent;
+    background: transparent;
+    color: var(--st-ink);
+    cursor: pointer;
     user-select: none;
   }
-  .slide-item:hover { background: #ede8ff; }
-  .slide-item.selected { background: #ede8ff; border-color: #6e31ff; }
-  .slide-item.dragging { opacity: 0.4; }
-  .slide-label { font-size: 13px; }
-  .del { background: none; border: none; color: #ccc; font-size: 16px; cursor: pointer; padding: 0 4px; }
-  .del:hover { color: #e00; }
-  .add-slide-btn {
-    margin-top: 8px;
-    padding: 8px;
-    background: none;
-    border: 1px dashed #ccc;
-    border-radius: 6px;
-    font-size: 13px;
-    color: #666;
+  .srow:hover:not(.active) { background: var(--st-bg-deep); }
+  .srow.active {
+    background: var(--st-cobalt);
+    color: var(--st-bg);
+  }
+  .srow.dragging { opacity: 0.4; }
+  .srow.drop-before { border-top-color: var(--st-cobalt); }
+  .srow.drop-after { border-bottom: 2px solid var(--st-cobalt); }
+  .srow-n {
+    padding: 14px 0;
+    text-align: center;
+    font-family: var(--st-font-mono);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    color: var(--st-ink-dim);
+  }
+  .srow.active .srow-n { color: rgba(250,250,247,0.7); }
+  .srow-body {
+    padding: 12px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+  }
+  .srow-title {
+    font-family: var(--st-font-display);
+    font-size: 16px;
+    letter-spacing: -0.01em;
+    line-height: 1.2;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .srow-type {
+    font-family: var(--st-font-mono);
+    font-size: 9px;
+    letter-spacing: 0.18em;
+    color: var(--st-ink-dim);
+  }
+  .srow.active .srow-type { color: rgba(250,250,247,0.7); }
+  .srow-del {
+    padding: 14px 10px;
+    font-size: 16px;
+    color: inherit;
+    opacity: 0;
+    background: transparent;
+    border: 0;
     cursor: pointer;
+    line-height: 1;
+    transition: opacity 100ms ease;
   }
-  .add-slide-btn:hover { border-color: #6e31ff; color: #6e31ff; }
+  .srow:hover .srow-del,
+  .srow.active .srow-del { opacity: 0.6; }
+  .srow .srow-del:hover { opacity: 1; }
 
-  /* ── Form panel ─────────────────────────────────────────────── */
-  .form-panel { flex-shrink: 0; overflow-y: auto; padding: 20px 24px; min-width: 180px; }
-  .form-type-label { font-size: 11px; font-weight: 600; color: #6e31ff; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 16px; }
-  .fields { display: flex; flex-direction: column; gap: 16px; }
-  .field-row { display: flex; flex-direction: column; gap: 6px; }
-  .field-label { font-size: 13px; font-weight: 500; color: #555; text-transform: capitalize; }
-  .form-empty { display: flex; align-items: center; justify-content: center; height: 200px; color: #aaa; font-size: 14px; }
+  .srow-grip {
+    padding: 14px 14px;
+    font-family: var(--st-font-mono);
+    font-size: 13px;
+    line-height: 1;
+    color: inherit;
+    opacity: 0.35;
+    cursor: grab;
+    user-select: none;
+  }
+  .srow:hover .srow-grip,
+  .srow.active .srow-grip { opacity: 0.7; }
+  .srow.dragging .srow-grip { cursor: grabbing; }
 
-  /* ── Right panel (preview + agent) ─────────────────────────── */
-  .right-panel {
-    flex: 1;
-    min-width: 300px;
+  .list-foot {
+    padding: 14px 22px;
+    border-top: var(--st-rule-thin);
+    font-family: var(--st-font-mono);
+    font-size: 11px;
+    letter-spacing: 0.22em;
+    background: transparent;
+    color: var(--st-ink);
     display: flex;
-    flex-direction: column;
-    overflow: hidden;
+    justify-content: space-between;
+    cursor: pointer;
+    border-radius: 0;
   }
+  .list-foot:hover { background: var(--st-bg-deep); }
+  .list-foot .key { color: var(--st-ink-dim); }
 
-  .preview-panel {
-    flex-shrink: 0;
+  /* ── Form ─────────────────────────────────────────────── */
+  .form {
+    border-right: var(--st-rule-medium);
+    padding: 28px 32px 40px;
     overflow-y: auto;
-    padding: 16px;
-    background: #f5f4fb;
+    background: var(--st-bg);
   }
-
-  /* ── Agent panel ────────────────────────────────────────────── */
-  .agent-panel {
-    flex: 1;
-    min-height: 150px;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-    background: white;
-    border-top: none;
+  .fields :global(.st-field) { margin-bottom: 28px; }
+  .fields :global(.st-field:last-child) { margin-bottom: 0; }
+  /* Soften STField bottom rule when it lives inside the editor — a stack of
+     full-thickness rules reads as too many parallel lines. */
+  .fields :global(.st-field .value-wrap) { border-bottom-width: 2px; }
+  .form-head {
+    font-family: var(--st-font-mono);
+    font-size: 10px;
+    letter-spacing: 0.28em;
+    color: var(--st-cobalt);
+    margin-bottom: 24px;
   }
-  .agent-header {
+  .fields { display: flex; flex-direction: column; }
+  .form-empty {
     display: flex;
     align-items: center;
+    justify-content: center;
+    height: 200px;
+    font-family: var(--st-font-mono);
+    font-size: 11px;
+    letter-spacing: 0.22em;
+    color: var(--st-ink-dim);
+  }
+
+  /* ── Right column ─────────────────────────────────────── */
+  .right {
+    background: var(--st-bg-deep);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    min-height: 0;
+  }
+  .preview-wrap {
+    flex: 1;
+    padding: 24px 28px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    overflow: hidden;
+    min-height: 0;
+  }
+  .preview-meta {
+    font-family: var(--st-font-mono);
+    font-size: 10px;
+    letter-spacing: 0.25em;
+    color: var(--st-ink-dim);
+    display: flex;
     justify-content: space-between;
-    padding: 10px 16px;
-    border-bottom: 1px solid #eee;
-    font-weight: 600;
-    font-size: 14px;
     flex-shrink: 0;
   }
-  .agent-header button { background: none; border: none; font-size: 18px; cursor: pointer; color: #888; }
+  .preview-frame {
+    background: var(--st-bg);
+    border: var(--st-rule-thick);
+    flex-shrink: 0;
+    overflow: hidden;
+  }
+  .thumbs {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+  .thumb {
+    aspect-ratio: 16/9;
+    width: 60px;
+    background: var(--st-bg);
+    border: 2px solid var(--st-ink);
+    color: var(--st-ink-dim);
+    font-family: var(--st-font-mono);
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    padding: 0;
+    cursor: pointer;
+    display: flex;
+    align-items: flex-start;
+    justify-content: flex-start;
+    padding: 4px 6px;
+  }
+  .thumb.active { border-color: var(--st-cobalt); color: var(--st-cobalt); }
+  .thumb:hover:not(.active) { background: var(--st-bg-deep); }
 
-  /* ── Type picker overlay ────────────────────────────────────── */
+  /* ── Share dialog ─────────────────────────────────────── */
+  .share-dialog {
+    background: var(--st-bg);
+    border: var(--st-rule-thick);
+    width: 560px;
+    max-width: 90vw;
+    display: flex;
+    flex-direction: column;
+  }
+  .share-head {
+    padding: 14px 20px;
+    border-bottom: var(--st-rule-medium);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-family: var(--st-font-mono);
+    font-size: 11px;
+    letter-spacing: 0.22em;
+  }
+  .share-head button {
+    background: transparent;
+    border: 0;
+    font-size: 22px;
+    cursor: pointer;
+    color: var(--st-ink-dim);
+  }
+  .share-body {
+    padding: 18px 20px;
+    display: flex;
+    gap: 12px;
+    align-items: center;
+  }
+  .share-url {
+    flex: 1;
+    font-family: var(--st-font-mono);
+    font-size: 12px;
+    border: 2px solid var(--st-ink);
+    background: var(--st-bg);
+    color: var(--st-ink);
+    padding: 10px 12px;
+    width: 100%;
+  }
+  .share-url:focus { outline: 2px solid var(--st-cobalt); outline-offset: -2px; }
+  .share-error {
+    padding: 18px 20px;
+    font-family: var(--st-font-mono);
+    font-size: 12px;
+    color: var(--st-ink);
+    background: var(--st-bg-deep);
+    border-left: 3px solid var(--st-ink);
+  }
+
+  /* ── Type picker overlay ──────────────────────────────── */
   .overlay {
-    position: fixed; inset: 0;
-    background: rgba(0,0,0,0.4);
+    position: fixed;
+    inset: 0;
+    background: rgba(8,8,7,0.5);
     display: flex;
     align-items: center;
     justify-content: center;
     z-index: 200;
   }
-  .picker-card {
-    background: white;
-    border-radius: 12px;
-    width: 560px;
+  .picker {
+    background: var(--st-bg);
+    border: var(--st-rule-thick);
+    width: 640px;
     max-height: 80vh;
-    overflow-y: auto;
-    padding: 24px;
-    box-shadow: 0 8px 40px rgba(0,0,0,0.2);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
   }
-  .picker-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
-  .picker-header h3 { margin: 0; font-size: 18px; }
-  .picker-header button { background: none; border: none; font-size: 22px; cursor: pointer; color: #888; }
-  .type-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
-  .type-tile {
-    padding: 12px;
-    background: #f9f9fb;
-    border: 1px solid #eee;
-    border-radius: 8px;
+  .picker-head {
+    padding: 14px 20px;
+    border-bottom: var(--st-rule-medium);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-family: var(--st-font-mono);
+    font-size: 11px;
+    letter-spacing: 0.22em;
+  }
+  .picker-head button {
+    background: transparent;
+    border: 0;
+    font-size: 22px;
     cursor: pointer;
+    color: var(--st-ink-dim);
+  }
+  .type-grid {
+    padding: 14px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    overflow-y: auto;
+  }
+  .type-tile {
+    background: var(--st-bg);
+    border: 2px solid var(--st-ink);
+    padding: 14px;
     text-align: left;
     display: flex;
     flex-direction: column;
     gap: 4px;
+    cursor: pointer;
+    border-radius: 0;
   }
-  .type-tile:hover { border-color: #6e31ff; background: #f0eeff; }
-  .type-tile-label { font-size: 13px; font-weight: 600; color: #1a1a2e; }
-  .type-tile-name { font-size: 11px; color: #888; font-family: monospace; }
+  .type-tile:hover { background: var(--st-bg-deep); border-color: var(--st-cobalt); }
+  .tt-label {
+    font-family: var(--st-font-display);
+    font-size: 16px;
+    letter-spacing: -0.01em;
+  }
+  .tt-name {
+    font-family: var(--st-font-mono);
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    color: var(--st-ink-dim);
+  }
 </style>

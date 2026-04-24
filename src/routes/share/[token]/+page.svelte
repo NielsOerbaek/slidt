@@ -1,5 +1,6 @@
 <script lang="ts">
   import type { PageData } from './$types.js';
+  import { t } from '$lib/i18n/index.ts';
   let { data }: { data: PageData } = $props();
 </script>
 
@@ -10,7 +11,7 @@
 <div class="share-view">
   <div class="share-header">
     <span class="share-title">{data.deck.title}</span>
-    <span class="share-badge">View only</span>
+    <span class="share-badge">{t('share.view_only')}</span>
   </div>
   <div class="deck-wrap">
     <iframe
@@ -23,18 +24,31 @@
 </div>
 
 <style>
-  :global(body) { margin: 0; background: #1a1a2e; }
+  :global(body) { margin: 0; background: var(--st-ink); }
   .share-view { display: flex; flex-direction: column; min-height: 100vh; }
   .share-header {
     display: flex;
     align-items: center;
-    gap: 12px;
-    padding: 10px 24px;
-    background: rgba(255,255,255,0.05);
-    color: white;
+    gap: 16px;
+    padding: 14px 24px;
+    background: var(--st-ink);
+    color: var(--st-bg);
+    border-bottom: 3px solid var(--st-cobalt);
+    font-family: var(--st-font-mono);
   }
-  .share-title { font-weight: 600; font-size: 15px; }
-  .share-badge { font-size: 11px; background: rgba(255,255,255,0.1); padding: 3px 8px; border-radius: 4px; color: rgba(255,255,255,0.6); }
+  .share-title {
+    font-family: var(--st-font-display);
+    font-size: 22px;
+    letter-spacing: -0.02em;
+  }
+  .share-badge {
+    font-family: var(--st-font-mono);
+    font-size: 10px;
+    letter-spacing: 0.22em;
+    background: var(--st-cobalt);
+    color: var(--st-bg);
+    padding: 4px 10px;
+  }
   .deck-wrap {
     flex: 1;
     display: flex;
@@ -42,15 +56,14 @@
     justify-content: center;
     padding: 32px;
     overflow-y: auto;
+    background: var(--st-ink);
   }
   .deck-frame {
     border: none;
     width: 1920px;
-    /* Height is set to auto-expand via content but we give a tall default */
     height: 100%;
     min-height: 1080px;
     transform-origin: top center;
-    /* Scale to fit viewport width */
     transform: scale(calc((100vw - 64px) / 1920));
     margin-bottom: calc((100vw - 64px) / 1920 * 1080px - 1080px);
   }

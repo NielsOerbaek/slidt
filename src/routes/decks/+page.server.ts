@@ -1,6 +1,6 @@
 import type { Actions, PageServerLoad } from './$types.js';
-import { db, decks } from '$lib/server/db/index.ts';
-import { eq, desc } from 'drizzle-orm';
+import { db, decks, agentMessages } from '$lib/server/db/index.ts';
+import { eq, desc, and, gte, sql } from 'drizzle-orm';
 import { redirect, fail } from '@sveltejs/kit';
 
 export const load: PageServerLoad = async ({ locals }) => {
@@ -9,7 +9,22 @@ export const load: PageServerLoad = async ({ locals }) => {
     .from(decks)
     .where(eq(decks.ownerId, locals.user!.id))
     .orderBy(desc(decks.updatedAt));
-  return { decks: rows };
+
+  const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+  const [editsRow] = await db
+    .select({ n: sql<number>`count(*)::int` })
+    .from(agentMessages)
+    .innerJoin(decks, eq(decks.id, agentMessages.deckId))
+    .where(and(
+      eq(decks.ownerId, locals.user!.id),
+      eq(agentMessages.role, 'assistant'),
+      gte(agentMessages.createdAt, sevenDaysAgo),
+    ));
+
+  return {
+    decks: rows,
+    agentEditsLastWeek: editsRow?.n ?? 0,
+  };
 };
 
 export const actions: Actions = {
@@ -30,7 +45,7 @@ export const actions: Actions = {
     const fd = await request.formData();
     const id = fd.get('id');
     if (typeof id !== 'string') return fail(400, { error: 'id required' });
-    await db.delete(decks).where(eq(decks.id, id));
+    await db.delete(decks).where(and(eq(decks.id, id), eq(decks.ownerId, locals.user!.id)));
     return { ok: true };
   },
 };

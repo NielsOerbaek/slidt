@@ -25,4 +25,10 @@ describe('buildFontCss', () => {
     // static/fonts/ may not exist — buildFontCss must not throw
     await expect(buildFontCss()).resolves.not.toThrow();
   });
+
+  it('includes Neureal + Neureal Mono @font-face rules when the files are present', async () => {
+    const css = await buildFontCss();
+    expect(css).toContain("font-family: 'Neureal'");
+    expect(css).toContain("font-family: 'Neureal Mono'");
+  });
 });

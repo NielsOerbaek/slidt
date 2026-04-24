@@ -9,11 +9,12 @@ const INTER_SPECS: Array<{ weight: number; file: string }> = [
   { weight: 600, file: 'inter-latin-600-normal.woff2' },
 ];
 
-// Neureal Mono: manually placed in static/fonts/ — silently skipped when absent
+// Neureal (display) + Neureal Mono (data): placed in static/fonts/ — silently
+// skipped when absent.
 const NEUREAL_DIR = path.resolve(process.cwd(), 'static/fonts');
-const NEUREAL_SPECS: Array<{ weight: number; file: string }> = [
-  { weight: 400, file: 'NeurealMono-Regular.woff2' },
-  { weight: 700, file: 'NeurealMono-Bold.woff2' },
+const NEUREAL_SPECS: Array<{ family: string; weight: number; file: string }> = [
+  { family: 'Neureal', weight: 400, file: 'Neureal-Regular.woff2' },
+  { family: 'Neureal Mono', weight: 400, file: 'NeurealMono-Regular.woff2' },
 ];
 
 async function fontFaceRule(
@@ -38,8 +39,9 @@ async function fontFaceRule(
 }
 
 /**
- * Build @font-face CSS for Inter (always present via @fontsource/inter) and
- * Neureal Mono (from static/fonts/ — silently omitted if files are absent).
+ * Build @font-face CSS for Inter (always present via @fontsource/inter),
+ * Neureal (display), and Neureal Mono (data). Neureal families come from
+ * static/fonts/ and are silently omitted if the files are absent.
  */
 export async function buildFontCss(): Promise<string> {
   const rules: string[] = [];
@@ -47,8 +49,8 @@ export async function buildFontCss(): Promise<string> {
     const rule = await fontFaceRule('Inter', weight, path.join(INTER_DIR, file));
     if (rule) rules.push(rule);
   }
-  for (const { weight, file } of NEUREAL_SPECS) {
-    const rule = await fontFaceRule('Neureal Mono', weight, path.join(NEUREAL_DIR, file));
+  for (const { family, weight, file } of NEUREAL_SPECS) {
+    const rule = await fontFaceRule(family, weight, path.join(NEUREAL_DIR, file));
     if (rule) rules.push(rule);
   }
   return rules.join('\n');

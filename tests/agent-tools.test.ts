@@ -39,8 +39,8 @@ import { AGENT_TOOLS, executeTool } from '../src/lib/server/agent/tools.ts';
 import { checkHandlebarsTemplate, checkCss } from '$lib/server/agent/guardrails.ts';
 
 describe('AGENT_TOOLS', () => {
-  it('contains exactly 13 tools', () => {
-    expect(AGENT_TOOLS).toHaveLength(13);
+  it('contains exactly 14 tools', () => {
+    expect(AGENT_TOOLS).toHaveLength(14);
   });
 
   it('includes all required tool names', () => {

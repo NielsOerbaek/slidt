@@ -6,63 +6,63 @@ A browser-based slide editor with live preview, one-click PDF export, and a Clau
 
 ---
 
-## What it looks like
+## The platform
+
+### Deck editor with live preview
+
+<img src="docs/screenshots/deck-editor.png" alt="Deck editor" width="100%" />
+
+Form-driven slide editing on the left, live rendered preview on the right. Same TypeScript renderer runs in the browser and in Node for PDF export — zero duplication.
+
+---
+
+### AI agent drawer
+
+<img src="docs/screenshots/agent-open.png" alt="Agent chat drawer open" width="100%" />
+
+Press **Ctrl+K** to open the agent. Describe what you need — *"Add a title slide and three content slides about cooperative governance"* — and watch it build the deck in real time. Every tool call is listed in the undo stack above the compose box, so you can reverse anything.
+
+---
+
+### Decks list
+
+<img src="docs/screenshots/decks-list.png" alt="Decks list" width="100%" />
+
+All your decks at a glance. **DUP** deep-copies a deck (slides, theme, and custom templates). Decks shared with you appear in a separate "Shared with me" section.
+
+---
+
+### Theme editor
+
+<img src="docs/screenshots/theme-editor.png" alt="Theme editor" width="100%" />
+
+Themes are collections of CSS design tokens — colors, typography, borders — that control every slide. Each theme also carries an **agent system prompt** that shapes how Claude talks and writes when that theme is active.
+
+---
 
 <table>
 <tr>
 <td align="center" width="50%">
-  <img src="tests/visual/snapshots/title.png" alt="Title slide" />
-  <sub><b>Title</b></sub>
+  <img src="docs/screenshots/login.png" alt="Login screen" width="100%" />
+  <sub>Log ind</sub>
 </td>
 <td align="center" width="50%">
-  <img src="tests/visual/snapshots/content.png" alt="Content slide" />
-  <sub><b>Content</b></sub>
-</td>
-</tr>
-<tr>
-<td align="center" width="50%">
-  <img src="tests/visual/snapshots/agenda.png" alt="Agenda slide" />
-  <sub><b>Agenda</b></sub>
-</td>
-<td align="center" width="50%">
-  <img src="tests/visual/snapshots/section.png" alt="Section divider" />
-  <sub><b>Section divider</b></sub>
-</td>
-</tr>
-<tr>
-<td align="center" width="50%">
-  <img src="tests/visual/snapshots/principles.png" alt="Principles slide" />
-  <sub><b>Principles</b></sub>
-</td>
-<td align="center" width="50%">
-  <img src="tests/visual/snapshots/values.png" alt="Values slide" />
-  <sub><b>Values</b></sub>
-</td>
-</tr>
-<tr>
-<td align="center" width="50%">
-  <img src="tests/visual/snapshots/closing.png" alt="Closing slide" />
-  <sub><b>Closing</b></sub>
-</td>
-<td align="center" width="50%">
-  <img src="tests/visual/snapshots/friction.png" alt="Friction slide" />
-  <sub><b>Friction</b></sub>
+  <img src="docs/screenshots/admin.png" alt="Admin panel" width="100%" />
+  <sub>Admin — user management</sub>
 </td>
 </tr>
 </table>
-
-13 built-in slide types · custom templates on demand · antal-theta Swiss-terminal palette
 
 ---
 
 ## Features
 
-- **Live preview** — see your deck render as you type, same renderer in browser and PDF export
-- **AI agent** — chat with Claude to build entire decks, rewrite content, invent new slide types, and tweak themes — all reversible via the undo stack
-- **Collaborators** — invite colleagues by email with editor or viewer roles
-- **Deck duplication** — deep-copy a deck with all slides, theme, and custom templates
-- **API-first** — everything the UI can do, the CLI can do too (`pnpm slidt ...`)
-- **Theme system** — design token–based palettes with per-theme agent system prompts
+- **Live preview** — browser renderer and PDF renderer share one pure-TS function
+- **AI agent** — Claude builds decks, rewrites content, invents slide templates, and tweaks themes; all reversible via the session undo stack
+- **Collaborators** — invite colleagues by email with editor or viewer access
+- **Deck duplication** — deep-copy with slides, theme, and deck-scoped templates
+- **API-first** — everything the UI does, the CLI does too (`pnpm slidt ...`)
+- **Theme system** — design-token palettes with per-theme agent system prompts
 - **PDF export** — Playwright-rendered at 1920×1080, pixel-perfect
 
 ---
@@ -207,8 +207,6 @@ Each backup creates a `data/backups/slidt-YYYYMMDD-HHMMSS.tar.gz` containing a P
 ```json
 { "status": "ok", "db": "ok" }
 ```
-
-If `db` is anything other than `"ok"` the database is unreachable. The HTTP status is always 200 so uptime monitors still get a valid response.
 
 ### Reset a password
 

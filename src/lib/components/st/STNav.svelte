@@ -21,7 +21,7 @@
   function closeMenu() { menuOpen = false; }
   function closeMore() { moreOpen = false; }
 
-  const moreActive = active === 'docs' || active === 'admin' || active === 'settings';
+  const moreActive = $derived(active === 'docs' || active === 'admin' || active === 'settings');
 </script>
 
 <svelte:window

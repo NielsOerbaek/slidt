@@ -89,7 +89,6 @@ html, body {
   width: 100vw; height: 100vh;
   overflow: hidden;
   background: #000;
-  font-family: inherit;
 }
 .slide {
   display: none !important;

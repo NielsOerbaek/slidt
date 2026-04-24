@@ -250,13 +250,90 @@
     }
   }
 
-  // Cmd+N → add slide of last selected type (or first available global)
+  // Vim-style slide navigation
+  let gPressed = $state(false);
+  let gTimeout: ReturnType<typeof setTimeout> | null = null;
+
   function handleKeydown(e: KeyboardEvent) {
     const target = e.target as HTMLElement;
-    if (target?.matches('input, textarea, [contenteditable]')) return;
-    if (e.key === 'n' && !e.metaKey && !e.ctrlKey) {
+
+    // Escape: blur active input → back to normal mode
+    if (e.key === 'Escape' && target?.matches('input, textarea, [contenteditable]')) {
+      (target as HTMLElement).blur();
       e.preventDefault();
-      showTypePicker = true;
+      return;
+    }
+
+    // All other bindings only fire when not editing text
+    if (target?.matches('input, textarea, [contenteditable]')) return;
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+
+    const slides = displaySlides;
+    const idx = slides.findIndex((s) => s.id === selectedSlideId);
+
+    switch (e.key) {
+      case 'j': {
+        // next slide
+        e.preventDefault();
+        const next = slides[idx + 1];
+        if (next) { selectedSlideId = next.id; mobilePane = 'edit'; }
+        break;
+      }
+      case 'k': {
+        // previous slide
+        e.preventDefault();
+        const prev = slides[idx - 1];
+        if (prev) { selectedSlideId = prev.id; mobilePane = 'edit'; }
+        break;
+      }
+      case 'G': {
+        // last slide
+        e.preventDefault();
+        const last = slides[slides.length - 1];
+        if (last) { selectedSlideId = last.id; mobilePane = 'edit'; }
+        break;
+      }
+      case 'g': {
+        // gg → first slide (two consecutive g presses)
+        e.preventDefault();
+        if (gPressed) {
+          if (gTimeout) clearTimeout(gTimeout);
+          gPressed = false;
+          const first = slides[0];
+          if (first) { selectedSlideId = first.id; mobilePane = 'edit'; }
+        } else {
+          gPressed = true;
+          gTimeout = setTimeout(() => { gPressed = false; }, 500);
+        }
+        break;
+      }
+      case 'n':
+      case 'o': {
+        // open type picker (add slide)
+        e.preventDefault();
+        showTypePicker = true;
+        break;
+      }
+      case 'd': {
+        // delete current slide
+        e.preventDefault();
+        if (selectedSlideId) deleteSlide(selectedSlideId);
+        break;
+      }
+      case 'e': {
+        // edit — focus first field in the form pane
+        e.preventDefault();
+        mobilePane = 'edit';
+        const firstInput = document.querySelector<HTMLElement>('.form input, .form textarea');
+        firstInput?.focus();
+        break;
+      }
+      case 'p': {
+        // preview pane
+        e.preventDefault();
+        mobilePane = 'preview';
+        break;
+      }
     }
   }
 </script>

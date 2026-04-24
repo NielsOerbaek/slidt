@@ -84,69 +84,157 @@ export async function renderDeckToHtml(deckId: string): Promise<string> {
 }
 
 const PRESENTATION_CSS = `
-html, body {
-  margin: 0; padding: 0;
-  width: 100vw; height: 100vh;
-  overflow: hidden;
-  background: #000;
-}
+html, body { margin:0; padding:0; width:100vw; height:100vh; overflow:hidden; background:#000; }
+
+/* ── slide base ──────────────────────────────────────── */
 .slide {
   display: none !important;
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%) scale(var(--slide-scale, 1));
+  position: absolute; top:50%; left:50%;
+  transform: translate(-50%,-50%) scale(var(--slide-scale,1));
   transform-origin: center center;
+  z-index: 0;
 }
-.slide.active { display: flex !important; }
-#prs-counter {
-  position: fixed;
-  bottom: 14px;
-  right: 20px;
-  font-family: monospace;
-  font-size: 12px;
-  color: rgba(255,255,255,0.35);
-  pointer-events: none;
-  z-index: 9999;
+.slide.active  { display:flex !important; z-index:1; }
+.slide.prs-out { display:flex !important; z-index:0; }
+
+/* ── FADE ────────────────────────────────────────────── */
+[data-t="fade"] .slide.active  { animation: prs-fadein  .38s ease both; }
+[data-t="fade"] .slide.prs-out { animation: prs-fadeout .38s ease both; }
+
+/* ── SLIDE ───────────────────────────────────────────── */
+[data-t="slide"] .slide.active          { animation: prs-from-r .42s cubic-bezier(.4,0,.2,1) both; }
+[data-t="slide"] .slide.prs-back.active { animation: prs-from-l .42s cubic-bezier(.4,0,.2,1) both; }
+[data-t="slide"] .slide.prs-out         { animation: prs-to-l   .42s cubic-bezier(.4,0,.2,1) both; }
+[data-t="slide"] .slide.prs-back.prs-out{ animation: prs-to-r   .42s cubic-bezier(.4,0,.2,1) both; }
+
+/* ── ZOOM ────────────────────────────────────────────── */
+[data-t="zoom"] .slide.active  { animation: prs-zoomin  .3s ease both; }
+[data-t="zoom"] .slide.prs-out { animation: prs-zoomout .22s ease both; }
+
+/* ── keyframes ───────────────────────────────────────── */
+@keyframes prs-fadein  { from{opacity:0} to{opacity:1} }
+@keyframes prs-fadeout { from{opacity:1} to{opacity:0} }
+
+@keyframes prs-from-r {
+  from { transform:translate(50%,-50%) scale(var(--slide-scale,1)); }
+  to   { transform:translate(-50%,-50%) scale(var(--slide-scale,1)); }
 }
+@keyframes prs-from-l {
+  from { transform:translate(-150%,-50%) scale(var(--slide-scale,1)); }
+  to   { transform:translate(-50%,-50%) scale(var(--slide-scale,1)); }
+}
+@keyframes prs-to-l {
+  from { transform:translate(-50%,-50%) scale(var(--slide-scale,1)); }
+  to   { transform:translate(-150%,-50%) scale(var(--slide-scale,1)); }
+}
+@keyframes prs-to-r {
+  from { transform:translate(-50%,-50%) scale(var(--slide-scale,1)); }
+  to   { transform:translate(50%,-50%) scale(var(--slide-scale,1)); }
+}
+@keyframes prs-zoomin {
+  from { opacity:0; transform:translate(-50%,-50%) scale(calc(var(--slide-scale,1)*.95)); }
+  to   { opacity:1; transform:translate(-50%,-50%) scale(var(--slide-scale,1)); }
+}
+@keyframes prs-zoomout {
+  from { opacity:1; transform:translate(-50%,-50%) scale(var(--slide-scale,1)); }
+  to   { opacity:0; transform:translate(-50%,-50%) scale(calc(var(--slide-scale,1)*1.04)); }
+}
+
+/* ── HUD ─────────────────────────────────────────────── */
+#prs-hud {
+  position:fixed; bottom:14px; right:18px; z-index:9999;
+  display:flex; align-items:center; gap:8px;
+  font-family:'Neureal Mono',monospace; font-size:12px;
+  color:rgba(255,255,255,.28); pointer-events:none;
+}
+#prs-t-btn {
+  pointer-events:auto; cursor:pointer; background:none;
+  border:1px solid rgba(255,255,255,.18); border-radius:4px;
+  padding:2px 7px; color:inherit; font:inherit;
+  transition:color .15s, border-color .15s;
+}
+#prs-t-btn:hover { color:rgba(255,255,255,.7); border-color:rgba(255,255,255,.45); }
 `;
 
 const PRESENTATION_JS = `
 (function() {
+  var TRANS = ['none','fade','slide','zoom'];
+  var DUR   = {none:0, fade:400, slide:460, zoom:320};
   var slides = Array.from(document.querySelectorAll('.slide'));
-  var n = slides.length;
-  var cur = 0;
+  var n = slides.length, cur = 0, busy = false;
+
+  var params = new URLSearchParams(location.search);
+  var ti = Math.max(0, TRANS.indexOf(params.get('t') || 'fade'));
 
   var counter = document.getElementById('prs-counter');
+  var tBtn    = document.getElementById('prs-t-btn');
+
+  function setT(i) {
+    ti = ((i % TRANS.length) + TRANS.length) % TRANS.length;
+    document.body.setAttribute('data-t', TRANS[ti]);
+    if (tBtn) tBtn.textContent = TRANS[ti];
+  }
+
+  function updateCounter() {
+    if (counter) counter.textContent = (cur+1) + ' / ' + n;
+  }
 
   function show(i) {
-    slides[cur].classList.remove('active');
-    cur = ((i % n) + n) % n;
-    slides[cur].classList.add('active');
-    if (counter) counter.textContent = (cur + 1) + ' / ' + n;
+    if (busy) return;
+    var fwd = (i > cur) || (cur === n-1 && ((i%n+n)%n) === 0);
+    var prev = slides[cur];
+    cur = ((i%n)+n)%n;
+    var next = slides[cur];
+    if (prev === next) return;
+    updateCounter();
+
+    var t = TRANS[ti];
+    if (t === 'none') {
+      prev.classList.remove('active');
+      next.classList.add('active');
+      return;
+    }
+
+    if (!fwd) { prev.classList.add('prs-back'); next.classList.add('prs-back'); }
+    prev.classList.add('prs-out');
+    next.classList.add('active');
+    busy = true;
+    setTimeout(function() {
+      prev.classList.remove('active','prs-out','prs-back');
+      next.classList.remove('prs-back');
+      busy = false;
+    }, DUR[t] || 400);
   }
 
   function resize() {
-    var scale = Math.min(window.innerWidth / 1920, window.innerHeight / 1080);
-    document.documentElement.style.setProperty('--slide-scale', scale);
+    document.documentElement.style.setProperty(
+      '--slide-scale',
+      Math.min(window.innerWidth/1920, window.innerHeight/1080)
+    );
   }
   window.addEventListener('resize', resize);
   resize();
 
   document.addEventListener('keydown', function(e) {
-    if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ' || e.key === 'PageDown') {
-      e.preventDefault(); show(cur + 1);
-    } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp' || e.key === 'PageUp') {
-      e.preventDefault(); show(cur - 1);
+    if (['ArrowRight','ArrowDown',' ','PageDown'].includes(e.key)) { e.preventDefault(); show(cur+1); }
+    else if (['ArrowLeft','ArrowUp','PageUp'].includes(e.key))     { e.preventDefault(); show(cur-1); }
+    else if (e.key==='t'||e.key==='T') setT(ti+1);
+    else if (e.key==='f'||e.key==='F') {
+      if (!document.fullscreenElement) document.documentElement.requestFullscreen();
+      else document.exitFullscreen();
     }
   });
 
   document.addEventListener('click', function(e) {
-    if (e.clientX >= window.innerWidth / 2) show(cur + 1);
-    else show(cur - 1);
+    if (e.target.closest && e.target.closest('#prs-hud')) return;
+    if (e.clientX >= window.innerWidth/2) show(cur+1); else show(cur-1);
   });
 
-  show(0);
+  if (tBtn) tBtn.addEventListener('click', function() { setT(ti+1); });
+
+  setT(ti);
+  slides[0].classList.add('active');
+  updateCounter();
 })();
 `;
 
@@ -154,14 +242,14 @@ export async function renderDeckToPresentation(deckId: string): Promise<string> 
   const { html } = await loadDeckHtml(deckId);
   return html
     .replace('</style>', PRESENTATION_CSS + '</style>')
-    .replace('</body>', `<div id="prs-counter"></div><script>${PRESENTATION_JS}</script></body>`);
+    .replace('</body>', `<div id="prs-hud"><button id="prs-t-btn"></button><span id="prs-counter"></span></div><script>${PRESENTATION_JS}</script></body>`);
 }
 
 export async function renderDeckToPdf(deckId: string): Promise<Buffer> {
   const { html: htmlWithFonts, appendixAssets } = await loadDeckHtml(deckId);
 
   // 8. Print to PDF via Playwright
-  const { chromium } = await import('playwright');
+  const { chromium } = await import(/* @vite-ignore */ 'playwright');
   const browser = await chromium.launch();
   let pdfBuf: Buffer;
   try {

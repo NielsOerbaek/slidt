@@ -117,6 +117,7 @@ export const messages = {
   // Mobile tabs
   'editor.mob_edit': { da: 'REDIGER', en: 'EDIT' },
   'editor.mob_preview': { da: 'FORHÅNDSVIS', en: 'PREVIEW' },
+  'editor.mob_agent': { da: 'AGENT', en: 'AGENT' },
 
   // Agent drawer
   'agent.tag': { da: '§4 · AGENT', en: '§4 · AGENT' },

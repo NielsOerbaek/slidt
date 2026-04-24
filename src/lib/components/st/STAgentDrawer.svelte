@@ -74,10 +74,18 @@
   }
 
   function handleKeydown(e: KeyboardEvent) {
-    if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+    if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       send();
     }
+  }
+
+  const LINE_HEIGHT = 14 * 1.4; // font-size 14px × line-height 1.4
+  const MAX_TEXTAREA_H = Math.round(LINE_HEIGHT * 2.5); // ~49px
+
+  function growTextarea(el: HTMLTextAreaElement) {
+    el.style.height = 'auto';
+    el.style.height = Math.min(el.scrollHeight, MAX_TEXTAREA_H) + 'px';
   }
 
   function handleGlobal(e: KeyboardEvent) {
@@ -130,6 +138,7 @@
     ];
     const assistantIdx = messages.length - 1;
     input = '';
+    if (composeEl) { composeEl.style.height = 'auto'; }
     sending = true;
     errorMsg = '';
     scrollToBottom();
@@ -371,8 +380,9 @@
             rows="1"
             disabled={sending}
             onkeydown={handleKeydown}
+            oninput={(e) => growTextarea(e.currentTarget as HTMLTextAreaElement)}
           ></textarea>
-          <span class="compose-cmd">⌘↵</span>
+          <span class="compose-cmd">⇧↵</span>
         </div>
       </div>
     </div>
@@ -602,6 +612,8 @@
     background: transparent;
     color: var(--st-ink);
     resize: none;
+    overflow: hidden;
+    min-height: 20px;
   }
   .compose textarea:focus { outline: 0; }
   .compose-cmd {

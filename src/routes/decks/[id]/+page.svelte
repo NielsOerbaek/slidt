@@ -30,7 +30,7 @@
   let exporting = $state(false);
   let lastSavedAt = $state<number>(Date.now());
   let agentOpen = $state(false);
-  let mobilePane = $state<'list' | 'edit' | 'preview'>('list');
+  let mobilePane = $state<'list' | 'edit' | 'preview' | 'agent'>('list');
   let shareUrl = $state('');
   let shareError = $state('');
 
@@ -262,6 +262,14 @@
   }
 
   // Vim-style slide navigation
+  // When switching to the agent tab, open the drawer; when closing via ×, go back to preview
+  $effect(() => {
+    if (mobilePane === 'agent') agentOpen = true;
+  });
+  $effect(() => {
+    if (!agentOpen && mobilePane === 'agent') mobilePane = 'preview';
+  });
+
   let gPressed = $state(false);
   let gTimeout: ReturnType<typeof setTimeout> | null = null;
 
@@ -473,7 +481,7 @@
     </section>
 
     <!-- Preview + Agent column -->
-    <section class="right" class:mob-active={mobilePane === 'preview'}>
+    <section class="right" class:mob-active={mobilePane === 'preview' || mobilePane === 'agent'} class:mob-agent={mobilePane === 'agent'}>
       <div class="preview-wrap">
         <div class="preview-meta">
           <span>{t('editor.preview_meta')}</span>
@@ -513,6 +521,7 @@
     <button class:active={mobilePane === 'list'} onclick={() => mobilePane = 'list'}>{t('editor.slides_label')}</button>
     <button class:active={mobilePane === 'edit'} onclick={() => mobilePane = 'edit'}>{t('editor.mob_edit')}</button>
     <button class:active={mobilePane === 'preview'} onclick={() => mobilePane = 'preview'}>{t('editor.mob_preview')}</button>
+    <button class:active={mobilePane === 'agent'} class="mob-agent-tab" onclick={() => mobilePane = 'agent'}>{t('editor.mob_agent')}</button>
   </div>
 </div>
 
@@ -1187,10 +1196,20 @@
     /* Right: preview adjust */
     .preview-wrap { padding: 16px 14px; }
 
+    /* Agent tab: hide preview, make drawer fill the pane */
+    .right.mob-agent .preview-wrap { display: none; }
+    .right.mob-agent :global(.drawer.open) {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      border-left: none;
+    }
+
+
     /* Mobile tab bar */
     .mob-tabs {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
+      grid-template-columns: repeat(4, 1fr);
       border-top: var(--st-rule-thick);
       flex-shrink: 0;
     }

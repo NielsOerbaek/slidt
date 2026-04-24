@@ -73,7 +73,8 @@ export async function screenshotSlideType(
   const fontCss = await buildFontCss();
   const fullHtml = injectFontCss(html, fontCss);
 
-  const { chromium } = await import('playwright');
+  // new Function prevents Vite/Rollup from bundling playwright (same trick as pdf.ts).
+  const { chromium } = await (new Function('m', 'return import(m)'))('playwright') as typeof import('playwright');
   const browser = await chromium.launch();
   try {
     const page = await browser.newPage({ viewport: { width: 1920, height: 1080 } });

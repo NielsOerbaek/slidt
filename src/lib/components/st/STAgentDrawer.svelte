@@ -42,17 +42,8 @@
 
   const turnCount = $derived(messages.length);
 
-  // The most recent successful tool call (any role), used by the footer chip.
-  const lastAction = $derived.by<ToolPart | null>(() => {
-    for (let i = messages.length - 1; i >= 0; i--) {
-      const m = messages[i]!;
-      for (let j = m.parts.length - 1; j >= 0; j--) {
-        const p = m.parts[j]!;
-        if (p.kind === 'tool' && p.result && !p.result.startsWith('error')) return p;
-      }
-    }
-    return null;
-  });
+  type UndoEntry = { tool: string; label: string; undoPatch: unknown };
+  let undoStack = $state<UndoEntry[]>([]);
 
   function isThinking(m: Message): boolean {
     if (m.role !== 'assistant') return false;
@@ -188,6 +179,14 @@
               undoPatch: event.undoPatch,
               image: event.image as ToolPart['image'],
             }));
+            if (event.undoPatch && !(event.result as string).startsWith('error')) {
+              const entry: UndoEntry = {
+                tool: event.tool as string,
+                label: buildUndoLabel(event.tool as string),
+                undoPatch: event.undoPatch,
+              };
+              undoStack = [entry, ...undoStack].slice(0, 20);
+            }
             const SLIDE_MUTATING = ['add_slide', 'patch_slide', 'delete_slide', 'reorder_slides'];
             if (SLIDE_MUTATING.includes(event.tool as string)) {
               await invalidateAll();
@@ -245,9 +244,18 @@
     return ['patch_slide', 'delete_slide', 'reorder_slides'].includes(patch.type as string);
   }
 
-  function chipLabel(p: ToolPart): string {
-    const id = (p.input as { id?: string } | undefined)?.id;
-    return id ? `${p.name.toUpperCase()} · id=${id}` : p.name.toUpperCase();
+  function buildUndoLabel(tool: string): string {
+    switch (tool) {
+      case 'add_slide':    return 'added slide';
+      case 'delete_slide': return 'deleted slide';
+      case 'patch_slide':  return 'edited slide';
+      case 'reorder_slides': return 'reordered slides';
+      case 'update_theme': return 'changed theme';
+      case 'create_slide_type': return 'created template';
+      case 'patch_slide_type':  return 'edited template';
+      case 'delete_slide_type': return 'deleted template';
+      default: return tool.replace(/_/g, ' ');
+    }
   }
 </script>
 
@@ -326,19 +334,38 @@
         <div class="error">{errorMsg}</div>
       {/if}
 
+      {#if undoStack.length > 0}
+        <div class="undo-stack">
+          <div class="undo-header">
+            <span class="undo-title">↩ {undoStack.length} UNDOABLE</span>
+          </div>
+          <div class="undo-list">
+            {#each undoStack as entry, i (i)}
+              {#if canUndo(entry.undoPatch)}
+                <button
+                  class="undo-row"
+                  type="button"
+                  onclick={() => {
+                    handleUndo(entry.undoPatch);
+                    undoStack = undoStack.slice(i + 1);
+                  }}
+                >
+                  <span class="undo-tool">{entry.tool}</span>
+                  <span class="undo-label">{entry.label}</span>
+                  <span class="undo-btn">UNDO</span>
+                </button>
+              {:else}
+                <div class="undo-row undo-row-static">
+                  <span class="undo-tool">{entry.tool}</span>
+                  <span class="undo-label">{entry.label}</span>
+                </div>
+              {/if}
+            {/each}
+          </div>
+        </div>
+      {/if}
+
       <div class="footer">
-        {#if lastAction && canUndo(lastAction.undoPatch)}
-          <button class="chip" type="button" onclick={() => handleUndo(lastAction!.undoPatch)} title={t('agent.undo')}>
-            <span class="chip-dot"></span>
-            <span class="chip-label">{chipLabel(lastAction)}</span>
-            <span class="chip-undo">{t('agent.undo')}</span>
-          </button>
-        {:else if lastAction}
-          <span class="chip chip-static">
-            <span class="chip-dot"></span>
-            <span class="chip-label">{chipLabel(lastAction)}</span>
-          </span>
-        {/if}
         <div class="compose">
           <span class="compose-num">{String(messages.length + 1).padStart(2, '0')} ·</span>
           <textarea
@@ -477,6 +504,63 @@
     color: var(--st-ink);
   }
 
+  .undo-stack {
+    border-top: var(--st-rule-thin);
+    max-height: 160px;
+    display: flex;
+    flex-direction: column;
+  }
+  .undo-header {
+    padding: 4px 12px;
+    display: flex;
+    align-items: center;
+  }
+  .undo-title {
+    font-family: var(--st-font-mono);
+    font-size: 9px;
+    letter-spacing: 0.2em;
+    color: var(--st-ink-dim);
+  }
+  .undo-list {
+    overflow-y: auto;
+    flex: 1;
+  }
+  .undo-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 12px;
+    width: 100%;
+    text-align: left;
+    background: none;
+    border: none;
+    cursor: pointer;
+    border-top: var(--st-rule-thin);
+  }
+  .undo-row:hover { background: var(--st-bg-deep); }
+  .undo-row-static { cursor: default; opacity: 0.5; }
+  .undo-row-static:hover { background: none; }
+  .undo-tool {
+    font-family: var(--st-font-mono);
+    font-size: 9px;
+    letter-spacing: 0.1em;
+    color: var(--st-ink-dim);
+    min-width: 100px;
+    flex-shrink: 0;
+  }
+  .undo-label {
+    font-family: var(--st-font-mono);
+    font-size: 10px;
+    color: var(--st-ink);
+    flex: 1;
+  }
+  .undo-btn {
+    font-family: var(--st-font-mono);
+    font-size: 9px;
+    letter-spacing: 0.15em;
+    color: var(--st-cobalt);
+  }
+
   .footer {
     padding: 12px 18px;
     border-top: var(--st-rule-thin);
@@ -484,23 +568,6 @@
     align-items: center;
     gap: 14px;
   }
-  .chip {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    padding: 6px 10px;
-    border: 2px solid var(--st-ink);
-    background: transparent;
-    color: var(--st-ink);
-    font-family: var(--st-font-mono);
-    font-size: 10px;
-    letter-spacing: 0.14em;
-    cursor: pointer;
-  }
-  .chip-static { cursor: default; }
-  .chip:hover:not(.chip-static) { background: var(--st-bg-deep); }
-  .chip-dot { width: 7px; height: 7px; background: var(--st-cobalt); }
-  .chip-undo { color: var(--st-ink-dim); margin-left: 6px; }
 
   .compose {
     flex: 1;

@@ -29,6 +29,7 @@
   let exporting = $state(false);
   let lastSavedAt = $state<number>(Date.now());
   let agentOpen = $state(false);
+  let mobilePane = $state<'list' | 'edit' | 'preview'>('list');
   let shareUrl = $state('');
   let shareError = $state('');
 
@@ -299,7 +300,7 @@
   <!-- Body -->
   <div class="body">
     <!-- Slide list -->
-    <aside class="slide-list">
+    <aside class="slide-list" class:mob-active={mobilePane === 'list'}>
       <div class="list-head">
         <span>{t('editor.slides_label')}</span>
         <span>{String(data.slides.length).padStart(2, '0')}</span>
@@ -317,8 +318,8 @@
             class:drop-after={dropTargetId === slide.id && dropPosition === 'after'}
             role="button"
             tabindex="0"
-            onclick={() => selectedSlideId = slide.id}
-            onkeydown={(e) => e.key === 'Enter' && (selectedSlideId = slide.id)}
+            onclick={() => { selectedSlideId = slide.id; mobilePane = 'edit'; }}
+            onkeydown={(e) => e.key === 'Enter' && (selectedSlideId = slide.id, mobilePane = 'edit')}
             draggable="true"
             ondragstart={(e) => onDragStart(e, slide.id)}
             ondragover={(e) => onDragOver(e, slide.id)}
@@ -351,7 +352,7 @@
     </aside>
 
     <!-- Form -->
-    <section class="form">
+    <section class="form" class:mob-active={mobilePane === 'edit'}>
       {#if selectedSlide && selectedType}
         <div class="form-head">
           {t('editor.form_head', { n: String(selectedIdx + 1).padStart(2, '0'), type: selectedType.name.toUpperCase() })}
@@ -375,7 +376,7 @@
     </section>
 
     <!-- Preview + Agent column -->
-    <section class="right">
+    <section class="right" class:mob-active={mobilePane === 'preview'}>
       <div class="preview-wrap">
         <div class="preview-meta">
           <span>{t('editor.preview_meta')}</span>
@@ -408,6 +409,13 @@
 
       <STAgentDrawer deckId={data.deck.id} themeId={data.deck.themeId} bind:open={agentOpen} />
     </section>
+  </div>
+
+  <!-- Mobile tab bar (hidden on desktop) -->
+  <div class="mob-tabs">
+    <button class:active={mobilePane === 'list'} onclick={() => mobilePane = 'list'}>SLIDES</button>
+    <button class:active={mobilePane === 'edit'} onclick={() => mobilePane = 'edit'}>EDIT</button>
+    <button class:active={mobilePane === 'preview'} onclick={() => mobilePane = 'preview'}>PREVIEW</button>
   </div>
 </div>
 
@@ -945,4 +953,98 @@
     cursor: pointer;
   }
   .btn-sm:hover { background: #0e34b8; }
+
+  /* ── Mobile tab bar (desktop: hidden) ────────────────── */
+  .mob-tabs { display: none; }
+
+  /* ── Mobile responsive ────────────────────────────────── */
+  @media (max-width: 768px) {
+    .editor { height: calc(100vh - 42px); }
+
+    /* Breadcrumb: collapse 3-col to title + scrolling actions */
+    .breadcrumb { grid-template-columns: 1fr; }
+    .cell.index { display: none; }
+    .cell.crumbs {
+      padding: 10px 14px;
+      gap: 10px;
+      overflow-x: auto;
+      white-space: nowrap;
+    }
+    .cell.crumbs .title { font-size: 14px; }
+    .cell.actions {
+      overflow-x: auto;
+      border-top: var(--st-rule-thin);
+      /* hide scrollbar but keep scrollable */
+      scrollbar-width: none;
+    }
+    .cell.actions::-webkit-scrollbar { display: none; }
+    .action { padding: 10px 14px; font-size: 10px; flex-shrink: 0; }
+
+    /* Body: single-column, each pane takes full height */
+    .body {
+      grid-template-columns: 1fr;
+      position: relative;
+    }
+
+    /* All panes hidden by default on mobile */
+    .slide-list,
+    .form,
+    .right {
+      display: none;
+      height: 100%;
+    }
+
+    /* Active pane shown */
+    .slide-list.mob-active { display: flex; }
+    .form.mob-active { display: block; overflow-y: auto; }
+    .right.mob-active { display: flex; }
+
+    /* Slide list: full width */
+    .slide-list { border-right: none; }
+
+    /* Form: reduce padding */
+    .form { padding: 20px 18px 60px; }
+
+    /* Right: preview adjust */
+    .preview-wrap { padding: 16px 14px; }
+
+    /* Mobile tab bar */
+    .mob-tabs {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      border-top: var(--st-rule-thick);
+      flex-shrink: 0;
+    }
+    .mob-tabs button {
+      padding: 12px 0;
+      background: var(--st-bg);
+      color: var(--st-ink-dim);
+      border: none;
+      border-right: var(--st-rule-thin);
+      font-family: var(--st-font-mono);
+      font-size: 10px;
+      letter-spacing: 0.2em;
+      cursor: pointer;
+    }
+    .mob-tabs button:last-child { border-right: none; }
+    .mob-tabs button.active {
+      background: var(--st-cobalt);
+      color: var(--st-bg);
+    }
+    .mob-tabs button:hover:not(.active) { background: var(--st-bg-deep); }
+
+    /* Picker/share dialogs: full width on small screens */
+    .picker { width: 94vw; }
+    .share-dialog { width: 94vw; }
+
+    /* Type grid: 2 columns on mobile */
+    .type-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  @media (max-width: 480px) {
+    .cell.actions { display: none; }
+    .mob-tabs button { font-size: 9px; letter-spacing: 0.15em; padding: 10px 0; }
+    .form { padding: 16px 14px 56px; }
+    .type-grid { grid-template-columns: 1fr; }
+  }
 </style>

@@ -1,6 +1,6 @@
-# slidt 🎞️
+<img src="docs/screenshots/hero.png" alt="slidt — AI-assisted presentation platform" width="100%" />
 
-> *AI-assisted presentation tooling for Os & Data — because great decks shouldn't require a developer.*
+> AI-assisted presentation tooling for Os & Data — because great decks shouldn't require a developer.
 
 A browser-based slide editor with live preview, one-click PDF export, and a Claude-powered agent that builds, edits, and styles decks on demand. Built by the team, for the team.
 

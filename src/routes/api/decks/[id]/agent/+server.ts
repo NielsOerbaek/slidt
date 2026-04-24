@@ -2,6 +2,7 @@ import { error } from '@sveltejs/kit';
 import type { RequestEvent } from '@sveltejs/kit';
 import { requireDeckRole } from '$lib/server/deck-access.ts';
 import { runAgentStream } from '$lib/server/agent/runner.ts';
+import { runOllamaStream } from '$lib/server/agent/ollama-runner.ts';
 
 export async function POST(event: RequestEvent) {
   await requireDeckRole(event.params.id!, event.locals.user?.id, 'editor');
@@ -13,7 +14,15 @@ export async function POST(event: RequestEvent) {
     throw error(400, 'message required');
   }
 
-  const stream = runAgentStream(deckId, event.locals.user!.id, body.message.trim());
+  const aiModel = event.locals.user?.preferences?.aiModel;
+  let stream: ReadableStream<Uint8Array>;
+
+  if (aiModel?.startsWith('ollama:')) {
+    const modelTag = aiModel.slice('ollama:'.length);
+    stream = runOllamaStream(deckId, event.locals.user!.id, body.message.trim(), modelTag);
+  } else {
+    stream = runAgentStream(deckId, event.locals.user!.id, body.message.trim());
+  }
 
   return new Response(stream, {
     headers: {

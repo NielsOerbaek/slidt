@@ -26,7 +26,7 @@ export const messages = {
   'nav.templates': { da: 'SKABELONER', en: 'TEMPLATES' },
   'nav.docs': { da: 'DOCS', en: 'DOCS' },
   'nav.admin': { da: 'ADMIN', en: 'ADMIN' },
-  'nav.settings': { da: 'NØGLER', en: 'KEYS' },
+  'nav.settings': { da: 'INDSTILLINGER', en: 'SETTINGS' },
   'nav.more': { da: 'MERE', en: 'MORE' },
 
   // ── Login ────────────────────────────────────────────────────────────

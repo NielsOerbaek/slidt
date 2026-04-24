@@ -262,21 +262,17 @@
 <svelte:window onkeydown={handleGlobal} />
 
 <div class="drawer" class:open>
-  <button class="bar" onclick={toggle} type="button">
-    <STFace size={18} color="var(--st-cobalt)" />
-    <span class="tag">{t('agent.tag')}</span>
-    <span class="dot" class:live={sending} aria-hidden="true"></span>
-    <span class="status">
-      {sending ? t('agent.working') : t('agent.live')} · {turnCount} {turnCount === 1 ? t('agent.turn_singular') : t('agent.turn_plural')}
-    </span>
-    <span class="spacer"></span>
-    {#if !open}
-      <span class="hint">{t('agent.hint')}</span>
-    {/if}
-    <span class="cmd">{open ? t('agent.collapse') : t('agent.expand')}</span>
-  </button>
-
   {#if open}
+    <div class="panel-head">
+      <STFace size={16} color="var(--st-cobalt)" />
+      <span class="tag">{t('agent.tag')}</span>
+      <span class="dot" class:live={sending} aria-hidden="true"></span>
+      <span class="status">
+        {sending ? t('agent.working') : t('agent.live')} · {turnCount} {turnCount === 1 ? t('agent.turn_singular') : t('agent.turn_plural')}
+      </span>
+      <span class="spacer"></span>
+      <button class="panel-close" onclick={toggle} type="button" aria-label="Close agent">×</button>
+    </div>
     <div class="body">
       <div class="transcript" bind:this={transcriptEl}>
         {#if messages.length === 0}
@@ -384,44 +380,54 @@
 </div>
 
 <style>
+  /* Drawer: hidden when closed, full overlay when open */
   .drawer {
-    border-top: var(--st-rule-thick);
-    background: var(--st-bg);
+    display: none;
+  }
+  .drawer.open {
     display: flex;
     flex-direction: column;
-    flex-shrink: 0;
+    position: absolute;
+    inset: 0;
+    z-index: 10;
+    background: var(--st-bg);
+    border-left: var(--st-rule-thick);
   }
-  .bar {
-    all: unset;
-    cursor: pointer;
+
+  /* Panel header */
+  .panel-head {
     padding: 12px 18px;
+    border-bottom: var(--st-rule-medium);
     display: flex;
     align-items: center;
     gap: 12px;
     font-family: var(--st-font-mono);
     color: var(--st-ink);
+    flex-shrink: 0;
   }
-  .bar:hover { background: var(--st-bg-deep); }
-  .drawer.open .bar { border-bottom: var(--st-rule-medium); }
   .tag { font-size: 10px; letter-spacing: 0.28em; }
   .dot { width: 8px; height: 8px; background: var(--st-cobalt); }
   .dot.live { animation: pulse 1.4s ease-in-out infinite; }
   @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
   .status { font-size: 9px; letter-spacing: 0.2em; color: var(--st-ink-dim); }
   .spacer { flex: 1; }
-  .hint { font-size: 10px; letter-spacing: 0.22em; color: var(--st-ink-dim); }
-  .cmd {
-    font-size: 11px;
-    letter-spacing: 0.2em;
-    padding: 4px 10px;
-    border: 1.5px solid var(--st-ink);
+  .panel-close {
+    background: transparent;
+    border: 0;
+    font-size: 22px;
+    line-height: 1;
+    cursor: pointer;
+    color: var(--st-ink-dim);
+    padding: 0 4px;
   }
+  .panel-close:hover { color: var(--st-ink); }
 
   .body {
-    height: 320px;
+    flex: 1;
     display: flex;
     flex-direction: column;
     overflow: hidden;
+    min-height: 0;
   }
   /* Single-column flow keeps reading order linear; rows separated by a thin
      rule so consecutive turns don't blur together. */

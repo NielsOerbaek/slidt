@@ -68,6 +68,12 @@ export const load: PageServerLoad = async ({ params, locals }) => {
       deckId: t.deckId,
     }));
 
+  // Load all global themes for the theme picker
+  const allThemes = await db
+    .select({ id: themes.id, name: themes.name })
+    .from(themes)
+    .where(eq(themes.scope, 'global'));
+
   // Convert DB theme to renderer Theme shape
   const rendererTheme: (Theme & { id: string }) | null = theme
     ? { id: theme.id, name: theme.name, tokens: theme.tokens }
@@ -80,6 +86,7 @@ export const load: PageServerLoad = async ({ params, locals }) => {
     slides: orderedSlides,
     slideTypes: rendererTypes,
     theme: rendererTheme,
+    availableThemes: allThemes,
     isOwner: access === 'owner',
     canEdit: access === 'owner' || access === 'editor',
     collaborators,

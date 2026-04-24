@@ -26,6 +26,7 @@
   let saving = $state(false);
   let saveError = $state('');
   let showTypePicker = $state(false);
+  let showThemePicker = $state(false);
   let exporting = $state(false);
   let lastSavedAt = $state<number>(Date.now());
   let agentOpen = $state(false);
@@ -227,6 +228,16 @@
     shareCopied = false;
   }
 
+  async function applyTheme(themeId: string) {
+    showThemePicker = false;
+    await fetch(`/api/decks/${data.deck.id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ themeId }),
+    });
+    await invalidateAll();
+  }
+
   async function deleteDeck() {
     if (!confirm(t('editor.confirm_delete'))) return;
     const res = await fetch(`/api/decks/${data.deck.id}`, { method: 'DELETE' });
@@ -368,6 +379,7 @@
       <button class="action" onclick={exportPdf} disabled={exporting}>
         {exporting ? t('editor.action_export_busy') : t('editor.action_export')}
       </button>
+      <button class="action" type="button" onclick={() => showThemePicker = true}>THEME{data.theme ? ` · ${data.theme.name}` : ''}</button>
       <button class="action" type="button" onclick={openShareDialog}>{t('editor.action_share')}</button>
       <button class="action danger" type="button" onclick={deleteDeck}>{t('editor.action_delete')}</button>
       <button
@@ -590,8 +602,52 @@
       <div class="type-grid">
         {#each data.slideTypes.filter(t => t.scope === 'global' || t.deckId === data.deck.id) as type}
           <button class="type-tile" onclick={() => addSlide(type.id)}>
+            <div class="tt-preview">
+              <SlidePreview
+                slideType={type}
+                slideData={buildDefaultData(type.fields)}
+                theme={data.theme}
+              />
+            </div>
             <span class="tt-label">{type.label}</span>
             <span class="tt-name">{type.name}</span>
+          </button>
+        {/each}
+      </div>
+    </div>
+  </div>
+{/if}
+
+<!-- Theme picker -->
+{#if showThemePicker}
+  <div
+    class="overlay"
+    role="dialog"
+    aria-modal="true"
+    onclick={() => showThemePicker = false}
+    onkeydown={(e) => e.key === 'Escape' && (showThemePicker = false)}
+  >
+    <div
+      class="picker"
+      role="document"
+      onclick={(e) => e.stopPropagation()}
+      onkeydown={(e) => e.stopPropagation()}
+    >
+      <div class="picker-head">
+        <span>THEME</span>
+        <button onclick={() => showThemePicker = false} aria-label="Close">×</button>
+      </div>
+      <div class="theme-list">
+        {#each data.availableThemes as theme (theme.id)}
+          <button
+            class="theme-row"
+            class:active={data.deck.themeId === theme.id || (!data.deck.themeId && data.theme?.id === theme.id)}
+            onclick={() => applyTheme(theme.id)}
+          >
+            <span class="theme-name">{theme.name}</span>
+            {#if data.deck.themeId === theme.id || (!data.deck.themeId && data.theme?.id === theme.id)}
+              <span class="theme-active">ACTIVE</span>
+            {/if}
           </button>
         {/each}
       </div>
@@ -832,6 +888,7 @@
     flex-direction: column;
     overflow: hidden;
     min-height: 0;
+    position: relative;
   }
   .preview-wrap {
     flex: 1;
@@ -975,29 +1032,66 @@
     grid-template-columns: repeat(3, 1fr);
     gap: 10px;
     overflow-y: auto;
+    max-height: calc(80vh - 60px);
   }
   .type-tile {
     background: var(--st-bg);
     border: 2px solid var(--st-ink);
-    padding: 14px;
+    padding: 0;
     text-align: left;
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 0;
     cursor: pointer;
     border-radius: 0;
+    overflow: hidden;
   }
-  .type-tile:hover { background: var(--st-bg-deep); border-color: var(--st-cobalt); }
+  .type-tile:hover { border-color: var(--st-cobalt); }
+  .tt-preview {
+    width: 100%;
+    aspect-ratio: 16/9;
+    overflow: hidden;
+    flex-shrink: 0;
+    border-bottom: 2px solid inherit;
+  }
+  .tt-preview :global(.preview-wrap) { border-radius: 0; min-height: 0; }
   .tt-label {
     font-family: var(--st-font-display);
-    font-size: 16px;
+    font-size: 15px;
     letter-spacing: -0.01em;
+    padding: 10px 12px 2px;
   }
   .tt-name {
     font-family: var(--st-font-mono);
-    font-size: 10px;
+    font-size: 9px;
     letter-spacing: 0.18em;
     color: var(--st-ink-dim);
+    padding: 0 12px 10px;
+  }
+
+  /* ── Theme picker list ────────────────────────────────── */
+  .theme-list { overflow-y: auto; max-height: calc(80vh - 60px); }
+  .theme-row {
+    width: 100%;
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    background: transparent;
+    border: none;
+    border-bottom: var(--st-rule-thin);
+    text-align: left;
+    cursor: pointer;
+  }
+  .theme-row:hover { background: var(--st-bg-deep); }
+  .theme-row.active { background: var(--st-cobalt); color: var(--st-bg); }
+  .theme-name { font-family: var(--st-font-display); font-size: 22px; }
+  .theme-active {
+    font-family: var(--st-font-mono);
+    font-size: 9px;
+    letter-spacing: 0.2em;
+    opacity: 0.8;
   }
 
   /* ── Collaborators section ────────────────────────────── */

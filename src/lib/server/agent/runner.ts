@@ -5,7 +5,7 @@ import { executeTool, AGENT_TOOLS } from '$lib/server/agent/tools.ts';
 
 const client = new Anthropic();
 
-const BASE_SYSTEM_PROMPT = `You are a slide deck assistant for Os & Data, a Danish cooperative association. \
+export const BASE_SYSTEM_PROMPT = `You are a slide deck assistant for Os & Data, a Danish cooperative association. \
 You help users edit presentations using the available tools.
 
 Guidelines:

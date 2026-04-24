@@ -7,7 +7,7 @@
 
 {#if data.user}
   <nav>
-    <a href="/decks" class="brand">slidt</a>
+    <a href="/decks" class="brand">-_-</a>
     <a href="/decks">Decks</a>
     <a href="/themes">Themes</a>
     <a href="/templates">Templates</a>
@@ -38,7 +38,7 @@
     top: 0;
     z-index: 100;
   }
-  .brand { font-weight: 700; font-size: 18px; letter-spacing: -0.5px; color: white; text-decoration: none; }
+  .brand { font-weight: 700; font-size: 18px; letter-spacing: -0.5px; color: white; text-decoration: none; font-family: monospace, ui-monospace; }
   nav a { color: #a783ff; text-decoration: none; font-size: 14px; }
   nav a:hover { color: white; }
   .spacer { flex: 1; }

@@ -9,7 +9,7 @@
 
 <div class="login-wrap">
   <div class="login-card">
-    <h1>slidt</h1>
+    <h1>-_-</h1>
     <p class="sub">Sign in to continue</p>
 
     {#if form?.error}
@@ -45,7 +45,7 @@
     width: 360px;
     box-shadow: 0 4px 24px rgba(110,49,255,0.12);
   }
-  h1 { font-size: 32px; font-weight: 700; color: #6e31ff; margin: 0 0 4px; }
+  h1 { font-size: 32px; font-weight: 700; color: #6e31ff; margin: 0 0 4px; font-family: monospace, ui-monospace; letter-spacing: -1px; }
   .sub { color: #666; margin: 0 0 28px; font-size: 14px; }
   .error { color: #c00; background: #fff0f0; border: 1px solid #fcc; border-radius: 6px; padding: 8px 12px; font-size: 13px; margin-bottom: 16px; }
   label { display: flex; flex-direction: column; gap: 6px; font-size: 13px; font-weight: 500; color: #444; margin-bottom: 16px; }

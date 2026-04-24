@@ -86,6 +86,32 @@
         </select>
       </div>
 
+      <div class="pref-row">
+        <div class="pref-info">
+          <span class="pref-name">{t('settings.agent_model_name')}</span>
+          <span class="pref-desc">{t('settings.agent_model_desc')}</span>
+          {#if data.ollamaModels.length === 0}
+            <span class="pref-desc">{t('settings.agent_model_unavailable')}</span>
+          {/if}
+        </div>
+        <select name="aiModel">
+          <option
+            value="claude"
+            selected={!data.user.preferences?.aiModel || data.user.preferences.aiModel === 'claude'}
+          >
+            Claude (Sonnet 4.6)
+          </option>
+          {#each data.ollamaModels as model}
+            <option
+              value="ollama:{model}"
+              selected={data.user.preferences?.aiModel === `ollama:${model}`}
+            >
+              {model}
+            </option>
+          {/each}
+        </select>
+      </div>
+
       <div class="form-row pref-save">
         <button type="submit" class="btn-accent">{t('settings.save_prefs')}</button>
         {#if form?.prefsSuccess}<span class="ok">{t('settings.saved')}</span>{/if}

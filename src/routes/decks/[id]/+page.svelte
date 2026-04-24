@@ -74,13 +74,8 @@
   // Drag-reorder state
   let draggedId = $state<string | null>(null);
 
-  function onDragStart(slideId: string) {
-    draggedId = slideId;
-  }
-
-  function onDragOver(e: DragEvent) {
-    e.preventDefault();
-  }
+  function onDragStart(slideId: string) { draggedId = slideId; }
+  function onDragOver(e: DragEvent) { e.preventDefault(); }
 
   async function onDrop(targetId: string) {
     if (!draggedId || draggedId === targetId) { draggedId = null; return; }
@@ -115,11 +110,48 @@
       selectedSlideId = slide.id;
     }
   }
+
+  // ── Resizable panels ────────────────────────────────────────────
+  let listWidth = $state(200);
+  let formWidth = $state(300);
+  let previewPct = $state(62); // % of right panel height for preview
+
+  type ResizeKind = 'list' | 'form' | 'vertical';
+  let resizing = $state<ResizeKind | null>(null);
+  let resizeStart = $state({ mouse: 0, val: 0 });
+  let rightPanel = $state<HTMLDivElement | undefined>(undefined);
+
+  function startHResize(panel: 'list' | 'form', e: MouseEvent) {
+    e.preventDefault();
+    resizing = panel;
+    resizeStart = { mouse: e.clientX, val: panel === 'list' ? listWidth : formWidth };
+  }
+
+  function startVResize(e: MouseEvent) {
+    e.preventDefault();
+    resizing = 'vertical';
+    resizeStart = { mouse: e.clientY, val: previewPct };
+  }
+
+  function onMouseMove(e: MouseEvent) {
+    if (!resizing) return;
+    if (resizing === 'list') {
+      listWidth = Math.max(140, Math.min(480, resizeStart.val + (e.clientX - resizeStart.mouse)));
+    } else if (resizing === 'form') {
+      formWidth = Math.max(180, Math.min(600, resizeStart.val + (e.clientX - resizeStart.mouse)));
+    } else if (resizing === 'vertical' && rightPanel) {
+      const h = rightPanel.clientHeight;
+      previewPct = Math.max(20, Math.min(85, resizeStart.val + ((e.clientY - resizeStart.mouse) / h) * 100));
+    }
+  }
+
+  function stopResize() { resizing = null; }
 </script>
 
 <svelte:head><title>{data.deck.title} — slidt</title></svelte:head>
+<svelte:window onmousemove={onMouseMove} onmouseup={stopResize} />
 
-<div class="editor">
+<div class="editor" class:resizing-h={resizing === 'list' || resizing === 'form'} class:resizing-v={resizing === 'vertical'}>
   <!-- Toolbar -->
   <div class="toolbar">
     <a href="/decks" class="back">← Decks</a>
@@ -133,8 +165,8 @@
   </div>
 
   <div class="editor-body">
-    <!-- Left: Slide list -->
-    <aside class="slide-list">
+    <!-- Slide list -->
+    <aside class="slide-list" style="width: {listWidth}px">
       {#each data.slides as slide (slide.id)}
         {@const type = data.slideTypes.find((t) => t.id === slide.typeId)}
         <div
@@ -159,8 +191,10 @@
       <button class="add-slide-btn" onclick={() => showTypePicker = true}>+ Add slide</button>
     </aside>
 
-    <!-- Middle: Form editor -->
-    <main class="form-panel">
+    <div class="resize-handle" class:active={resizing === 'list'} onmousedown={(e) => startHResize('list', e)} role="separator" aria-orientation="vertical"></div>
+
+    <!-- Form editor -->
+    <main class="form-panel" style="width: {formWidth}px">
       {#if selectedSlide && selectedType}
         <div class="form-type-label">{selectedType.label}</div>
         <div class="fields">
@@ -182,25 +216,29 @@
       {/if}
     </main>
 
-    <!-- Right: Preview -->
-    <section class="preview-panel">
-      <SlidePreview
-        slideType={selectedType}
-        slideData={selectedData}
-        theme={data.theme}
-      />
-    </section>
+    <div class="resize-handle" class:active={resizing === 'form'} onmousedown={(e) => startHResize('form', e)} role="separator" aria-orientation="vertical"></div>
 
-    <!-- Agent panel (collapsible) -->
-    {#if showAgent}
-      <aside class="agent-sidebar">
-        <div class="agent-header">
-          <span>Agent</span>
-          <button onclick={() => showAgent = false}>×</button>
-        </div>
-        <AgentPanel deckId={data.deck.id} themeId={data.deck.themeId} onclose={() => showAgent = false} />
-      </aside>
-    {/if}
+    <!-- Right panel: preview on top, agent below -->
+    <div class="right-panel" bind:this={rightPanel}>
+      <section class="preview-panel" style="flex-basis: {showAgent ? previewPct + '%' : '100%'}">
+        <SlidePreview
+          slideType={selectedType}
+          slideData={selectedData}
+          theme={data.theme}
+        />
+      </section>
+
+      {#if showAgent}
+        <div class="resize-handle-h" class:active={resizing === 'vertical'} onmousedown={startVResize} role="separator" aria-orientation="horizontal"></div>
+        <aside class="agent-panel">
+          <div class="agent-header">
+            <span>Agent</span>
+            <button onclick={() => showAgent = false}>×</button>
+          </div>
+          <AgentPanel deckId={data.deck.id} themeId={data.deck.themeId} onclose={() => showAgent = false} />
+        </aside>
+      {/if}
+    </div>
   </div>
 </div>
 
@@ -225,7 +263,10 @@
 {/if}
 
 <style>
-  .editor { display: flex; flex-direction: column; height: calc(100vh - 52px); }
+  .editor { display: flex; flex-direction: column; height: calc(100vh - 52px); overflow: hidden; }
+  .editor.resizing-h { cursor: col-resize; user-select: none; }
+  .editor.resizing-v { cursor: row-resize; user-select: none; }
+
   .toolbar {
     display: flex;
     align-items: center;
@@ -242,18 +283,39 @@
   .err { color: #c00; }
   .agent-toggle { background: #6e31ff; color: white; border: none; border-radius: 6px; padding: 6px 14px; font-size: 13px; cursor: pointer; }
 
+  /* ── Editor body ──────────────────────────────────────────────── */
   .editor-body { display: flex; flex: 1; overflow: hidden; }
 
+  /* ── Vertical resize handles ────────────────────────────────── */
+  .resize-handle {
+    width: 4px;
+    flex-shrink: 0;
+    cursor: col-resize;
+    background: #e8e8ee;
+    transition: background 0.15s;
+  }
+  .resize-handle:hover, .resize-handle.active { background: #6e31ff; }
+
+  /* ── Horizontal resize handle (preview / agent split) ──────── */
+  .resize-handle-h {
+    height: 4px;
+    flex-shrink: 0;
+    cursor: row-resize;
+    background: #e8e8ee;
+    transition: background 0.15s;
+  }
+  .resize-handle-h:hover, .resize-handle-h.active { background: #6e31ff; }
+
+  /* ── Slide list ─────────────────────────────────────────────── */
   .slide-list {
-    width: 220px;
     flex-shrink: 0;
     overflow-y: auto;
-    border-right: 1px solid #eee;
     background: #fafafc;
     padding: 8px;
     display: flex;
     flex-direction: column;
     gap: 4px;
+    min-width: 140px;
   }
   .slide-item {
     padding: 8px 10px;
@@ -283,28 +345,53 @@
   }
   .add-slide-btn:hover { border-color: #6e31ff; color: #6e31ff; }
 
-  .form-panel { flex: 1; overflow-y: auto; padding: 20px 24px; }
+  /* ── Form panel ─────────────────────────────────────────────── */
+  .form-panel { flex-shrink: 0; overflow-y: auto; padding: 20px 24px; min-width: 180px; }
   .form-type-label { font-size: 11px; font-weight: 600; color: #6e31ff; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 16px; }
   .fields { display: flex; flex-direction: column; gap: 16px; }
   .field-row { display: flex; flex-direction: column; gap: 6px; }
   .field-label { font-size: 13px; font-weight: 500; color: #555; text-transform: capitalize; }
   .form-empty { display: flex; align-items: center; justify-content: center; height: 200px; color: #aaa; font-size: 14px; }
 
-  .preview-panel { width: 380px; flex-shrink: 0; overflow-y: auto; padding: 16px; border-left: 1px solid #eee; background: #f5f4fb; }
-
-  .agent-sidebar {
-    width: 300px;
-    flex-shrink: 0;
-    border-left: 1px solid #eee;
-    background: white;
+  /* ── Right panel (preview + agent) ─────────────────────────── */
+  .right-panel {
+    flex: 1;
+    min-width: 300px;
     display: flex;
     flex-direction: column;
+    overflow: hidden;
   }
-  .agent-header { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; border-bottom: 1px solid #eee; font-weight: 600; font-size: 14px; }
-  .agent-header button { background: none; border: none; font-size: 18px; cursor: pointer; color: #888; }
-  .agent-placeholder { padding: 20px 16px; font-size: 13px; color: #aaa; }
 
-  /* Type picker overlay */
+  .preview-panel {
+    flex-shrink: 0;
+    overflow-y: auto;
+    padding: 16px;
+    background: #f5f4fb;
+  }
+
+  /* ── Agent panel ────────────────────────────────────────────── */
+  .agent-panel {
+    flex: 1;
+    min-height: 150px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    background: white;
+    border-top: none;
+  }
+  .agent-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 16px;
+    border-bottom: 1px solid #eee;
+    font-weight: 600;
+    font-size: 14px;
+    flex-shrink: 0;
+  }
+  .agent-header button { background: none; border: none; font-size: 18px; cursor: pointer; color: #888; }
+
+  /* ── Type picker overlay ────────────────────────────────────── */
   .overlay {
     position: fixed; inset: 0;
     background: rgba(0,0,0,0.4);

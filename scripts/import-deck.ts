@@ -43,7 +43,7 @@ if (!jsonPath || jsonPath === '--help' || jsonPath === '-h') {
 
 let ownerEmail = '';
 let titleOverride = '';
-let themeName = 'ANTAL-Theta default';
+let themeName = 'antal-theta-default';
 
 for (let i = 1; i < args.length; i++) {
   if (args[i] === '--owner' && args[i + 1]) ownerEmail = args[++i];

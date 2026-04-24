@@ -39,8 +39,8 @@ import { AGENT_TOOLS, executeTool } from '../src/lib/server/agent/tools.ts';
 import { checkHandlebarsTemplate, checkCss } from '$lib/server/agent/guardrails.ts';
 
 describe('AGENT_TOOLS', () => {
-  it('contains exactly 9 tools', () => {
-    expect(AGENT_TOOLS).toHaveLength(9);
+  it('contains exactly 10 tools', () => {
+    expect(AGENT_TOOLS).toHaveLength(10);
   });
 
   it('includes all required tool names', () => {
@@ -48,6 +48,7 @@ describe('AGENT_TOOLS', () => {
     for (const name of [
       'list_slides', 'get_slide', 'patch_slide', 'add_slide', 'delete_slide',
       'reorder_slides', 'update_theme', 'create_slide_type', 'list_slide_types',
+      'fetch_url',
     ]) {
       expect(names).toContain(name);
     }

@@ -1,11 +1,12 @@
 import { readFile } from 'fs/promises';
 import path from 'path';
 
-// Inter: from @fontsource/inter (latin subset, weights 300 / 400 / 600)
+// Inter: from @fontsource/inter (latin subset, weights 300 / 400 / 500 / 600)
 const INTER_DIR = path.resolve(process.cwd(), 'node_modules/@fontsource/inter/files');
 const INTER_SPECS: Array<{ weight: number; file: string }> = [
   { weight: 300, file: 'inter-latin-300-normal.woff2' },
   { weight: 400, file: 'inter-latin-400-normal.woff2' },
+  { weight: 500, file: 'inter-latin-500-normal.woff2' },
   { weight: 600, file: 'inter-latin-600-normal.woff2' },
 ];
 

@@ -16,7 +16,7 @@ export function buildDummyData(fields: Field[]): Record<string, unknown> {
     } else if (field.type === 'list') {
       const itemField = field.items;
       if (itemField?.type === 'group') {
-        result[field.name] = [buildDummyData(itemField.fields ?? {}), buildDummyData(itemField.fields ?? {})];
+        result[field.name] = [buildDummyData(itemField.fields ?? []), buildDummyData(itemField.fields ?? [])];
       } else {
         result[field.name] = [`${field.label ?? field.name} one`, `${field.label ?? field.name} two`];
       }

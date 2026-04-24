@@ -58,15 +58,23 @@ export const friction: SlideType = {
   <div class="q-label">?</div>
   <div class="q-text">{{fmt question}}</div>
 </div>`,
-  css: `& { flex-direction: column; }
-.top { margin-bottom: 32px; }
-h2 { font-family: 'Neureal', sans-serif; font-size: 56px; line-height: 1.05; }
-.compare { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; flex: 1; }
-.side-a, .side-b { background: var(--ood-white); padding: 32px; display: flex; flex-direction: column; gap: 16px; }
-.side-label { font-family: 'Neureal Mono', monospace; font-size: 18px; color: var(--ood-deep-violet); }
-.side-head { font-family: 'Neureal', sans-serif; font-size: 28px; line-height: 1.1; }
-.side-body p { font-size: 20px; line-height: 1.4; }
-.question { background: var(--ood-dark-matter); color: var(--ood-white); padding: 32px; display: grid; grid-template-columns: 80px 1fr; gap: 32px; align-items: center; margin-top: 32px; }
-.q-label { font-family: 'Neureal Mono', monospace; font-size: 64px; color: var(--ood-deep-violet-light); }
-.q-text { font-size: 24px; line-height: 1.4; }`,
+  css: `& { padding: 0; flex-direction: column; }
+.top { padding: 70px 120px 40px; background: var(--ood-big-cloud); color: var(--ood-dark-matter); }
+.top .eyebrow { font-family: 'Inter', sans-serif; font-weight: 500; font-size: 22px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ood-deep-violet); margin-bottom: 16px; }
+.top h2 { font-size: 68px; color: var(--ood-deep-violet); line-height: 1.05; max-width: 1500px; }
+.compare { flex: 1; display: grid; grid-template-columns: 1fr 1fr; }
+.compare > div { padding: 60px 100px; display: flex; flex-direction: column; justify-content: flex-start; }
+.side-a { background: var(--ood-white); color: var(--ood-dark-matter); }
+.side-b { background: var(--ood-deep-violet-bright); color: var(--ood-dark-matter); }
+.side-label { font-family: 'Inter', sans-serif; font-weight: 500; font-size: 20px; letter-spacing: 0.14em; text-transform: uppercase; margin-bottom: 18px; }
+.side-a .side-label { color: var(--ood-dark-matter-light); }
+.side-b .side-label { color: var(--ood-deep-violet); }
+.side-head { font-family: 'Neureal', sans-serif; font-weight: 400; font-size: 42px; line-height: 1.1; margin-bottom: 22px; }
+.side-a .side-head { color: var(--ood-dark-matter); }
+.side-b .side-head { color: var(--ood-deep-violet); }
+.side-body p { font-size: 22px; line-height: 1.45; margin-bottom: 12px; max-width: 620px; }
+.question { background: var(--ood-dark-matter); color: var(--ood-white); padding: 48px 120px; display: flex; align-items: center; gap: 36px; border-top: 2px solid var(--ood-deep-violet); }
+.question .q-label { font-family: 'Neureal', sans-serif; font-size: 84px; color: var(--ood-wicked-matrix-light); line-height: 1; }
+.question .q-text { font-family: 'Inter', sans-serif; font-weight: 300; font-size: 28px; line-height: 1.4; max-width: 1400px; }
+.question em { color: var(--ood-wicked-matrix-light); }`,
 };

@@ -27,13 +27,13 @@ describe('title slide type', () => {
       titleAlt: 'og Theta',
       kicker: 'Hvordan ANTAL passer ind',
       mark: 'dandelion-green',
-      markUrl: 'assets/ood-mark-green.svg',
     });
     expect(html).toContain('Diskussionsoplæg');
     expect(html).toContain('ANTAL');
     expect(html).toContain('og Theta');
     expect(html).toContain('Hvordan ANTAL passer ind');
-    expect(html).toContain('ood-mark-green.svg');
+    // Dandelion SVG is inlined — verify the green stroke colour appears.
+    expect(html).toContain('#9CED7C');
   });
 
   it('falls back to violet mark when none specified', async () => {
@@ -41,7 +41,7 @@ describe('title slide type', () => {
       title: 'X',
       titleAlt: 'Y',
     });
-    expect(html).toContain('ood-mark-violet.svg');
+    expect(html).toContain('#6E31FF');
   });
 });
 

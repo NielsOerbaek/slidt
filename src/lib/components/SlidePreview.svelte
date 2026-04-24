@@ -35,6 +35,10 @@
         previewHtml = html.replace('<style>', `<style>
 @font-face{font-family:'Neureal';font-weight:400;font-style:normal;src:url('/fonts/Neureal-Regular.woff2') format('woff2')}
 @font-face{font-family:'Neureal Mono';font-weight:400;font-style:normal;src:url('/fonts/NeurealMono-Regular.woff2') format('woff2')}
+@font-face{font-family:'Inter';font-weight:300;font-style:normal;src:url('/fonts/inter/inter-latin-300-normal.woff2') format('woff2')}
+@font-face{font-family:'Inter';font-weight:400;font-style:normal;src:url('/fonts/inter/inter-latin-400-normal.woff2') format('woff2')}
+@font-face{font-family:'Inter';font-weight:500;font-style:normal;src:url('/fonts/inter/inter-latin-500-normal.woff2') format('woff2')}
+@font-face{font-family:'Inter';font-weight:600;font-style:normal;src:url('/fonts/inter/inter-latin-600-normal.woff2') format('woff2')}
 `);
       } catch {
         previewHtml = '';

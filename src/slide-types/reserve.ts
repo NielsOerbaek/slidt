@@ -22,9 +22,11 @@ export const reserve: SlideType = {
   {{#each paragraphs}}<p>{{fmt this}}</p>{{/each}}
   <p class="callout">{{fmt callout}}</p>
 </div>`,
-  css: `.left { flex: 1; }
-.right { flex: 1; display: flex; flex-direction: column; gap: 24px; justify-content: center; }
-h2 { font-family: 'Neureal', sans-serif; font-size: 96px; line-height: 1; }
-.right p { font-size: 26px; line-height: 1.45; }
-.callout { background: var(--ood-deep-violet); color: var(--ood-white); padding: 32px; font-size: 28px; font-weight: 500; margin-top: 24px; }`,
+  css: `& { flex-direction: row; padding: 0; }
+.left { flex: 1; background: var(--ood-deep-violet-bright); color: var(--ood-dark-matter); padding: 120px 100px; display: flex; flex-direction: column; justify-content: center; }
+.right { flex: 1.1; background: var(--ood-big-cloud); color: var(--ood-dark-matter); padding: 120px 100px; display: flex; flex-direction: column; justify-content: center; }
+.left .eyebrow { font-family: 'Inter', sans-serif; font-weight: 500; font-size: 22px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ood-deep-violet); margin-bottom: 20px; }
+.left h2 { font-size: 72px; color: var(--ood-deep-violet); line-height: 1.05; }
+.right p { font-size: 28px; line-height: 1.5; margin-bottom: 22px; max-width: 780px; color: var(--ood-dark-matter); }
+.right .callout { font-family: 'Neureal', sans-serif; font-size: 40px; color: var(--ood-deep-violet); margin-top: 16px; line-height: 1.15; max-width: 780px; }`,
 };

@@ -1,0 +1,223 @@
+{
+  "title": "ANTAL og Theta",
+  "lang": "da",
+  "slides": [
+    {
+      "type": "title",
+      "eyebrow": "Diskussionsoplæg · April 2026",
+      "title": "ANTAL",
+      "titleAlt": "og Theta",
+      "kicker": "Hvordan ANTAL passer ind i forskellige fremtider",
+      "mark": "dandelion-green"
+    },
+    {
+      "type": "agenda",
+      "title": "Indhold",
+      "items": [
+        "Recap: Hvad ANTAL faktisk binder os til",
+        "De fire formål med ANTAL - set fra helikopter",
+        "Theta ind i billedet",
+        "Tre friktionspunkter værd at tale om",
+        "Hvad er det så tilbage?",
+        "Diskussion"
+      ]
+    },
+    {
+      "type": "content",
+      "eyebrow": "Recap",
+      "title": "Hvad er det nu ANTAL egentlig er?",
+      "bullets": [
+        "**ANTAL er en forening, hvor medlemmerne er virksomheder** - en F.M.B.A. stiftet i 2022 af Analyse & Tal F.M.B.A. og Analyse & Tall SA.",
+        "ANTAL har forholdsvis generiske **vedtægter** - og derudover et **værdi- og principgrundlag**",
+        "Alt efter hvordan vi vælger at organisere os, kan vi nemt komme i karambolage med flere af principperne."
+      ]
+    },
+    {
+      "type": "content",
+      "eyebrow": "Vedtægter §2",
+      "title": "Foreningens formål",
+      "bullets": [
+        "At fremme medlemmernes fælles interesser gennem **samvirke om udvikling af demokratiske medarbejderejede og -styrede virksomheder** med høj faglighed, sundt arbejdsmiljø og økonomisk stabilitet - og om forskning, analyser, kommunikation, virksomhedsrådgivning og lignende.",
+        "At følge og fremme de internationalt anerkendte **værdier og principper for kooperativer**, vedtaget af ICA og ILO.",
+        "At bidrage til en mere **demokratisk, lige og retfærdig** samfundsudvikling."
+      ]
+    },
+    {
+      "type": "principles",
+      "eyebrow": "Værdi- og principgrundlag",
+      "title": "De syv principper",
+      "items": [
+        {"title": "Demokratisk medarbejderejerskab.", "body": "Medlemsvirksomheder skal være demokratiske medarbejderejede virksomheder."},
+        {"title": "Flad ledelse.", "body": "Lige, direkte og flad ledelse af drift, strategi og økonomi. Dialog før afstemning."},
+        {"title": "Enhedsløn.", "body": "Medlemmer skal have samme løn for det samme arbejde."},
+        {"title": "Flere formål.", "body": "Økonomisk bæredygtighed, godt arbejdsmiljø *og* samfundsbidrag samtidigt, som minimum."},
+        {"title": "Fælles værdier.", "body": "Medlemmerne skal leve op til et sæt fælles værdier (se næste slide)."},
+        {"title": "Udelelig reserve.", "body": "Fællesøkonomi, som ikke må udbetales som udbytte eller ved konkurs."},
+        {"title": "Konsensus m. fallback.", "body": "Ved vedvarende uenighed kan der falde afgørelse ved simpelt flertal på fællesmøde."}
+      ]
+    },
+    {
+      "type": "values",
+      "eyebrow": "Princip 5",
+      "title": "De fælles værdier",
+      "columns": [
+        {
+          "heading": "Medlemmer skal leve op til:",
+          "items": [
+            "Alle borgere skal have lige ret til deltagelse i demokratiet.",
+            "Alle borgere skal have lige rettigheder og muligheder uafhængigt af etnicitet, religion, køn, seksualitet eller politisk tilhørsforhold.",
+            "Økonomiske interesser må ikke ske på bekostning af klima og miljø.",
+            "Solidaritet med alle borgere uanset demografiske og geografiske forskelle.",
+            "Bekæmpe social ulighed, fattigdom og klimaforandringer."
+          ]
+        },
+        {
+          "heading": "Medlem kan ikke være en virksomhed hvis den:",
+          "items": [
+            "har negative demokratiske konsekvenser",
+            "modarbejder en grøn omstilling",
+            "øger uligheden",
+            "væsentligt skader ANTAL FMBAs brand",
+            "øger brugen og indkøb af militært isenkram",
+            "kapitaliserer på bekostning af befolkningsgruppers velværd",
+            "marginaliserer grupper på baggrund af etnicitet, religion, køn, seksualitet eller politisk tilhørsforhold"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "reserve",
+      "eyebrow": "Princip 6",
+      "title": "Den udelelige\nreserve",
+      "paragraphs": [
+        "ANTAL F.M.B.A. bygger på et princip om **fællesøkonomi**, en udelelig reserve.",
+        "Medlemsvirksomhederne betaler ind; reserven bruges udelukkende til at **styrke den kooperative virksomheds levedygtighed og udbredelse**.",
+        "Mere et ønske om noget ANTAL skal kunne i fremtiden, er ikke så relevant lige nu, hvor ANTALs penge bruges på aktiviteter"
+      ],
+      "callout": "Den må aldrig udbetales til medlemmer som udbytte eller i forbindelse med konkurs."
+    },
+    {
+      "type": "purposes",
+      "eyebrow": "Helikopterperspektiv",
+      "title": "Fire formål med ANTAL",
+      "cards": [
+        {"num": "01", "title": "Stordriftsfordele", "body": "Fx delt IT, jura, regnskab."},
+        {"num": "02", "title": "Fagligt fællesskab", "body": "Metodedeling, hyre hinanden på projekter, sparring på tværs af medlemsvirksomhederne."},
+        {"num": "03", "title": "Socialt fællesskab", "body": "Sommerhustur, vinterfest, fælles historik og netværk. Det man ikke kan skrive i en vedtægt."},
+        {"num": "04", "title": "Økonomisk redningskrans", "body": "Udelelig reserve der kan uddeles som støtte til virksomheder i krise eller til nyopstartede kooperativer."}
+      ]
+    },
+    {
+      "type": "section",
+      "bigMark": "ϑ",
+      "title": "Theta ind\ni billedet",
+      "subtitle": "Hvordan ville Theta stemme overens med ANTALs formål og principper?"
+    },
+    {
+      "type": "ownership",
+      "eyebrow": "Theta - projektbeskrivelsens afsnit 4",
+      "title": "Eksempel på demokratisk organisering",
+      "source": "Forening og forretning i ét. F.M.B.A.-struktur med brugereje og repræsentantskab.",
+      "cards": [
+        {"title": "Theta F.M.B.A.", "sub": "alle medlemmer / brugere", "body": "Foreningens medlemmer er alle, der har betalt kontingent. For at være bruger af Theta skal man være medlem. Medlemmerne kan stille op til - og vælger - repræsentantskabet."},
+        {"title": "Repræsentantskab", "sub": "99 personer", "body": "Repræsentanter fra det uformelle (51%) og formelle (49%) civilsamfund. Sikrer demokratisk legitimitet, debatterer dilemmaer og værdier, og udpeger bestyrelsen."},
+        {"title": "Foreningsbestyrelse", "sub": "8–12 personer", "body": "7–9 demokratisk valgte medlemmer med kompetencer i tech, cybersikkerhed, demokratisk organisering, frivillighed, jura, ytringsfrihed og civilsamfund. Én medarbejderrepræsentant fra sekretariatet. Én ekstern."}
+      ]
+    },
+    {
+      "type": "friction",
+      "eyebrow": "Friktionspunkt 1 - ejerskab",
+      "title": "Medarbejderejet - eller brugerejet?",
+      "sideA": {
+        "label": "ANTAL - princip 1",
+        "head": "Medlemsvirksomheder skal være demokratiske medarbejderejede virksomheder.",
+        "body": [
+          "Det er selve fundamentet i kooperativ-definitionen, og det der gør ANTAL til ANTAL: ejerskab og styring hos dem, der arbejder."
+        ]
+      },
+      "sideB": {
+        "label": "Theta - afsnit 4",
+        "head": "Forbrugereje med repræsentantskab.",
+        "body": [
+          "Theta F.M.B.A. ejes af brugerne gennem kontingent. Magten ligger i et 99-personers repræsentantskab (51% uformel, 49% formel civilsamfund) - ikke hos de ansatte udviklere, designere og sociologer i driftsselskabet."
+        ]
+      },
+      "question": "Hvis Os & Data *driver* Theta men ikke *ejer* det, hvad er så vores forhold til ANTAL-princippet om medarbejderejet virksomhed?"
+    },
+    {
+      "type": "friction",
+      "eyebrow": "Friktionspunkt 2 - ledelse og løn",
+      "title": "Flad ledelse og enhedsløn i en driftsorganisation med 20+ fagligheder?",
+      "sideA": {
+        "label": "ANTAL - princip 2 & 3",
+        "head": "Lige, direkte og flad ledelse. Minimum enhedsløn.",
+        "body": [
+          "Dialog før afstemning i alt, der rører drift, strategi og økonomi. Samme løn for samme arbejde - gradueret løn kun med social omfordeling for øje."
+        ]
+      },
+      "sideB": {
+        "label": "Theta - afsnit 4",
+        "head": "Repræsentantskab → bestyrelse → driftsselskab.",
+        "body": [
+          "Det vil være en noget mere aktiv bestyrelse, så vi kan ikke i samme grad forvente en *de facto* medarbejderdrevet virksomhed. Og enhedslønnen kommer til at afhænge af om repræsentatskabet og bestyrelsen fortsat synes at det er en god idé."
+        ]
+      },
+      "question": "Kan Theta-driftselskabet reelt drives fladt og med enhedsløn? Hvis ikke - er det et ANTAL-problem, eller et tegn på, at Theta lever sit eget sted?"
+    },
+    {
+      "type": "friction",
+      "eyebrow": "Friktionspunkt 3 - økonomi",
+      "title": "Udelelig reserve møder fondsfinansieret kritisk infrastruktur.",
+      "sideA": {
+        "label": "ANTAL - princip 6",
+        "head": "Fællesøkonomien er en udelelig reserve.",
+        "body": [
+          "Medlemsvirksomhederne betaler ind. Midlerne bruges udelukkende til at styrke den kooperative virksomheds levedygtighed og udbredelse. Må aldrig udbetales som udbytte eller ved konkurs."
+        ]
+      },
+      "sideB": {
+        "label": "Theta - afsnit 4 & 5",
+        "head": "Fødselshjælp fra fondene, ~12 mio. DKK/år i ti år.",
+        "body": [
+          "Forretningsmodellen udvikles demokratisk sammen med brugerne: etisk annoncering, data til forskning, medlemskab fra foreninger, mediehuse og fagforeninger. Pengestrømme på en helt anden skala end ANTALs reserve er gearet til."
+        ]
+      },
+      "question": "Hvordan flyder økonomi mellem Theta og ANTAL - hvis det overhovedet skal? Skal en andel af Thetas overskud lægges i ANTALs reserve, eller ville det bryde med Thetas egen logik?"
+    },
+    {
+      "type": "purposes",
+      "eyebrow": "Tilbage til de fire formål",
+      "cards": [
+        {"num": "01", "title": "Stordriftsfordele", "body": "Theta får sin egen jura, regnskab og IT på en helt anden skala. ANTAL-stordrift passer næppe til Theta - men kan stadig dække Os & Data's andre aktiviteter, hvis der er nogen?"},
+        {"num": "02", "title": "Fagligt fællesskab", "body": "Theta introducerer fagligheder, ANTAL ikke har i dag (udvikling, UX, moderation, cybersikkerhed). Potentielt en ny retning for ANTAL, der som det mindste ville udvide ANTALs formål og faglighed."},
+        {"num": "03", "title": "Socialt fællesskab", "body": "Uændret værdifuldt. Uafhængigt af hvordan Theta er organiseret, er det stadig de samme mennesker, sociale relationer og underlæggende værdifællesskab."},
+        {"num": "04", "title": "Økonomisk redningskrans", "body": "Theta er fondsfinansieret og skal ikke reddes af ANTAL. Men Os & Data *uden* Theta er stadig en lille virksomhed der måske får brug for en redningskrans."}
+      ]
+    },
+    {
+      "type": "discussion",
+      "eyebrow": "Diskussion",
+      "title": "Fire åbne spørgsmål",
+      "items": [
+        {"letter": "A", "text": "Hvilke af de fire formål er relevante for os i en Theta-fremtid - og hvornår? Før, under eller efter Theta er en selvstændig organisation?"},
+        {"letter": "B", "text": "Er Theta et *ANTAL-projekt*, et *Os & Data-projekt*, eller noget helt tredje med sit eget juridiske hjem?"},
+        {"letter": "C", "text": "Hvor kan vi pege på en troværdig plan for at leve op til princip 1, 2, 3 og 6 - og hvor må vi sige ærligt, at det ikke passer?"},
+        {"letter": "D", "text": "Hvis friktionen er for stor: skal vi forhandle principgrundlaget om, bygge Theta udenfor ANTAL, eller noget midt imellem?"}
+      ]
+    }
+  ],
+  "appendix": [
+    {
+      "path": "../20230825_vedtægter.pdf",
+      "mark": "A",
+      "title": "Bilag A",
+      "subtitle": "ANTALs vedtægter (25. august 2023)"
+    },
+    {
+      "path": "../20230825_værdiogprincipgrundlag.pdf",
+      "mark": "B",
+      "title": "Bilag B",
+      "subtitle": "ANTALs værdi- og principgrundlag (25. august 2023)"
+    }
+  ]
+}

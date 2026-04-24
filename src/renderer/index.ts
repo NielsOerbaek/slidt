@@ -6,6 +6,7 @@ import { scopeCss } from './scope-css.ts';
 import { wrapSlide } from './slide-wrap.ts';
 import { pageShell } from './page-shell.ts';
 import { baseStyles, cornerStyles } from './base-styles.ts';
+import { symbolDefs } from './symbols.ts';
 
 export * from './types.ts';
 
@@ -55,11 +56,15 @@ export async function render(
   });
   const css = [themeCss(theme), baseStyles, ...(hasCorner ? [cornerStyles] : []), ...perTypeCss].join('\n');
 
+  const bodyParts: string[] = [];
+  if (hasCorner) bodyParts.push(symbolDefs());
+  bodyParts.push(slideHtml.join('\n\n'));
+
   return pageShell({
     lang: deck.lang,
     title: deck.title,
     css,
-    body: slideHtml.join('\n\n'),
+    body: bodyParts.join('\n\n'),
   });
 }
 

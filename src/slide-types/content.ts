@@ -20,9 +20,9 @@ export const content: SlideType = {
     {{#each bullets}}<li>{{fmt this}}</li>{{/each}}
   </ul>
 </div>`,
-  css: `.content { max-width: 1400px; }
-h2 { font-family: 'Neureal', sans-serif; font-size: 72px; line-height: 1.05; margin-bottom: 48px; }
-ul { list-style: disc; padding-left: 40px; font-size: 32px; line-height: 1.45; }
-ul li { margin-bottom: 20px; }
-ul li::marker { color: var(--ood-deep-violet); }`,
+  css: `.content { flex-direction: column; padding: 100px 140px; }
+.eyebrow { font-family: 'Inter', sans-serif; font-weight: 500; font-size: 22px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ood-deep-violet); margin-bottom: 28px; }
+h2 { font-size: 84px; line-height: 1.02; margin-bottom: 48px; max-width: 1500px; color: var(--ood-deep-violet); }
+ul, ol { margin-left: 28px; }
+ul li, ol li { font-size: 28px; padding: 10px 0; max-width: 1500px; }`,
 };

@@ -27,10 +27,11 @@ export const principles: SlideType = {
     {{#each items}}<li><span><span class="p-title">{{fmt title}}</span> {{fmt body}}</span></li>{{/each}}
   </ol>
 </div>`,
-  css: `.content { max-width: 1600px; }
-h2 { font-family: 'Neureal', sans-serif; font-size: 72px; margin-bottom: 48px; }
-.principle-list { counter-reset: p; list-style: none; font-size: 26px; line-height: 1.4; }
-.principle-list li { counter-increment: p; padding-left: 80px; position: relative; margin-bottom: 20px; }
-.principle-list li::before { content: counter(p, decimal-leading-zero); position: absolute; left: 0; top: 0; color: var(--ood-deep-violet); font-family: 'Neureal Mono', monospace; font-size: 22px; }
-.p-title { font-weight: 500; color: var(--ood-dark-matter); }`,
+  css: `.content { flex-direction: column; padding: 100px 140px; }
+.eyebrow { font-family: 'Inter', sans-serif; font-weight: 500; font-size: 22px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ood-deep-violet); margin-bottom: 28px; }
+h2 { font-size: 84px; line-height: 1.02; margin-bottom: 48px; max-width: 1500px; color: var(--ood-deep-violet); }
+.principle-list { list-style: none; margin-left: 0; counter-reset: plist; display: flex; flex-direction: column; gap: 14px; }
+.principle-list li { counter-increment: plist; display: grid; grid-template-columns: 72px 1fr; align-items: baseline; font-size: 24px; line-height: 1.35; max-width: 1500px !important; }
+.principle-list li::before { content: counter(plist); font-family: 'Neureal', sans-serif; font-size: 48px; color: var(--ood-deep-violet); line-height: 1; }
+.principle-list .p-title { font-family: 'Inter', sans-serif; font-weight: 500; }`,
 };

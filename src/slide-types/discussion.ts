@@ -25,9 +25,10 @@ export const discussion: SlideType = {
 <ol class="q-list">
   {{#each items}}<li data-q="{{fmt letter}}"><span>{{fmt text}}</span></li>{{/each}}
 </ol>`,
-  css: `& { flex-direction: column; }
-h2 { font-family: 'Neureal', sans-serif; font-size: 80px; margin-bottom: 48px; }
-.q-list { list-style: none; display: grid; grid-template-columns: 80px 1fr; gap: 24px 40px; font-size: 28px; }
-.q-list li { display: contents; }
-.q-list li::before { content: attr(data-q); color: var(--ood-deep-violet); font-family: 'Neureal Mono', monospace; font-size: 48px; }`,
+  css: `& { padding: 100px 140px; flex-direction: column; }
+.eyebrow { font-family: 'Inter', sans-serif; font-weight: 500; font-size: 22px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ood-deep-violet); margin-bottom: 24px; }
+h2 { font-size: 80px; color: var(--ood-deep-violet); margin-bottom: 48px; line-height: 1.02; }
+.q-list { list-style: none; display: flex; flex-direction: column; gap: 28px; }
+.q-list li { display: grid; grid-template-columns: 90px 1fr; align-items: start; gap: 28px; font-family: 'Inter', sans-serif; font-weight: 300; font-size: 28px; line-height: 1.35; color: var(--ood-dark-matter); max-width: 1500px; }
+.q-list li::before { content: attr(data-q); font-family: 'Neureal', sans-serif; font-size: 60px; color: var(--ood-deep-violet); line-height: 1; }`,
 };

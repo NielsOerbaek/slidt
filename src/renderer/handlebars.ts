@@ -1,5 +1,6 @@
 import Handlebars from 'handlebars';
 import { fmt } from './fmt.ts';
+import { dandelionSvg } from './symbols.ts';
 
 // Use an isolated Handlebars environment so multiple render() calls in the
 // same process don't accidentally share state with user code.
@@ -15,6 +16,11 @@ env.registerHelper('eq', (a: unknown, b: unknown) => a === b);
 env.registerHelper('default', (value: unknown, fallback: unknown) => {
   if (value === null || value === undefined || value === '') return fallback;
   return value;
+});
+
+env.registerHelper('dandelion', (mark: unknown) => {
+  const name = typeof mark === 'string' && mark ? mark : 'dandelion-violet';
+  return new env.SafeString(dandelionSvg(name));
 });
 
 type CompiledTemplate = (ctx: Record<string, unknown>) => string;

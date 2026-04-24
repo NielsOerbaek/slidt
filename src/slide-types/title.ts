@@ -1,10 +1,6 @@
 import type { SlideType } from '../renderer/types.ts';
 
-export const TITLE_MARKS: Record<string, string> = {
-  'dandelion-green': 'assets/ood-mark-green.svg',
-  'dandelion-violet': 'assets/ood-mark-violet.svg',
-  'dandelion-white': 'assets/ood-mark.svg',
-};
+export const TITLE_MARKS = ['dandelion-green', 'dandelion-violet', 'dandelion-white'] as const;
 
 export const title: SlideType = {
   name: 'title',
@@ -14,21 +10,20 @@ export const title: SlideType = {
     { name: 'title', type: 'richtext', required: true },
     { name: 'titleAlt', type: 'richtext' },
     { name: 'kicker', type: 'text' },
-    { name: 'mark', type: 'select', options: Object.keys(TITLE_MARKS), default: 'dandelion-violet' },
-    { name: 'markUrl', type: 'text' },
+    { name: 'mark', type: 'select', options: [...TITLE_MARKS], default: 'dandelion-violet' },
   ],
   htmlTemplate: `<div class="title-col">
   <div class="eyebrow">{{fmt eyebrow}}</div>
   <h1>{{fmt title}}<br/><span class="alt">{{fmt titleAlt}}</span></h1>
   <p class="kicker">{{fmt kicker}}</p>
 </div>
-<div class="dandelion">
-  <img src="{{default markUrl "assets/ood-mark-violet.svg"}}" alt="" />
-</div>`,
-  css: `.title-col { flex: 1; }
-h1 { font-family: 'Neureal', sans-serif; font-size: 180px; line-height: 0.95; }
-.alt { color: var(--ood-deep-violet); }
-.kicker { font-size: 32px; margin-top: 32px; max-width: 900px; }
-.dandelion { flex: 0 0 600px; display: flex; align-items: center; justify-content: center; }
-.dandelion img { width: 500px; height: auto; }`,
+<div class="dandelion">{{dandelion mark}}</div>`,
+  css: `& { flex-direction: row; align-items: center; padding: 120px; }
+.title-col { flex: 1.1; display: flex; flex-direction: column; justify-content: center; }
+.eyebrow { font-family: 'Neureal', sans-serif; font-size: 40px; color: var(--ood-dark-matter); margin-bottom: 32px; letter-spacing: 0.02em; }
+h1 { font-size: 120px; color: var(--ood-deep-violet); line-height: 1.02; margin-bottom: 48px; }
+h1 .alt { color: var(--ood-dark-matter); display: block; }
+.kicker { font-family: 'Inter', sans-serif; font-weight: 300; font-size: 32px; line-height: 1.4; color: var(--ood-dark-matter); max-width: 720px; }
+.dandelion { flex: 0.9; display: flex; align-items: center; justify-content: center; }
+.dandelion svg { width: 640px; height: 640px; }`,
 };

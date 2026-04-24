@@ -18,10 +18,10 @@ export const section: SlideType = {
     <span class="subtitle">{{fmt subtitle}}</span>
   </div>
 </div>`,
-  css: `& { background: var(--ood-dark-matter); color: var(--ood-big-cloud); }
-.num-col { flex: 1; display: flex; align-items: center; justify-content: center; }
-.big-num { font-family: 'Neureal', sans-serif; font-size: 400px; color: var(--ood-deep-violet-light); line-height: 1; }
-.title-col { flex: 1; display: flex; align-items: center; }
-h2 { font-family: 'Neureal', sans-serif; font-size: 120px; line-height: 1; }
-.subtitle { font-size: 28px; color: var(--ood-dark-matter-bright); margin-top: 24px; display: block; }`,
+  css: `& { padding: 0; }
+.num-col { width: 40%; background: var(--ood-deep-violet-bright); display: flex; align-items: center; justify-content: center; position: relative; }
+.big-num { font-family: 'Neureal', sans-serif; font-size: 900px; line-height: 0.85; color: var(--ood-deep-violet); margin-top: -40px; }
+.title-col { width: 60%; background: var(--ood-big-cloud); display: flex; align-items: center; padding: 120px; }
+h2 { font-size: 96px; color: var(--ood-deep-violet); line-height: 1.02; }
+.subtitle { display: block; font-family: 'Inter', sans-serif; font-weight: 300; font-size: 32px; color: var(--ood-dark-matter); margin-top: 24px; }`,
 };

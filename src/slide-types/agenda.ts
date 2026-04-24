@@ -18,8 +18,8 @@ export const agenda: SlideType = {
     {{#each items}}<li>{{fmt this}}</li>{{/each}}
   </ol>
 </div>`,
-  css: `h1 { font-family: 'Neureal', sans-serif; font-size: 120px; margin-bottom: 60px; }
-ol { counter-reset: item; list-style: none; font-size: 44px; line-height: 1.4; }
-ol li { counter-increment: item; padding-left: 80px; position: relative; margin-bottom: 16px; }
-ol li::before { content: counter(item, decimal-leading-zero); position: absolute; left: 0; color: var(--ood-deep-violet); font-family: 'Neureal Mono', monospace; font-size: 32px; top: 8px; }`,
+  css: `h1 { font-size: 120px; color: var(--ood-deep-violet); margin-bottom: 96px; }
+ol { list-style: none; counter-reset: agendacount; margin-left: 160px; }
+li { counter-increment: agendacount; font-size: 40px; color: var(--ood-dark-matter); padding: 14px 0; display: flex; align-items: baseline; gap: 56px; }
+li::before { content: counter(agendacount); font-family: 'Neureal Mono', monospace; color: var(--ood-deep-violet); min-width: 60px; font-size: 40px; }`,
 };

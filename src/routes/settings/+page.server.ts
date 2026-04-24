@@ -78,7 +78,12 @@ export const actions: Actions = {
     const fd = await request.formData();
     const vim = fd.get('vim') === 'on';
     const locale = fd.get('locale') as 'da' | 'en' | null;
-    const aiModel = (fd.get('aiModel') as string | null) ?? undefined;
+    const rawModel = (fd.get('aiModel') as string | null)?.trim() ?? undefined;
+    // Validate: must be 'claude' or 'ollama:<non-empty-tag>'
+    const aiModel =
+      rawModel === 'claude' || (rawModel?.startsWith('ollama:') && rawModel.length > 7)
+        ? rawModel
+        : undefined;
     await updatePreferences(locals.user.id, {
       vim,
       ...(locale ? { locale } : {}),

@@ -10,6 +10,9 @@
 
 <svelte:head><title>{t('settings.title')}</title></svelte:head>
 
+<!-- ── Page wrapper ───────────────────────────────────────── -->
+<div class="page-wrap">
+
 <!-- ── Header ─────────────────────────────────────────────── -->
 <div class="head-band">
   <div class="head-index">SET</div>
@@ -95,7 +98,7 @@
           </div>
           <select name="aiModel">
             <option value="claude" selected={!data.user.preferences?.aiModel || data.user.preferences.aiModel === 'claude'}>
-              Claude (Sonnet 4.6)
+              {t('settings.agent_model_claude')}
             </option>
             {#each data.ollamaModels as model}
               <option value="ollama:{model}" selected={data.user.preferences?.aiModel === `ollama:${model}`}>
@@ -123,7 +126,7 @@
         <div class="token-reveal">
           <div class="token-label">{t('settings.key_new_label')}</div>
           <code class="token-value">{newToken}</code>
-          <div class="token-hint">Set as: <code>SLIDT_API_KEY={newToken}</code></div>
+          <div class="token-hint">{t('settings.key_set_as')} <code>SLIDT_API_KEY={newToken}</code></div>
           <button class="btn" onclick={() => { newToken = null; }}>{t('settings.key_dismiss')}</button>
         </div>
       {/if}
@@ -169,7 +172,7 @@
             {#each data.keys as key (key.id)}
               <tr>
                 <td class="key-name">{key.name}</td>
-                <td class="meta-cell">{key.lastUsedAt ? new Date(key.lastUsedAt).toLocaleDateString('da-DK') : '—'}</td>
+                <td class="meta-cell">{key.lastUsedAt ? new Date(key.lastUsedAt).toLocaleDateString(data.user.preferences?.locale === 'en' ? 'en-GB' : 'da-DK') : '—'}</td>
                 <td>
                   <form method="POST" action="?/revokeKey" use:enhance
                     onsubmit={(e) => { if (!confirm(t('settings.key_revoke_confirm'))) e.preventDefault(); }}>
@@ -186,9 +189,19 @@
     </div>
   </div>
 
-</div>
+</div><!-- settings-cols -->
+</div><!-- page-wrap -->
 
 <style>
+  /* ── Page wrapper ─────────────────────────────────────────── */
+  .page-wrap {
+    max-width: 1100px;
+    margin: 0 auto;
+    border-left: var(--st-rule-thick);
+    border-right: var(--st-rule-thick);
+    min-height: 100vh;
+  }
+
   /* ── Header ───────────────────────────────────────────────── */
   .head-band {
     display: grid;
@@ -247,7 +260,6 @@
     padding: 28px 32px;
     display: flex;
     flex-direction: column;
-    gap: 0;
   }
 
   /* ── Forms ────────────────────────────────────────────────── */
@@ -446,6 +458,7 @@
 
   /* ── Mobile ───────────────────────────────────────────────── */
   @media (max-width: 768px) {
+    .page-wrap { border-left: none; border-right: none; }
     .head-band { grid-template-columns: 1fr; }
     .head-index { display: none; }
     .head-title { padding: 20px; }

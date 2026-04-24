@@ -50,8 +50,13 @@
     if (m.role !== 'assistant') return false;
     if (!sending) return false;
     if (m.parts.length === 0) return true;
-    // Once any content (thinking, text, tools) has arrived, stop showing the spinner
+    // Show spinner until we have something other than empty text parts.
+    // ThinkingPart counts as content — spinner stops, thinking block appears.
     return m.parts.every((p) => p.kind === 'text' && !p.text);
+  }
+
+  function isStreaming(m: Message): boolean {
+    return sending && m.role === 'assistant';
   }
 
   function plainText(m: Message): string {
@@ -293,7 +298,7 @@
         {sending ? t('agent.working') : t('agent.live')} · {turnCount} {turnCount === 1 ? t('agent.turn_singular') : t('agent.turn_plural')}
       </span>
       <span class="spacer"></span>
-      <button class="panel-close" onclick={toggle} type="button" aria-label="Close agent">×</button>
+      <button class="panel-close" onclick={toggle} type="button" aria-label={t('agent.close')}>×</button>
     </div>
     <div class="body">
       <div class="transcript" bind:this={transcriptEl}>
@@ -315,8 +320,8 @@
                 <div class="parts">
                   {#each msg.parts as part, j (j)}
                     {#if part.kind === 'thinking' && part.text}
-                      <details class="thinking-block">
-                        <summary class="thinking-summary">thinking</summary>
+                      <details class="thinking-block" open={isStreaming(msg)}>
+                        <summary class="thinking-summary">{t('agent.thinking_summary')}</summary>
                         <span class="thinking-content">{part.text}</span>
                       </details>
                     {:else if part.kind === 'text' && part.text}
@@ -360,7 +365,7 @@
       {#if undoStack.length > 0}
         <div class="undo-stack">
           <div class="undo-header">
-            <span class="undo-title">↩ {undoStack.length} UNDOABLE</span>
+            <span class="undo-title">{t('agent.undoable_header').replace('{n}', String(undoStack.length))}</span>
           </div>
           <div class="undo-list">
             {#each undoStack as entry, i (i)}

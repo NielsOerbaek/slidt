@@ -96,7 +96,7 @@
       class="mob-burger"
       type="button"
       onclick={() => menuOpen = !menuOpen}
-      aria-label="Menu"
+      aria-label={t('nav.menu_label')}
       aria-expanded={menuOpen}
     >
       <span class="burger-line" class:open={menuOpen}></span>

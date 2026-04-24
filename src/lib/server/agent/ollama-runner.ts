@@ -51,6 +51,8 @@ export function runOllamaStream(
       }
 
       try {
+        if (!OLLAMA_BASE_URL) throw new Error('OLLAMA_BASE_URL is not configured');
+
         // Persist user message
         await db.insert(agentMessages).values({ deckId, role: 'user', content: userMessage });
 

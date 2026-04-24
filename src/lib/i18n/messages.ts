@@ -28,6 +28,7 @@ export const messages = {
   'nav.admin': { da: 'ADMIN', en: 'ADMIN' },
   'nav.settings': { da: 'INDSTILLINGER', en: 'SETTINGS' },
   'nav.more': { da: 'MERE', en: 'MORE' },
+  'nav.menu_label': { da: 'Menu', en: 'Menu' },
 
   // ── Login ────────────────────────────────────────────────────────────
   'login.tag': { da: '§ 01 — LOG IND', en: '§ 01 — SIGN IN' },
@@ -136,6 +137,9 @@ export const messages = {
   'agent.tool_ok': { da: 'FÆRDIG', en: 'DONE' },
   'agent.tool_failed': { da: 'FEJL', en: 'FAILED' },
   'agent.undo': { da: '↶ FORTRYD', en: '↶ UNDO' },
+  'agent.thinking_summary': { da: 'TÆNKER', en: 'THINKING' },
+  'agent.undoable_header': { da: '↩ {n} FORTRYDELIGE', en: '↩ {n} UNDOABLE' },
+  'agent.close': { da: 'Luk agent', en: 'Close agent' },
 
   // Type picker
   'editor.picker_head': { da: 'NY SLIDE · VÆLG TYPE', en: 'NEW SLIDE · CHOOSE TYPE' },
@@ -216,6 +220,8 @@ export const messages = {
   'settings.agent_model_name': { da: 'AGENT-MODEL', en: 'AGENT MODEL' },
   'settings.agent_model_desc': { da: 'LLM til agent-sessioner', en: 'LLM for agent sessions' },
   'settings.agent_model_unavailable': { da: 'Ollama utilgængeligt', en: 'Ollama unavailable' },
+  'settings.agent_model_claude': { da: 'Claude (Sonnet 4.6)', en: 'Claude (Sonnet 4.6)' },
+  'settings.key_set_as': { da: 'Sæt som:', en: 'Set as:' },
 
   'settings.api_keys': { da: 'API-NØGLER', en: 'API KEYS' },
   'settings.key_new_label': { da: 'NY NØGLE — KOPIÉR NU, DEN VISES IKKE IGEN', en: 'NEW KEY — COPY NOW, IT WILL NOT BE SHOWN AGAIN' },
@@ -228,7 +234,6 @@ export const messages = {
     en: 'No API keys yet. Create one to allow CLI or agent access.',
   },
   'settings.col_name': { da: 'Navn', en: 'Name' },
-  'settings.col_created': { da: 'Oprettet', en: 'Created' },
   'settings.col_last_used': { da: 'Sidst brugt', en: 'Last used' },
   'settings.key_revoke': { da: 'Tilbagekald', en: 'Revoke' },
   'settings.key_revoke_confirm': { da: 'Tilbagekald denne nøgle?', en: 'Revoke this key?' },

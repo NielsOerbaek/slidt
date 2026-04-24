@@ -70,6 +70,9 @@
       title={label}
       sandbox="allow-same-origin"
       style="
+        position: absolute;
+        top: 0;
+        left: 0;
         width: 1920px;
         height: 1080px;
         border: none;
@@ -78,7 +81,7 @@
         display: block;
       "
     ></iframe>
-    <!-- Reserve height proportional to 1920x1080 -->
+    <!-- Reserve height proportional to 1920x1080 (iframe is absolute → doesn't contribute) -->
     <div style="height: {1080 * scale}px;"></div>
   {:else}
     <div class="empty">{slideType ? 'Rendering…' : 'Select a slide to preview'}</div>

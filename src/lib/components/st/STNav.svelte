@@ -9,18 +9,25 @@
     user: { name: string; isAdmin?: boolean };
   } = $props();
 
-  const items: { id: Tab; key: 'nav.decks' | 'nav.themes' | 'nav.templates' | 'nav.docs' }[] = [
+  const items: { id: Tab; key: 'nav.decks' | 'nav.themes' | 'nav.templates' }[] = [
     { id: 'decks', key: 'nav.decks' },
     { id: 'themes', key: 'nav.themes' },
     { id: 'templates', key: 'nav.templates' },
-    { id: 'docs', key: 'nav.docs' },
   ];
 
   let menuOpen = $state(false);
+  let moreOpen = $state(false);
+
   function closeMenu() { menuOpen = false; }
+  function closeMore() { moreOpen = false; }
+
+  const moreActive = active === 'docs' || active === 'admin' || active === 'settings';
 </script>
 
-<svelte:window onkeydown={(e) => e.key === 'Escape' && closeMenu()} />
+<svelte:window onkeydown={(e) => { if (e.key === 'Escape') { closeMenu(); closeMore(); } }} />
+<svelte:window onclick={(e) => {
+  if (moreOpen && !(e.target as Element).closest?.('.more-wrap')) closeMore();
+}} />
 
 <nav class="st-nav">
   <div class="cell index">01</div>
@@ -37,18 +44,43 @@
         {#if active === item.id}<span class="dot" aria-hidden="true"></span>{/if}
       </a>
     {/each}
-    {#if user.isAdmin}
-      <a class="tab" class:active={active === 'admin'} href="/admin">
-        <span class="tab-num">06</span>
-        <span>{t('nav.admin')}</span>
-        {#if active === 'admin'}<span class="dot" aria-hidden="true"></span>{/if}
-      </a>
-    {/if}
-    <a class="tab" class:active={active === 'settings'} href="/settings">
-      <span class="tab-num">⚙</span>
-      <span>{t('nav.settings')}</span>
-      {#if active === 'settings'}<span class="dot" aria-hidden="true"></span>{/if}
-    </a>
+
+    <!-- More dropdown -->
+    <div class="more-wrap">
+      <button
+        class="tab more-btn"
+        class:active={moreActive}
+        type="button"
+        onclick={() => moreOpen = !moreOpen}
+        aria-expanded={moreOpen}
+        aria-haspopup="true"
+      >
+        <span>{t('nav.more')}</span>
+        {#if moreActive}<span class="dot" aria-hidden="true"></span>{/if}
+        <span class="more-arrow" class:open={moreOpen}>▾</span>
+      </button>
+      {#if moreOpen}
+        <div class="more-dropdown">
+          <a class="drop-item" class:active={active === 'docs'} href="/docs" onclick={closeMore}>
+            <span class="drop-num">05</span>
+            <span>{t('nav.docs')}</span>
+            {#if active === 'docs'}<span class="dot" aria-hidden="true"></span>{/if}
+          </a>
+          {#if user.isAdmin}
+            <a class="drop-item" class:active={active === 'admin'} href="/admin" onclick={closeMore}>
+              <span class="drop-num">06</span>
+              <span>{t('nav.admin')}</span>
+              {#if active === 'admin'}<span class="dot" aria-hidden="true"></span>{/if}
+            </a>
+          {/if}
+          <a class="drop-item" class:active={active === 'settings'} href="/settings" onclick={closeMore}>
+            <span class="drop-num">⚙</span>
+            <span>{t('nav.settings')}</span>
+            {#if active === 'settings'}<span class="dot" aria-hidden="true"></span>{/if}
+          </a>
+        </div>
+      {/if}
+    </div>
   </div>
 
   <div class="cell right">
@@ -84,6 +116,13 @@
         {#if active === item.id}<span class="mob-dot" aria-hidden="true"></span>{/if}
       </a>
     {/each}
+    <!-- Secondary items — visual divider -->
+    <div class="mob-secondary-divider"></div>
+    <a class="mob-link" class:active={active === 'docs'} href="/docs" onclick={closeMenu}>
+      <span class="mob-num">05</span>
+      <span>{t('nav.docs')}</span>
+      {#if active === 'docs'}<span class="mob-dot" aria-hidden="true"></span>{/if}
+    </a>
     {#if user.isAdmin}
       <a class="mob-link" class:active={active === 'admin'} href="/admin" onclick={closeMenu}>
         <span class="mob-num">06</span>
@@ -191,6 +230,54 @@
   }
   .logout:hover { background: var(--st-bg-deep); }
 
+  /* ── More dropdown ── */
+  .more-wrap {
+    position: relative;
+    display: flex;
+    align-items: stretch;
+  }
+  .more-btn {
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    gap: 8px;
+  }
+  .more-arrow {
+    font-size: 10px;
+    transition: transform 120ms;
+    margin-left: 2px;
+  }
+  .more-arrow.open { transform: rotate(180deg); }
+  .more-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    min-width: 160px;
+    background: var(--st-bg);
+    border: var(--st-rule-thick);
+    border-top: none;
+    z-index: 60;
+    display: flex;
+    flex-direction: column;
+  }
+  .drop-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 22px;
+    border-bottom: var(--st-rule-thin);
+    font-family: var(--st-font-mono);
+    font-size: 11px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--st-ink);
+    text-decoration: none;
+  }
+  .drop-item:last-child { border-bottom: none; }
+  .drop-item:hover { background: var(--st-bg-deep); }
+  .drop-item.active { color: var(--st-cobalt); }
+  .drop-num { color: var(--st-ink-dim); min-width: 22px; }
+
   /* ── Hamburger ── */
   .mob-burger {
     display: none;
@@ -283,5 +370,7 @@
     .user { display: none; }
     .logout-form { display: none; }
     .mob-burger { display: flex; }
+    .more-wrap { display: none; }
+    .mob-secondary-divider { border-top: var(--st-rule-thick); }
   }
 </style>

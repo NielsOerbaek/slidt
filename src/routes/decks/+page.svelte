@@ -102,6 +102,10 @@
           <div class="cell actions">
             <span class="chip">{t('decks.action_open')}</span>
             <span class="chip">{t('decks.action_pdf')}</span>
+            <form method="POST" action="?/duplicate" use:enhance onclick={(e) => e.stopPropagation()}>
+              <input type="hidden" name="id" value={deck.id} />
+              <button type="submit" class="chip">DUP</button>
+            </form>
           </div>
           <div class="cell arrow">→</div>
         </a>
@@ -279,6 +283,11 @@
     letter-spacing: 0.12em;
     padding: 4px 8px;
     border: var(--st-rule-medium);
+  }
+  button.chip {
+    background: transparent;
+    color: inherit;
+    cursor: pointer;
   }
 
   .row { text-decoration: none; color: inherit; }

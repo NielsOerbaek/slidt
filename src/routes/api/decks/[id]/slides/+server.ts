@@ -1,21 +1,11 @@
 import { json, error } from '@sveltejs/kit';
 import type { RequestEvent } from '@sveltejs/kit';
 import { db, decks, slides } from '$lib/server/db/index.ts';
-import { eq, and, asc, sql } from 'drizzle-orm';
-
-async function requireDeckAccess(event: RequestEvent) {
-  if (!event.locals.user) throw error(401, 'Not authenticated');
-  const [deck] = await db
-    .select()
-    .from(decks)
-    .where(and(eq(decks.id, event.params.id!), eq(decks.ownerId, event.locals.user.id)))
-    .limit(1);
-  if (!deck) throw error(404, 'Deck not found');
-  return deck;
-}
+import { eq, asc, sql } from 'drizzle-orm';
+import { requireDeckRole } from '$lib/server/deck-access.ts';
 
 export async function GET(event: RequestEvent) {
-  await requireDeckAccess(event);
+  await requireDeckRole(event.params.id!, event.locals.user?.id, 'viewer');
   const rows = await db
     .select()
     .from(slides)
@@ -25,10 +15,12 @@ export async function GET(event: RequestEvent) {
 }
 
 export async function POST(event: RequestEvent) {
-  const deck = await requireDeckAccess(event);
+  await requireDeckRole(event.params.id!, event.locals.user?.id, 'editor');
   const body = await event.request.json().catch(() => null);
   if (!body || typeof body.typeId !== 'string') throw error(400, 'typeId required');
   const data = body.data ?? {};
+  const [deck] = await db.select().from(decks).where(eq(decks.id, event.params.id!)).limit(1);
+  if (!deck) throw error(404, 'Deck not found');
   const orderIndex = deck.slideOrder.length;
   const [slide] = await db
     .insert(slides)

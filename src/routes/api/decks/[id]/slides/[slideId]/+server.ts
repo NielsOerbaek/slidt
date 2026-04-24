@@ -2,31 +2,26 @@ import { json, error } from '@sveltejs/kit';
 import type { RequestEvent } from '@sveltejs/kit';
 import { db, decks, slides } from '$lib/server/db/index.ts';
 import { eq, and, sql } from 'drizzle-orm';
+import { requireDeckRole } from '$lib/server/deck-access.ts';
 
-async function requireSlideAccess(event: RequestEvent) {
-  if (!event.locals.user) throw error(401, 'Not authenticated');
-  const [deck] = await db
-    .select()
-    .from(decks)
-    .where(and(eq(decks.id, event.params.id!), eq(decks.ownerId, event.locals.user.id)))
-    .limit(1);
-  if (!deck) throw error(404, 'Deck not found');
+async function loadSlide(event: RequestEvent, minRole: 'viewer' | 'editor' = 'viewer') {
+  await requireDeckRole(event.params.id!, event.locals.user?.id, minRole);
   const [slide] = await db
     .select()
     .from(slides)
-    .where(and(eq(slides.id, event.params.slideId!), eq(slides.deckId, deck.id)))
+    .where(and(eq(slides.id, event.params.slideId!), eq(slides.deckId, event.params.id!)))
     .limit(1);
   if (!slide) throw error(404, 'Slide not found');
-  return { deck, slide };
+  return slide;
 }
 
 export async function GET(event: RequestEvent) {
-  const { slide } = await requireSlideAccess(event);
+  const slide = await loadSlide(event, 'viewer');
   return json(slide);
 }
 
 export async function PATCH(event: RequestEvent) {
-  const { slide } = await requireSlideAccess(event);
+  const slide = await loadSlide(event, 'editor');
   const body = await event.request.json().catch(() => ({}));
   const updates: Partial<typeof slides.$inferInsert> = {};
   if (body.data !== undefined) updates.data = { ...slide.data as object, ...body.data };
@@ -42,7 +37,7 @@ export async function PATCH(event: RequestEvent) {
 }
 
 export async function DELETE(event: RequestEvent) {
-  const { deck, slide } = await requireSlideAccess(event);
+  const slide = await loadSlide(event, 'editor');
   await db.delete(slides).where(eq(slides.id, slide.id));
   await db
     .update(decks)
@@ -50,6 +45,6 @@ export async function DELETE(event: RequestEvent) {
       slideOrder: sql`array_remove(${decks.slideOrder}, ${slide.id}::uuid)`,
       updatedAt: new Date(),
     })
-    .where(eq(decks.id, deck.id));
+    .where(eq(decks.id, slide.deckId));
   return json({ ok: true });
 }

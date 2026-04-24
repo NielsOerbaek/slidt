@@ -11,7 +11,7 @@
   let creating = $state(false);
   let newTitle = $state('');
 
-  const empty = $derived(data.decks.length === 0 && !creating);
+  const empty = $derived(data.decks.length === 0 && !creating && !(data.sharedDecks?.length > 0));
   const headline = $derived(decksHeadline(data.decks.length));
 </script>
 
@@ -111,6 +111,35 @@
         </a>
       {/each}
     </div>
+
+    {#if data.sharedDecks?.length > 0}
+      <h2 class="section-label">SHARED WITH ME</h2>
+      <div class="table">
+        <div class="table-head">
+          <div class="th n">{t('decks.col_n')}</div>
+          <div class="th title">{t('decks.col_title')}</div>
+          <div class="th slides">{t('decks.col_slides')}</div>
+          <div class="th upd">{t('decks.col_updated')}</div>
+          <div class="th actions">{t('decks.col_actions')}</div>
+          <div class="th arrow"></div>
+        </div>
+        {#each data.sharedDecks as deck, i (deck.id)}
+          <a class="row" href="/decks/{deck.id}">
+            <div class="cell n">{String(i + 1).padStart(2, '0')}</div>
+            <div class="cell title">
+              <span class="t">{deck.title}</span>
+            </div>
+            <div class="cell slides">{String(deck.slideOrder.length).padStart(2, '0')}</div>
+            <div class="cell upd">{formatRelativeDate(deck.updatedAt).toUpperCase()}</div>
+            <div class="cell actions">
+              <span class="chip">{t('decks.action_open')}</span>
+              <span class="chip">SHARED</span>
+            </div>
+            <div class="cell arrow">→</div>
+          </a>
+        {/each}
+      </div>
+    {/if}
   </div>
 {/if}
 
@@ -355,5 +384,14 @@
     letter-spacing: 0.25em;
     color: var(--st-ink-dim);
     text-align: center;
+  }
+
+  .section-label {
+    font-family: var(--st-font-mono);
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    color: var(--st-ink-dim);
+    margin: 24px 0 8px;
+    padding: 0 40px;
   }
 </style>

@@ -1,20 +1,20 @@
-import type { PageServerLoad } from './$types.js';
-import { error } from '@sveltejs/kit';
+import type { PageServerLoad, Actions } from './$types.js';
+import { error, fail } from '@sveltejs/kit';
 import { db, decks, slides, slideTypes, themes } from '$lib/server/db/index.ts';
 import { eq, or, asc } from 'drizzle-orm';
 import type { SlideType, Theme } from '../../../renderer/types.ts';
+import { resolveDeckAccess, listCollaborators, requireDeckRole, addCollaborator, removeCollaborator } from '$lib/server/deck-access.ts';
 
 export const load: PageServerLoad = async ({ params, locals }) => {
-  // Load deck (verify ownership)
+  // Load deck
   const [deck] = await db
     .select()
     .from(decks)
     .where(eq(decks.id, params.id))
     .limit(1);
 
-  if (!deck || deck.ownerId !== locals.user!.id) {
-    throw error(404, 'Deck not found');
-  }
+  const access = await resolveDeckAccess(params.id!, locals.user!.id);
+  if (!access || !deck) throw error(404, 'Deck not found');
 
   // Load slides ordered by orderIndex
   const slideRows = await db
@@ -73,10 +73,39 @@ export const load: PageServerLoad = async ({ params, locals }) => {
     ? { id: theme.id, name: theme.name, tokens: theme.tokens }
     : null;
 
+  const collaborators = access === 'owner' ? await listCollaborators(params.id!) : [];
+
   return {
     deck,
     slides: orderedSlides,
     slideTypes: rendererTypes,
     theme: rendererTheme,
+    isOwner: access === 'owner',
+    canEdit: access === 'owner' || access === 'editor',
+    collaborators,
   };
+};
+
+export const actions: Actions = {
+  addCollaborator: async ({ params, locals, request }) => {
+    if (!locals.user) throw error(401, 'Not authenticated');
+    await requireDeckRole(params.id!, locals.user.id, 'owner');
+    const fd = await request.formData();
+    const email = fd.get('email') as string;
+    const role = (fd.get('role') as string) === 'viewer' ? 'viewer' : 'editor';
+    if (!email) return fail(400, { collabError: 'Email required' });
+    const collab = await addCollaborator(params.id!, email, role);
+    if (!collab) return fail(404, { collabError: `No user found: ${email}` });
+    return { success: true };
+  },
+
+  removeCollaborator: async ({ params, locals, request }) => {
+    if (!locals.user) throw error(401, 'Not authenticated');
+    await requireDeckRole(params.id!, locals.user.id, 'owner');
+    const fd = await request.formData();
+    const userId = fd.get('userId') as string;
+    if (!userId) return fail(400, { collabError: 'userId required' });
+    await removeCollaborator(params.id!, userId);
+    return { success: true };
+  },
 };

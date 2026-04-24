@@ -1,6 +1,71 @@
-# slidt
+# slidt 🎞️
 
-A web-based slide editor with live preview, PDF export, and a Claude-powered agent — built for the Os & Data internal team.
+> *AI-assisted presentation tooling for Os & Data — because great decks shouldn't require a developer.*
+
+A browser-based slide editor with live preview, one-click PDF export, and a Claude-powered agent that builds, edits, and styles decks on demand. Built by the team, for the team.
+
+---
+
+## What it looks like
+
+<table>
+<tr>
+<td align="center" width="50%">
+  <img src="tests/visual/snapshots/title.png" alt="Title slide" />
+  <sub><b>Title</b></sub>
+</td>
+<td align="center" width="50%">
+  <img src="tests/visual/snapshots/content.png" alt="Content slide" />
+  <sub><b>Content</b></sub>
+</td>
+</tr>
+<tr>
+<td align="center" width="50%">
+  <img src="tests/visual/snapshots/agenda.png" alt="Agenda slide" />
+  <sub><b>Agenda</b></sub>
+</td>
+<td align="center" width="50%">
+  <img src="tests/visual/snapshots/section.png" alt="Section divider" />
+  <sub><b>Section divider</b></sub>
+</td>
+</tr>
+<tr>
+<td align="center" width="50%">
+  <img src="tests/visual/snapshots/principles.png" alt="Principles slide" />
+  <sub><b>Principles</b></sub>
+</td>
+<td align="center" width="50%">
+  <img src="tests/visual/snapshots/values.png" alt="Values slide" />
+  <sub><b>Values</b></sub>
+</td>
+</tr>
+<tr>
+<td align="center" width="50%">
+  <img src="tests/visual/snapshots/closing.png" alt="Closing slide" />
+  <sub><b>Closing</b></sub>
+</td>
+<td align="center" width="50%">
+  <img src="tests/visual/snapshots/friction.png" alt="Friction slide" />
+  <sub><b>Friction</b></sub>
+</td>
+</tr>
+</table>
+
+13 built-in slide types · custom templates on demand · antal-theta Swiss-terminal palette
+
+---
+
+## Features
+
+- **Live preview** — see your deck render as you type, same renderer in browser and PDF export
+- **AI agent** — chat with Claude to build entire decks, rewrite content, invent new slide types, and tweak themes — all reversible via the undo stack
+- **Collaborators** — invite colleagues by email with editor or viewer roles
+- **Deck duplication** — deep-copy a deck with all slides, theme, and custom templates
+- **API-first** — everything the UI can do, the CLI can do too (`pnpm slidt ...`)
+- **Theme system** — design token–based palettes with per-theme agent system prompts
+- **PDF export** — Playwright-rendered at 1920×1080, pixel-perfect
+
+---
 
 ## What it is
 
@@ -11,6 +76,8 @@ Same renderer runs in the browser (preview) and in Node (PDF export) — one pur
 ## Why
 
 The current tool works, but only one person can run it. Adding a slide type means editing Python, CSS, and JSON by hand. Colleagues can't draft decks without pulling in a developer. slidt fixes that while keeping the output quality we already have.
+
+---
 
 ## Architecture
 
@@ -40,18 +107,22 @@ Single `docker-compose.yml` on one VPS: `app`, `postgres`, `caddy` (TLS). Assets
 
 **Stack:** TypeScript, SvelteKit, Postgres + Drizzle, Handlebars, Playwright, Claude API (Sonnet 4.6), Docker Compose.
 
-## Roadmap
+---
 
-Six independent subsystems:
+## Docs
 
-1. **Core renderer + template system** — pure-TS `render(deck, theme, templates) → HTML`, Handlebars helpers, field validation, scoped CSS, 13 seeded SlideTypes.
-2. **Data model + API + auth** — Postgres schema, CRUD endpoints, email/password with argon2id, asset uploads.
-3. **Editor UI** — form editor, live preview, slide list with drag-reorder, agent chat shell.
-4. **PDF export** — Playwright rendering, appendix stitching, font preloading, visual regression.
-5. **Agent** — Claude integration, structured tool use, Handlebars-AST guardrails, per-call undo.
-6. **Migration + deployment** — `import-deck` CLI, Docker Compose stack, backups, `/healthz`.
+Full documentation lives in [`docs/`](docs/README.md):
 
-See [`docs/superpowers/plans/2026-04-23-roadmap.md`](docs/superpowers/plans/2026-04-23-roadmap.md) for the full breakdown.
+| | |
+|---|---|
+| [Getting Started](docs/guide/getting-started.md) | First login, first deck, first agent prompt |
+| [Decks](docs/guide/decks.md) | Duplicate, share, collaborate, export |
+| [Agent](docs/guide/agent.md) | Chat, undo history, cross-session memory |
+| [CLI Setup](docs/cli/README.md) | `SLIDT_API_KEY`, all commands |
+| [Collaborator Roles](docs/reference/collaborators.md) | owner / editor / viewer matrix |
+| [SSE Events](docs/reference/sse-events.md) | Agent streaming event schema |
+
+---
 
 ## Deploy
 
@@ -80,7 +151,7 @@ mkdir -p data/pg data/assets data/backups
 docker compose up -d --build
 
 # 5. Create the first admin user
-docker compose exec app pnpm tsx scripts/create-user.ts admin@example.com "Admin" "s3cr3t"
+docker compose exec app pnpm tsx scripts/create-user.ts admin@example.com "Admin" "s3cr3t" --admin
 
 # 6. Verify the stack
 curl https://YOUR_DOMAIN/healthz
@@ -145,6 +216,8 @@ If `db` is anything other than `"ok"` the database is unreachable. The HTTP stat
 docker compose exec app pnpm tsx scripts/reset-password.ts user@example.com newpassword
 ```
 
+---
+
 ## Development
 
 Requires Node 20+ and pnpm (via corepack).
@@ -158,6 +231,8 @@ pnpm dev
 ```
 
 The `postgres-test` service runs on port 5433. Set `DATABASE_URL=postgresql://slidt:slidt@localhost:5433/slidt_test` in a `.env.test` for integration tests.
+
+---
 
 ## Naming
 

@@ -17,6 +17,7 @@
   // sequence so the transcript reads top-to-bottom rather than dumping all
   // tool calls below all text.
   type TextPart = { kind: 'text'; text: string };
+  type ThinkingPart = { kind: 'thinking'; text: string };
   type ToolPart = {
     kind: 'tool';
     toolUseId: string;
@@ -26,7 +27,7 @@
     undoPatch?: unknown;
     image?: { base64: string; mediaType: string };
   };
-  type Part = TextPart | ToolPart;
+  type Part = TextPart | ThinkingPart | ToolPart;
 
   interface Message {
     role: 'user' | 'assistant';
@@ -49,8 +50,8 @@
     if (m.role !== 'assistant') return false;
     if (!sending) return false;
     if (m.parts.length === 0) return true;
-    const lastTextEmpty = m.parts.every((p) => p.kind === 'text' ? !p.text : false);
-    return lastTextEmpty;
+    // Once any content (thinking, text, tools) has arrived, stop showing the spinner
+    return m.parts.every((p) => p.kind === 'text' && !p.text);
   }
 
   function plainText(m: Message): string {
@@ -107,6 +108,15 @@
       return { ...m, parts: updated };
     }
     return { ...m, parts: [...m.parts, { kind: 'text', text: delta }] };
+  }
+
+  function appendThinking(m: Message, delta: string): Message {
+    const last = m.parts[m.parts.length - 1];
+    if (last && last.kind === 'thinking') {
+      const updated = m.parts.slice(0, -1).concat({ kind: 'thinking', text: last.text + delta });
+      return { ...m, parts: updated };
+    }
+    return { ...m, parts: [...m.parts, { kind: 'thinking', text: delta }] };
   }
 
   function pushTool(m: Message, tool: Omit<ToolPart, 'kind'>): Message {
@@ -172,7 +182,10 @@
           let event: { type: string } & Record<string, unknown>;
           try { event = JSON.parse(raw); } catch { continue; }
 
-          if (event.type === 'text') {
+          if (event.type === 'thinking') {
+            updateAssistant(assistantIdx, (m) => appendThinking(m, event.delta as string));
+            scrollToBottom();
+          } else if (event.type === 'text') {
             updateAssistant(assistantIdx, (m) => appendText(m, event.delta as string));
             scrollToBottom();
           } else if (event.type === 'tool_start') {
@@ -301,7 +314,12 @@
               {:else}
                 <div class="parts">
                   {#each msg.parts as part, j (j)}
-                    {#if part.kind === 'text' && part.text}
+                    {#if part.kind === 'thinking' && part.text}
+                      <details class="thinking-block">
+                        <summary class="thinking-summary">thinking</summary>
+                        <span class="thinking-content">{part.text}</span>
+                      </details>
+                    {:else if part.kind === 'text' && part.text}
                       <span class="content">{part.text}</span>
                     {:else if part.kind === 'tool'}
                       <div class="tool-line">
@@ -621,5 +639,27 @@
     font-size: 10px;
     letter-spacing: 0.2em;
     color: var(--st-ink-dim);
+  }
+
+  .thinking-block {
+    border-left: 2px solid var(--st-ink-dim);
+    padding-left: 10px;
+  }
+  .thinking-summary {
+    font-family: var(--st-font-mono);
+    font-size: 9px;
+    letter-spacing: 0.22em;
+    color: var(--st-ink-dim);
+    text-transform: uppercase;
+    cursor: pointer;
+    user-select: none;
+  }
+  .thinking-content {
+    display: block;
+    margin-top: 6px;
+    font-size: 11px;
+    color: var(--st-ink-dim);
+    white-space: pre-wrap;
+    line-height: 1.5;
   }
 </style>

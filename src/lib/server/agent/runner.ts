@@ -13,7 +13,14 @@ Guidelines:
 - When using create_slide_type, only use these Handlebars helpers: fmt, eq, default, each, if, unless
 - CSS in templates must not contain @import, external url(), expression(), or behavior:
 - After using tools, briefly describe what you changed
-- Be concise — let the tools do the work`;
+- Be concise — let the tools do the work
+
+Template rules (IMPORTANT — violations cause "[object Object]" in output):
+- {{fmt value}} only works on STRING fields. Never pass an object or array to fmt.
+- For list fields (type: "list"), iterate with {{#each items}}...{{/each}} and access string properties inside: {{fmt this.propertyName}}
+- For group fields (type: "group"), access each sub-field directly: {{fmt field.subField}}
+- Always call list_slide_types before add_slide to check the exact field names and types for that slide type
+- When add_slide data must contain a list field, pass an array of strings or objects matching the field schema — never a plain string`;
 
 type SseEvent =
   | { type: 'text'; delta: string }

@@ -115,6 +115,18 @@ export const AGENT_TOOLS: ToolDefinition[] = [
     },
   },
   {
+    name: 'fetch_url',
+    description:
+      'Fetch the text content of a web page or URL. Use this to read articles, documents, or any web content the user wants to base slides on. Returns plain text (HTML stripped).',
+    input_schema: {
+      type: 'object',
+      properties: {
+        url: { type: 'string', description: 'The URL to fetch' },
+      },
+      required: ['url'],
+    },
+  },
+  {
     name: 'list_slide_types',
     description: 'List all slide types available for this deck (global + deck-scoped).',
     input_schema: { type: 'object', properties: {}, required: [] },
@@ -277,9 +289,36 @@ export async function executeTool(
       };
     }
 
+    case 'fetch_url': {
+      const url = input.url as string;
+      try {
+        const res = await fetch(url, {
+          headers: { 'User-Agent': 'Mozilla/5.0 (compatible; slidt-agent/1.0)' },
+          signal: AbortSignal.timeout(10_000),
+        });
+        if (!res.ok) return { result: `error: HTTP ${res.status}` };
+        const html = await res.text();
+        // Strip tags, collapse whitespace, trim to 8k chars
+        const text = html
+          .replace(/<script[\s\S]*?<\/script>/gi, '')
+          .replace(/<style[\s\S]*?<\/style>/gi, '')
+          .replace(/<[^>]+>/g, ' ')
+          .replace(/&nbsp;/g, ' ')
+          .replace(/&amp;/g, '&')
+          .replace(/&lt;/g, '<')
+          .replace(/&gt;/g, '>')
+          .replace(/\s{2,}/g, ' ')
+          .trim()
+          .slice(0, 8000);
+        return { result: text };
+      } catch (err) {
+        return { result: `error: ${err instanceof Error ? err.message : String(err)}` };
+      }
+    }
+
     case 'list_slide_types': {
       const rows = await db
-        .select({ id: slideTypes.id, name: slideTypes.name, label: slideTypes.label, scope: slideTypes.scope })
+        .select({ id: slideTypes.id, name: slideTypes.name, label: slideTypes.label, scope: slideTypes.scope, fields: slideTypes.fields })
         .from(slideTypes)
         .where(
           or(

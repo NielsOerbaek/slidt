@@ -106,6 +106,10 @@
                   : tc,
               ),
             }));
+            const SLIDE_MUTATING = ['add_slide', 'patch_slide', 'delete_slide', 'reorder_slides'];
+            if (SLIDE_MUTATING.includes(event.tool as string)) {
+              await invalidateAll();
+            }
           } else if (event.type === 'done') {
             await invalidateAll();
             break outer;

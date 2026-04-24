@@ -510,9 +510,9 @@
 
   <!-- Mobile tab bar (hidden on desktop) -->
   <div class="mob-tabs">
-    <button class:active={mobilePane === 'list'} onclick={() => mobilePane = 'list'}>SLIDES</button>
-    <button class:active={mobilePane === 'edit'} onclick={() => mobilePane = 'edit'}>EDIT</button>
-    <button class:active={mobilePane === 'preview'} onclick={() => mobilePane = 'preview'}>PREVIEW</button>
+    <button class:active={mobilePane === 'list'} onclick={() => mobilePane = 'list'}>{t('editor.slides_label')}</button>
+    <button class:active={mobilePane === 'edit'} onclick={() => mobilePane = 'edit'}>{t('editor.mob_edit')}</button>
+    <button class:active={mobilePane === 'preview'} onclick={() => mobilePane = 'preview'}>{t('editor.mob_preview')}</button>
   </div>
 </div>
 

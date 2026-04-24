@@ -55,13 +55,13 @@
       {#if form?.error}<p class="error">{form.error}</p>{/if}
 
       <div class="prompt-section">
-        <label class="prompt-label" for="systemPrompt">AGENT SYSTEM PROMPT</label>
-        <p class="prompt-help">Sets the tone, style direction, and content rules the agent follows when this theme is active. Plain text only — no markup.</p>
+        <label class="prompt-label" for="systemPrompt">{t('theme_edit.system_prompt_label')}</label>
+        <p class="prompt-help">{t('theme_edit.system_prompt_help')}</p>
         <textarea
           id="systemPrompt"
           name="systemPrompt"
           bind:value={systemPrompt}
-          placeholder="Describe the tone, voice, and content conventions for this theme..."
+          placeholder={t('theme_edit.system_prompt_placeholder')}
           rows="6"
           class="prompt-textarea"
         ></textarea>

@@ -1,5 +1,6 @@
 <script lang="ts">
   import type { Field } from '../../renderer/types.ts';
+  import { t } from '$lib/i18n/index.ts';
 
   let { field, value, onchange }: {
     field: Field;
@@ -48,7 +49,7 @@
     value={value as string ?? ''}
     onchange={(e) => onchange((e.target as HTMLSelectElement).value)}
   >
-    <option value="">— select —</option>
+    <option value="">{t('field.select_default')}</option>
     {#each field.options as opt}
       <option value={opt}>{opt}</option>
     {/each}
@@ -72,7 +73,7 @@
           type="button"
           class="remove-btn"
           onclick={() => onchange(items.filter((_, idx) => idx !== i))}
-          aria-label="Remove"
+          aria-label={t('field.remove')}
         >×</button>
       </div>
     {/each}
@@ -81,7 +82,7 @@
       class="add-item-btn"
       onclick={() => onchange([...items, defaultForField(field.items!)])}
     >
-      + Add {field.items.label ?? field.items.name ?? 'item'}
+      {t('field.add_item', { label: field.items.label ?? field.items.name ?? 'item' })}
     </button>
   </div>
 

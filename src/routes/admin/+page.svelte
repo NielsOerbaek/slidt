@@ -25,24 +25,24 @@
 {#if form?.error}
   <div class="flash error">{form.error}</div>
 {:else if form?.success}
-  <div class="flash ok">{form.action} successful</div>
+  <div class="flash ok">{t('admin.action_success')}</div>
 {/if}
 
 {#if showCreate}
   <form method="POST" action="?/createUser" use:enhance class="create-form">
     <div class="create-title">{t('admin.create_user')}</div>
     <div class="field-row">
-      <label>Email<input type="email" name="email" required autocomplete="off" /></label>
-      <label>Name<input type="text" name="name" required /></label>
-      <label>Password<input type="password" name="password" required minlength="8" /></label>
+      <label>{t('admin.form_email')}<input type="email" name="email" required autocomplete="off" /></label>
+      <label>{t('admin.form_name')}<input type="text" name="name" required /></label>
+      <label>{t('admin.form_password')}<input type="password" name="password" required minlength="8" /></label>
       <label class="checkbox-label">
         <input type="checkbox" name="isAdmin" />
-        Admin
+        {t('admin.form_is_admin')}
       </label>
     </div>
     <div class="form-actions">
-      <button type="submit" class="btn-accent">Create</button>
-      <button type="button" class="btn" onclick={() => showCreate = false}>Cancel</button>
+      <button type="submit" class="btn-accent">{t('admin.form_create')}</button>
+      <button type="button" class="btn" onclick={() => showCreate = false}>{t('admin.form_cancel')}</button>
     </div>
   </form>
 {/if}
@@ -86,7 +86,7 @@
           {#if resetTarget === user.id}
             <form method="POST" action="?/resetPassword" use:enhance={{ onResult: () => { resetTarget = null; } }} class="inline-form">
               <input type="hidden" name="id" value={user.id} />
-              <input type="password" name="password" placeholder="New password" minlength="8" class="inline-pw" required />
+              <input type="password" name="password" placeholder={t('admin.pw_new_placeholder')} minlength="8" class="inline-pw" required />
               <button type="submit" class="btn-sm warn">{t('admin.pw_set')}</button>
               <button type="button" class="btn-sm" onclick={() => resetTarget = null}>✕</button>
             </form>
@@ -119,10 +119,10 @@
     <div class="issue-row" class:resolved={issue.status === 'resolved'}>
       <div class="issue-meta">
         <span class="issue-sev sev-{issue.severity}">{issue.severity.toUpperCase()}</span>
-        <span class="issue-status">{issue.status}</span>
+        <span class="issue-status">{issue.status === 'open' ? t('admin.issue_status_open') : t('admin.issue_status_resolved')}</span>
         <span class="issue-date">{new Date(issue.createdAt).toLocaleDateString('da-DK')}</span>
         {#if issue.deckId}
-          <a class="issue-deck" href="/decks/{issue.deckId}" target="_blank">deck ↗</a>
+          <a class="issue-deck" href="/decks/{issue.deckId}" target="_blank">{t('admin.issue_deck_link')}</a>
         {/if}
       </div>
       <div class="issue-title">{issue.title}</div>

@@ -40,13 +40,13 @@
     {#if user.isAdmin}
       <a class="tab" class:active={active === 'admin'} href="/admin">
         <span class="tab-num">05</span>
-        <span>ADMIN</span>
+        <span>{t('nav.admin')}</span>
         {#if active === 'admin'}<span class="dot" aria-hidden="true"></span>{/if}
       </a>
     {/if}
     <a class="tab" class:active={active === 'settings'} href="/settings">
       <span class="tab-num">⚙</span>
-      <span>KEYS</span>
+      <span>{t('nav.settings')}</span>
       {#if active === 'settings'}<span class="dot" aria-hidden="true"></span>{/if}
     </a>
   </div>

@@ -24,6 +24,8 @@ export const messages = {
   'nav.decks': { da: 'DÆK', en: 'DECKS' },
   'nav.themes': { da: 'TEMAER', en: 'THEMES' },
   'nav.templates': { da: 'SKABELONER', en: 'TEMPLATES' },
+  'nav.admin': { da: 'ADMIN', en: 'ADMIN' },
+  'nav.settings': { da: 'NØGLER', en: 'KEYS' },
 
   // ── Login ────────────────────────────────────────────────────────────
   'login.tag': { da: '§ 01 — LOG IND', en: '§ 01 — SIGN IN' },
@@ -52,6 +54,8 @@ export const messages = {
   'decks.col_actions': { da: 'HANDLINGER', en: 'ACTIONS' },
   'decks.action_open': { da: 'ÅBN', en: 'OPEN' },
   'decks.action_pdf': { da: 'PDF', en: 'PDF' },
+  'decks.action_dup': { da: 'KOP', en: 'DUP' },
+  'decks.shared_with_me': { da: 'DELT MED MIG', en: 'SHARED WITH ME' },
 
   // Decks list headlines (numeric variants → see headlineForCount in i18n/index.ts)
   'decks.headline.zero': { da: 'Ingen dæk endnu.', en: 'No decks yet.' },
@@ -110,6 +114,10 @@ export const messages = {
   'editor.preview_meta': { da: 'FORHÅNDSVISNING · 1920×1080', en: 'PREVIEW · 1920×1080' },
   'editor.preview_slide_of': { da: 'SLIDE {n} / {total}', en: 'SLIDE {n} / {total}' },
 
+  // Mobile tabs
+  'editor.mob_edit': { da: 'REDIGER', en: 'EDIT' },
+  'editor.mob_preview': { da: 'FORHÅNDSVIS', en: 'PREVIEW' },
+
   // Agent drawer
   'agent.tag': { da: '§4 · AGENT', en: '§4 · AGENT' },
   'agent.live': { da: 'LIVE', en: 'LIVE' },
@@ -148,6 +156,15 @@ export const messages = {
   'theme_edit.save': { da: 'GEM', en: 'SAVE' },
   'theme_edit.saved': { da: '✓ GEMT', en: '✓ SAVED' },
   'theme_edit.preview_label': { da: 'LIVE FORHÅNDSVISNING', en: 'LIVE PREVIEW' },
+  'theme_edit.system_prompt_label': { da: 'AGENT SYSTEMPROMPT', en: 'AGENT SYSTEM PROMPT' },
+  'theme_edit.system_prompt_help': {
+    da: 'Sætter tonen, stilretningen og indholdsreglerne agenten følger, når dette tema er aktivt. Kun ren tekst — ingen markup.',
+    en: 'Sets the tone, style direction, and content rules the agent follows when this theme is active. Plain text only — no markup.',
+  },
+  'theme_edit.system_prompt_placeholder': {
+    da: 'Beskriv tonen, stemmen og indholdskriterierne for dette tema…',
+    en: 'Describe the tone, voice, and content conventions for this theme…',
+  },
 
   'template_edit.crumb': { da: 'Skabeloner', en: 'Templates' },
   'template_edit.fields_label': { da: 'FELTER (JSON)', en: 'FIELDS (JSON)' },
@@ -229,11 +246,27 @@ export const messages = {
   'admin.pw_set': { da: 'Sæt', en: 'Set' },
   'admin.delete': { da: 'Slet', en: 'Delete' },
   'admin.delete_user_confirm': { da: 'Slet {name}?', en: 'Delete {name}?' },
+  'admin.form_email': { da: 'Mail', en: 'Email' },
+  'admin.form_name': { da: 'Navn', en: 'Name' },
+  'admin.form_password': { da: 'Adgangskode', en: 'Password' },
+  'admin.form_is_admin': { da: 'Admin', en: 'Admin' },
+  'admin.form_create': { da: 'Opret', en: 'Create' },
+  'admin.form_cancel': { da: 'Annullér', en: 'Cancel' },
+  'admin.action_success': { da: 'Udført.', en: 'Done.' },
+  'admin.pw_new_placeholder': { da: 'Ny adgangskode', en: 'New password' },
+  'admin.issue_deck_link': { da: 'dæk ↗', en: 'deck ↗' },
+  'admin.issue_status_open': { da: 'åben', en: 'open' },
+  'admin.issue_status_resolved': { da: 'løst', en: 'resolved' },
   'admin.issues': { da: 'PROBLEMER', en: 'ISSUES' },
   'admin.issues_count': { da: '{total} total · {open} åbne', en: '{total} total · {open} open' },
   'admin.issues_empty': { da: 'Ingen problemer rapporteret endnu.', en: 'No issues reported yet.' },
   'admin.resolve': { da: 'Løs', en: 'Resolve' },
   'admin.delete_issue_confirm': { da: 'Slet dette problem?', en: 'Delete this issue?' },
+
+  // ── Field editor ──────────────────────────────────────────────────────
+  'field.select_default': { da: '— vælg —', en: '— select —' },
+  'field.remove': { da: 'Fjern', en: 'Remove' },
+  'field.add_item': { da: '+ Tilføj {label}', en: '+ Add {label}' },
 } as const satisfies Record<string, { da: string; en: string }>;
 
 export type MessageKey = keyof typeof messages;

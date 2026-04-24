@@ -104,7 +104,7 @@
             <span class="chip">{t('decks.action_pdf')}</span>
             <form method="POST" action="?/duplicate" use:enhance onclick={(e) => e.stopPropagation()}>
               <input type="hidden" name="id" value={deck.id} />
-              <button type="submit" class="chip">DUP</button>
+              <button type="submit" class="chip">{t('decks.action_dup')}</button>
             </form>
           </div>
           <div class="cell arrow">→</div>
@@ -113,7 +113,7 @@
     </div>
 
     {#if data.sharedDecks?.length > 0}
-      <h2 class="section-label">SHARED WITH ME</h2>
+      <h2 class="section-label">{t('decks.shared_with_me')}</h2>
       <div class="table">
         <div class="table-head">
           <div class="th n">{t('decks.col_n')}</div>

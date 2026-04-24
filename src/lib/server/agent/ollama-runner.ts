@@ -143,7 +143,7 @@ export function runOllamaStream(
               let chunk: {
                 choices: Array<{
                   delta: {
-                    thinking?: string | null;
+                    reasoning?: string | null;
                     content?: string | null;
                     tool_calls?: Array<{
                       index: number;
@@ -159,8 +159,8 @@ export function runOllamaStream(
               if (!choice) continue;
               if (choice.finish_reason) finishReason = choice.finish_reason;
               const delta = choice.delta;
-              if (delta.thinking) {
-                emit({ type: 'thinking', delta: delta.thinking });
+              if (delta.reasoning) {
+                emit({ type: 'thinking', delta: delta.reasoning });
               }
               if (delta.content) {
                 assistantContent += delta.content;

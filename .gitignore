@@ -8,3 +8,4 @@ coverage/
 *.log
 .svelte-kit/
 design.zip
+docs/superpowers/

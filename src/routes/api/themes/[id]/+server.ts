@@ -19,6 +19,7 @@ export async function PATCH(event: RequestEvent) {
   if (typeof body.name === 'string') updates.name = body.name;
   if (body.tokens && typeof body.tokens === 'object') updates.tokens = body.tokens;
   if (body.scope === 'global' || body.scope === 'deck') updates.scope = body.scope;
+  if ('systemPrompt' in body) updates.systemPrompt = typeof body.systemPrompt === 'string' ? body.systemPrompt : null;
   const [updated] = await db.update(themes).set(updates).where(eq(themes.id, event.params.id!)).returning();
   return json(updated);
 }

@@ -44,6 +44,11 @@ export interface Theme {
   name: string;
   /** CSS custom-property name to value, e.g. `{ "--ood-white": "#FFFFFF" }` */
   tokens: Record<string, string>;
+  /**
+   * Optional system prompt injected into the agent when this theme is active.
+   * Sets tone, style direction, and content rules for the presentation.
+   */
+  systemPrompt?: string;
 }
 
 export interface Slide {

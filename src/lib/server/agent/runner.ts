@@ -15,6 +15,11 @@ Guidelines:
 - After using tools, briefly describe what you changed
 - Be concise — let the tools do the work
 
+Content field rules (CRITICAL):
+- NEVER put HTML markup in content fields. Write plain text only. The template handles all formatting.
+- Do not use <b>, <em>, <br>, <p>, <ul>, <li>, or any other HTML tags in data fields.
+- Do not use Markdown syntax (**, *, #) in content fields unless the field type is explicitly "markdown".
+
 Template rules (IMPORTANT — violations cause "[object Object]" in output):
 - {{fmt value}} only works on STRING fields. Never pass an object or array to fmt.
 - For list fields (type: "list"), iterate with {{#each items}}...{{/each}} and access string properties inside: {{fmt this.propertyName}}
@@ -47,6 +52,29 @@ type SseEvent =
   | { type: 'done' }
   | { type: 'error'; message: string };
 
+/** Strip base64 image data from content blocks to keep DB storage lean. */
+function stripImages(content: unknown): unknown {
+  if (!Array.isArray(content)) return content;
+  return content.map((block: unknown) => {
+    if (!block || typeof block !== 'object') return block;
+    const b = block as Record<string, unknown>;
+    // Strip image source data from tool_result blocks
+    if (b.type === 'tool_result' && Array.isArray(b.content)) {
+      return {
+        ...b,
+        content: (b.content as unknown[]).filter(
+          (c: unknown) => !(c && typeof c === 'object' && (c as Record<string, unknown>).type === 'image'),
+        ),
+      };
+    }
+    // Strip image blocks from assistant messages
+    if (b.type === 'image') {
+      return { type: 'text', text: '[image omitted]' };
+    }
+    return block;
+  });
+}
+
 export function runAgentStream(
   deckId: string,
   userId: string,
@@ -67,6 +95,7 @@ export function runAgentStream(
         // Load deck context for system prompt
         const [deck] = await db.select().from(decks).where(eq(decks.id, deckId)).limit(1);
         let themeInfo = '';
+        let themeSystemPrompt = '';
         if (deck?.themeId) {
           const [theme] = await db
             .select()
@@ -75,6 +104,9 @@ export function runAgentStream(
             .limit(1);
           if (theme) {
             themeInfo = `\nCurrent theme: ${theme.name}\nTheme tokens: ${JSON.stringify(theme.tokens)}`;
+            if (theme.systemPrompt) {
+              themeSystemPrompt = `\n\nTheme guidelines (${theme.name}):\n${theme.systemPrompt}`;
+            }
           }
         }
         const allTypes = await db
@@ -87,31 +119,44 @@ export function runAgentStream(
             ),
           );
         const typeList = allTypes.map((t) => `${t.name}: ${t.label}`).join('\n');
-        const systemPrompt = `${BASE_SYSTEM_PROMPT}\n\nDeck: "${deck?.title ?? deckId}"${themeInfo}\n\nAvailable slide types:\n${typeList}`;
+        const systemPrompt = `${BASE_SYSTEM_PROMPT}${themeSystemPrompt}\n\nDeck: "${deck?.title ?? deckId}"${themeInfo}\n\nAvailable slide types:\n${typeList}`;
 
-        // Load recent conversation history (last 20 messages)
+        // Load conversation history from DB and reconstruct full Anthropic message format.
+        // Rows with rawContent store the full exchange (assistant+tool turns) from a previous run;
+        // rows without rawContent fall back to simple {role, content} text messages.
         const history = await db
           .select()
           .from(agentMessages)
           .where(eq(agentMessages.deckId, deckId))
           .orderBy(asc(agentMessages.createdAt))
-          .limit(20);
+          .limit(40);
 
-        const messages: Array<{ role: 'user' | 'assistant'; content: string }> = history.map(
-          (msg) => ({ role: msg.role as 'user' | 'assistant', content: msg.content }),
-        );
+        const sessionMessages: Anthropic.MessageParam[] = [];
+        for (const msg of history) {
+          if (msg.rawContent && Array.isArray(msg.rawContent) && msg.rawContent.length > 0) {
+            // Expand the full stored exchange back into the message sequence
+            for (const raw of msg.rawContent as Array<{ role: string; content: unknown }>) {
+              sessionMessages.push({
+                role: raw.role as 'user' | 'assistant',
+                content: raw.content as Anthropic.MessageParam['content'],
+              });
+            }
+          } else {
+            sessionMessages.push({
+              role: msg.role as 'user' | 'assistant',
+              content: msg.content,
+            });
+          }
+        }
 
         // Agentic loop — repeat until end_turn or max iterations
         let iterCount = 0;
         const MAX_ITERATIONS = 25;
-        // Accumulates text across ALL iterations so the persisted assistant
-        // message reflects everything the user saw streaming, not just the
-        // final iteration (which is often pure tool calls with no text).
         let finalText = '';
         const allToolCallsThisSession: unknown[] = [];
 
-        // Multi-turn messages (includes tool_use + tool_result blocks for this session)
-        const sessionMessages: Anthropic.MessageParam[] = [...messages];
+        // Track how many messages were in history so we can extract the new exchange at end
+        const historyLength = sessionMessages.length;
 
         while (iterCount < MAX_ITERATIONS) {
           iterCount++;
@@ -138,6 +183,8 @@ export function runAgentStream(
           );
 
           if (finalMessage.stop_reason !== 'tool_use' || toolUseBlocks.length === 0) {
+            // Final response — add to sessionMessages so it's included in rawContent
+            sessionMessages.push({ role: 'assistant', content: finalMessage.content });
             break;
           }
 
@@ -203,19 +250,25 @@ export function runAgentStream(
           }
 
           // Extend session messages with assistant response + tool results.
-          // Note: do NOT reset finalText here — we want to keep accumulating
-          // narrative across the whole turn so the persisted message includes
-          // everything the user saw streaming.
           sessionMessages.push({ role: 'assistant', content: finalMessage.content });
           sessionMessages.push({ role: 'user', content: toolResults });
         }
 
-        // Save final assistant message
+        // Build rawContent: the full exchange from this run (excluding prior history),
+        // with images stripped to keep DB storage manageable.
+        const exchangeMessages = sessionMessages.slice(historyLength);
+        const rawContent = exchangeMessages.map((msg) => ({
+          role: msg.role,
+          content: stripImages(msg.content),
+        }));
+
+        // Save final assistant message with rawContent for cross-session reconstruction
         await db.insert(agentMessages).values({
           deckId,
           role: 'assistant',
           content: finalText || '(tool calls only)',
           toolCalls: allToolCallsThisSession.length > 0 ? allToolCallsThisSession : null,
+          rawContent: rawContent.length > 0 ? rawContent : null,
         });
 
         emit({ type: 'done' });

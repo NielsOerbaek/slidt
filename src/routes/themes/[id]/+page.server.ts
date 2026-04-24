@@ -21,8 +21,10 @@ export const actions: Actions = {
     } catch {
       return fail(400, { error: 'Invalid tokens JSON' });
     }
+    const systemPrompt = fd.get('systemPrompt');
     const updates: Record<string, unknown> = { tokens };
     if (typeof name === 'string' && name.trim()) updates['name'] = name.trim();
+    if (typeof systemPrompt === 'string') updates['systemPrompt'] = systemPrompt.trim() || null;
     const [updated] = await db
       .update(themes)
       .set(updates)

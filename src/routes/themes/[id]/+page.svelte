@@ -13,6 +13,7 @@
 
   let tokens = $state<Record<string, string>>({ ...data.theme.tokens });
   let name = $state(data.theme.name);
+  let systemPrompt = $state(data.theme.systemPrompt ?? '');
   let saved = $state(false);
 
   // Build a renderer Theme from current tokens
@@ -38,6 +39,7 @@
       action="?/save"
       use:enhance={({ formData }) => {
         formData.set('tokens', JSON.stringify(tokens));
+        formData.set('systemPrompt', systemPrompt);
         return async ({ result, update }) => {
           if (result.type === 'success') { saved = true; setTimeout(() => saved = false, 2000); }
           await update();
@@ -51,6 +53,19 @@
       </div>
 
       {#if form?.error}<p class="error">{form.error}</p>{/if}
+
+      <div class="prompt-section">
+        <label class="prompt-label" for="systemPrompt">AGENT SYSTEM PROMPT</label>
+        <p class="prompt-help">Sets the tone, style direction, and content rules the agent follows when this theme is active. Plain text only — no markup.</p>
+        <textarea
+          id="systemPrompt"
+          name="systemPrompt"
+          bind:value={systemPrompt}
+          placeholder="Describe the tone, voice, and content conventions for this theme..."
+          rows="6"
+          class="prompt-textarea"
+        ></textarea>
+      </div>
 
       <div class="token-list">
         {#each Object.entries(tokens) as [key, val]}
@@ -119,6 +134,36 @@
     font-size: 11px;
     margin-bottom: 12px;
   }
+  .prompt-section { margin-bottom: 24px; }
+  .prompt-label {
+    display: block;
+    font-family: var(--st-font-mono);
+    font-size: 10px;
+    letter-spacing: 0.25em;
+    color: var(--st-ink-dim);
+    margin-bottom: 6px;
+  }
+  .prompt-help {
+    font-family: var(--st-font-mono);
+    font-size: 10px;
+    color: var(--st-ink-dim);
+    margin: 0 0 8px 0;
+    line-height: 1.5;
+  }
+  .prompt-textarea {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 10px 12px;
+    border: 2px solid var(--st-ink);
+    background: var(--st-bg-deep);
+    color: var(--st-ink);
+    font-family: var(--st-font-mono);
+    font-size: 12px;
+    line-height: 1.6;
+    resize: vertical;
+    border-radius: 0;
+  }
+  .prompt-textarea:focus { outline: 2px solid var(--st-cobalt); outline-offset: -2px; }
   .token-list { display: flex; flex-direction: column; gap: 8px; }
   .token-row { display: flex; align-items: center; gap: 10px; }
   .token-key {

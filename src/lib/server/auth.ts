@@ -1,5 +1,5 @@
 import { hash, verify } from '@node-rs/argon2';
-import { db, sessions, users } from './db/index.ts';
+import { db, sessions, users, apiKeys } from './db/index.ts';
 import { eq } from 'drizzle-orm';
 
 // ── Password hashing ──────────────────────────────────────────────
@@ -32,13 +32,14 @@ export async function createSession(userId: string): Promise<string> {
 
 export async function resolveSession(
   token: string,
-): Promise<{ id: string; email: string; name: string } | null> {
+): Promise<{ id: string; email: string; name: string; isAdmin: boolean } | null> {
   const now = new Date();
   const rows = await db
     .select({
       id: users.id,
       email: users.email,
       name: users.name,
+      isAdmin: users.isAdmin,
     })
     .from(sessions)
     .innerJoin(users, eq(sessions.userId, users.id))
@@ -58,4 +59,78 @@ export async function resolveSession(
 
 export async function deleteSession(token: string): Promise<void> {
   await db.delete(sessions).where(eq(sessions.id, token));
+}
+
+// ── API key management ────────────────────────────────────────────
+
+const KEY_PREFIX = 'slidt_';
+
+export function generateApiKeyToken(): string {
+  const bytes = crypto.getRandomValues(new Uint8Array(32));
+  const hex = Array.from(bytes).map((b) => b.toString(16).padStart(2, '0')).join('');
+  return `${KEY_PREFIX}${hex}`;
+}
+
+export async function hashApiKey(token: string): Promise<string> {
+  // Use SHA-256 for API keys (argon2 is overkill; keys are long random strings)
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(token));
+  return Array.from(new Uint8Array(buf)).map((b) => b.toString(16).padStart(2, '0')).join('');
+}
+
+export async function createApiKey(
+  userId: string,
+  name: string,
+): Promise<{ token: string; key: typeof apiKeys.$inferSelect }> {
+  const token = generateApiKeyToken();
+  const keyHash = await hashApiKey(token);
+  const rows = await db
+    .insert(apiKeys)
+    .values({ userId, name, keyHash })
+    .returning();
+  const key = rows[0];
+  if (!key) throw new Error('Failed to create API key');
+  return { token, key };
+}
+
+export async function resolveApiKey(
+  token: string,
+): Promise<{ id: string; email: string; name: string; isAdmin: boolean } | null> {
+  if (!token.startsWith(KEY_PREFIX)) return null;
+  const keyHash = await hashApiKey(token);
+  const rows = await db
+    .select({
+      id: users.id,
+      email: users.email,
+      name: users.name,
+      isAdmin: users.isAdmin,
+    })
+    .from(apiKeys)
+    .innerJoin(users, eq(apiKeys.userId, users.id))
+    .where(eq(apiKeys.keyHash, keyHash))
+    .limit(1);
+
+  if (!rows[0]) return null;
+
+  // Update last_used_at in background
+  db.update(apiKeys)
+    .set({ lastUsedAt: new Date() })
+    .where(eq(apiKeys.keyHash, keyHash))
+    .catch(() => {});
+
+  return rows[0];
+}
+
+export async function listApiKeys(userId: string) {
+  return db
+    .select({ id: apiKeys.id, name: apiKeys.name, createdAt: apiKeys.createdAt, lastUsedAt: apiKeys.lastUsedAt })
+    .from(apiKeys)
+    .where(eq(apiKeys.userId, userId));
+}
+
+export async function deleteApiKey(id: string, userId: string): Promise<boolean> {
+  const result = await db
+    .delete(apiKeys)
+    .where(eq(apiKeys.id, id))
+    .returning({ id: apiKeys.id });
+  return result.length > 0;
 }

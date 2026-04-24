@@ -10,6 +10,7 @@ export const users = pgTable('users', {
   email: text('email').notNull().unique(),
   passwordHash: text('password_hash').notNull(),
   name: text('name').notNull(),
+  isAdmin: boolean('is_admin').notNull().default(false),
   lastSeenAt: timestamp('last_seen_at', { withTimezone: true }),
 });
 
@@ -20,6 +21,7 @@ export const themes = pgTable('themes', {
   scope: text('scope').notNull().default('global').$type<'global' | 'deck'>(),
   deckId: uuid('deck_id'),
   isPreset: boolean('is_preset').notNull().default(false),
+  systemPrompt: text('system_prompt'),
 });
 
 export const decks = pgTable('decks', {
@@ -70,6 +72,7 @@ export const agentMessages = pgTable('agent_messages', {
   role: text('role').notNull().$type<'user' | 'assistant'>(),
   content: text('content').notNull(),
   toolCalls: jsonb('tool_calls').$type<unknown[]>(),
+  rawContent: jsonb('raw_content').$type<unknown[]>(),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 });
 
@@ -79,6 +82,15 @@ export const shareLinks = pgTable('share_links', {
   token: text('token').notNull().unique(),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   expiresAt: timestamp('expires_at', { withTimezone: true }),
+});
+
+export const apiKeys = pgTable('api_keys', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  name: text('name').notNull(),
+  keyHash: text('key_hash').notNull().unique(),
+  lastUsedAt: timestamp('last_used_at', { withTimezone: true }),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 });
 
 export const sessions = pgTable('sessions', {

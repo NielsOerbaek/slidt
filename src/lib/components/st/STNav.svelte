@@ -2,11 +2,11 @@
   import STFace from './STFace.svelte';
   import { t } from '$lib/i18n/index.ts';
 
-  type Tab = 'decks' | 'themes' | 'templates';
+  type Tab = 'decks' | 'themes' | 'templates' | 'admin' | 'settings';
 
   let { active, user }: {
     active: Tab | null;
-    user: { name: string };
+    user: { name: string; isAdmin?: boolean };
   } = $props();
 
   const items: { id: Tab; key: 'nav.decks' | 'nav.themes' | 'nav.templates' }[] = [
@@ -37,6 +37,18 @@
         {/if}
       </a>
     {/each}
+    {#if user.isAdmin}
+      <a class="tab" class:active={active === 'admin'} href="/admin">
+        <span class="tab-num">05</span>
+        <span>ADMIN</span>
+        {#if active === 'admin'}<span class="dot" aria-hidden="true"></span>{/if}
+      </a>
+    {/if}
+    <a class="tab" class:active={active === 'settings'} href="/settings">
+      <span class="tab-num">⚙</span>
+      <span>KEYS</span>
+      {#if active === 'settings'}<span class="dot" aria-hidden="true"></span>{/if}
+    </a>
   </div>
 
   <div class="cell right">

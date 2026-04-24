@@ -42,12 +42,13 @@ export async function runSeed(): Promise<void> {
   if (existingTheme) {
     await db
       .update(themes)
-      .set({ tokens: antalThetaDefault.tokens })
+      .set({ tokens: antalThetaDefault.tokens, systemPrompt: antalThetaDefault.systemPrompt ?? null })
       .where(eq(themes.id, existingTheme.id));
   } else {
     await db.insert(themes).values({
       name: antalThetaDefault.name,
       tokens: antalThetaDefault.tokens,
+      systemPrompt: antalThetaDefault.systemPrompt ?? null,
       scope: 'global',
       isPreset: true,
     });

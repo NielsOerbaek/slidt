@@ -6,11 +6,12 @@ export async function createUser(
   email: string,
   name: string,
   password: string,
+  isAdmin = false,
 ): Promise<void> {
   if (!email || !name || !password) throw new Error('email, name, and password are required');
   const passwordHash = await hashPassword(password);
-  await db.insert(users).values({ email: email.toLowerCase().trim(), passwordHash, name });
-  console.log(`Created user: ${email}`);
+  await db.insert(users).values({ email: email.toLowerCase().trim(), passwordHash, name, isAdmin });
+  console.log(`Created user: ${email}${isAdmin ? ' (admin)' : ''}`);
 }
 
 export async function resetPassword(email: string, newPassword: string): Promise<void> {

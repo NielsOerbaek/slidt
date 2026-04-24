@@ -21,6 +21,7 @@ export async function POST(event: RequestEvent) {
       scope: body.scope === 'deck' ? 'deck' : 'global',
       deckId: body.deckId ?? null,
       isPreset: body.isPreset === true,
+      systemPrompt: typeof body.systemPrompt === 'string' ? body.systemPrompt : null,
     })
     .returning();
   return json(theme, { status: 201 });

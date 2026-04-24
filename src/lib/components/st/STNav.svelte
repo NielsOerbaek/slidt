@@ -145,4 +145,32 @@
     cursor: pointer;
   }
   .logout:hover { background: var(--st-bg-deep); }
+
+  @media (max-width: 768px) {
+    .st-nav {
+      grid-template-columns: 1fr auto;
+      flex-wrap: wrap;
+    }
+    .index { display: none; }
+    .brand-row {
+      grid-column: 1;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+    .brand-row::-webkit-scrollbar { display: none; }
+    .right { grid-column: 2; }
+    .user-prefix { display: none; }
+    .tab-num { display: none; }
+    .tab { padding: 0 14px; font-size: 10px; letter-spacing: 0.15em; }
+    .brand { padding: 0 16px; }
+  }
+
+  @media (max-width: 480px) {
+    /* On very small screens: brand + icon-only tabs */
+    .tab span:not(.dot) { display: none; }
+    /* Show only the first letter of each tab via pseudo — simpler: just keep the dot indicator */
+    .tab { padding: 0 10px; min-width: 36px; justify-content: center; }
+    .brand .word { font-size: 18px; }
+    .user-name { display: none; }
+  }
 </style>

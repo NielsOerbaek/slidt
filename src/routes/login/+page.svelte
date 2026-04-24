@@ -206,4 +206,28 @@
     letter-spacing: 0.22em;
     color: var(--st-ink-dim);
   }
+
+  @media (max-width: 768px) {
+    .body {
+      grid-template-columns: 1fr;
+      grid-template-rows: auto 1fr;
+    }
+    .gutter { display: none; }
+    .hero {
+      padding: 40px 28px 32px;
+      border-right: none;
+      border-bottom: var(--st-rule-thick);
+    }
+    .word { font-size: clamp(72px, 18vw, 140px) !important; }
+    .mark { font-size: clamp(32px, 8vw, 56px) !important; }
+    .form-side {
+      padding: 32px 28px 40px;
+      border-left: none;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .hero { padding: 28px 20px 24px; }
+    .form-side { padding: 24px 20px 32px; }
+  }
 </style>

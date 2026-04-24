@@ -24,10 +24,10 @@
   const moreActive = active === 'docs' || active === 'admin' || active === 'settings';
 </script>
 
-<svelte:window onkeydown={(e) => { if (e.key === 'Escape') { closeMenu(); closeMore(); } }} />
-<svelte:window onclick={(e) => {
-  if (moreOpen && !(e.target as Element).closest?.('.more-wrap')) closeMore();
-}} />
+<svelte:window
+  onkeydown={(e) => { if (e.key === 'Escape') { closeMenu(); closeMore(); } }}
+  onclick={(e) => { if (moreOpen && !(e.target as Element).closest?.('.more-wrap')) closeMore(); }}
+/>
 
 <nav class="st-nav">
   <div class="cell index">01</div>

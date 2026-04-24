@@ -113,8 +113,12 @@ export function runOllamaStream(
           });
 
           if (!response.ok || !response.body) {
-            const errText = await response.text().catch(() => `HTTP ${response.status}`);
-            throw new Error(`Ollama error: ${errText}`);
+            const errText = await response.text().catch(() => '');
+            // Don't leak raw HTML (e.g. 504 Gateway Time-out pages) to the user
+            const msg = errText.includes('<') || !errText
+              ? `Ollama returned HTTP ${response.status}${response.status === 504 ? ' (gateway timeout — model may be loading or too slow)' : ''}`
+              : `Ollama error: ${errText}`;
+            throw new Error(msg);
           }
 
           // Parse streaming SSE from Ollama

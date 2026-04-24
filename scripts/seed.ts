@@ -62,4 +62,5 @@ if (process.argv[1]?.endsWith('seed.ts')) {
     console.error('Seed failed:', e);
     process.exit(1);
   });
+  process.exit(0);
 }

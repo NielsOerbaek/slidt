@@ -40,8 +40,8 @@ services:
       SESSION_SECRET: ${SESSION_SECRET:-dev-secret-change-in-production}
     volumes:
       - ./data/assets:/data/assets
-    expose:
-      - '3000'
+    ports:
+      - '3000:3000'
 
   caddy:
     image: caddy:2-alpine
@@ -53,10 +53,14 @@ services:
       - '443:443/udp'
     environment:
       APP_HOST: ${APP_HOST:-localhost}
+    dns:
+      - 8.8.8.8
+      - 8.8.4.4
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile
       - caddy_data:/data
       - caddy_config:/config
+    profiles: ['caddy']
 
 volumes:
   caddy_data:

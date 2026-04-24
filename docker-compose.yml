@@ -38,6 +38,7 @@ services:
       ASSETS_DIR: /data/assets
       APP_URL: ${APP_URL:-http://localhost:3000}
       SESSION_SECRET: ${SESSION_SECRET:-dev-secret-change-in-production}
+      ORIGIN: ${ORIGIN:-http://localhost:3000}
     volumes:
       - ./data/assets:/data/assets
     ports:

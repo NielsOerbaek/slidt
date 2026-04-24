@@ -12,6 +12,8 @@ html, body {
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  /* Prevent pull-to-refresh and overscroll glow on mobile */
+  overscroll-behavior: none;
 }
 
 a { color: inherit; text-decoration: none; }
@@ -25,6 +27,18 @@ input, textarea, select {
   width: 100%;
 }
 textarea { resize: none; }
+
+/* Eliminate 300ms tap delay and double-tap zoom on all interactive elements */
+a, button, input, textarea, select, label, [role="button"] {
+  touch-action: manipulation;
+}
+
+/* iOS Safari zooms on focus when font-size < 16px — override at mobile only */
+@media (max-width: 768px) {
+  input, textarea, select {
+    font-size: 16px;
+  }
+}
 
 /* Selection in cobalt. */
 ::selection { background: var(--st-cobalt); color: var(--st-bg); }

@@ -14,6 +14,9 @@
  *   slidt deck get <id>
  *   slidt deck duplicate <id>
  *   slidt deck delete <id>
+ *   slidt deck collaborator list <deckId>
+ *   slidt deck collaborator add <deckId> --email <email> [--role editor|viewer]
+ *   slidt deck collaborator remove <deckId> --email <email>
  *
  *   slidt slide list <deckId>
  *   slidt slide add <deckId> --type <typeId> --data '{"title":"Hello"}'
@@ -252,8 +255,43 @@ async function main() {
           out(await api('DELETE', `/api/decks/${pos1}`));
           break;
         }
+        case 'collaborator': {
+          // positionals[0]=deck, [1]=collaborator, [2]=subaction, [3]=deckId
+          const collabAction = pos1;  // subaction (list/add/remove)
+          const deckIdArg = pos2;     // deckId is the 4th positional
+          switch (collabAction) {
+            case 'list': {
+              if (!deckIdArg) { console.error('Usage: deck collaborator list <deckId>'); process.exit(1); }
+              out(await api('GET', `/api/decks/${deckIdArg}/collaborators`));
+              break;
+            }
+            case 'add': {
+              if (!deckIdArg) { console.error('Usage: deck collaborator add <deckId> --email <email> [--role viewer|editor]'); process.exit(1); }
+              const email = getFlag('email');
+              const role = getFlag('role') ?? 'editor';
+              if (!email) { console.error('--email required'); process.exit(1); }
+              out(await api('POST', `/api/decks/${deckIdArg}/collaborators`, { email, role }));
+              break;
+            }
+            case 'remove': {
+              if (!deckIdArg) { console.error('Usage: deck collaborator remove <deckId> --email <email>'); process.exit(1); }
+              const email = getFlag('email');
+              if (!email) { console.error('--email required'); process.exit(1); }
+              // Look up userId from collaborator list
+              const collabs = await api('GET', `/api/decks/${deckIdArg}/collaborators`) as Array<{ userId: string; email: string }>;
+              const target = collabs.find(c => c.email === email);
+              if (!target) { console.error(`Not a collaborator: ${email}`); process.exit(1); }
+              out(await api('DELETE', `/api/decks/${deckIdArg}/collaborators?userId=${target.userId}`));
+              break;
+            }
+            default:
+              console.error('Unknown collaborator subcommand. Available: list, add, remove');
+              process.exit(1);
+          }
+          break;
+        }
         default:
-          console.error('Unknown deck subcommand. Available: list, get, create, patch, duplicate, delete');
+          console.error('Unknown deck subcommand. Available: list, get, create, patch, duplicate, delete, collaborator');
           process.exit(1);
       }
       break;
@@ -572,6 +610,9 @@ Commands:
   deck patch <id> [--title "..."] [--lang ...] [--theme-id ...]
   deck duplicate <id>           Deep-copy deck (slides, theme, deck-scoped types)
   deck delete <id>
+  deck collaborator list <deckId>
+  deck collaborator add <deckId> --email <email> [--role editor|viewer]
+  deck collaborator remove <deckId> --email <email>
 
   slide list <deckId>
   slide get <deckId> <slideId>

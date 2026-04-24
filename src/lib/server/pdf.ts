@@ -249,7 +249,10 @@ export async function renderDeckToPdf(deckId: string): Promise<Buffer> {
   const { html: htmlWithFonts, appendixAssets } = await loadDeckHtml(deckId);
 
   // 8. Print to PDF via Playwright
-  const { chromium } = await import(/* @vite-ignore */ 'playwright');
+  // new Function prevents Vite/Rollup from statically analysing and bundling playwright.
+  // Playwright bundles chromium-bidi internally, but Rollup strips that when it re-bundles
+  // playwright, breaking the import. This forces true runtime resolution via Node.
+  const { chromium } = await (new Function('m', 'return import(m)'))('playwright') as typeof import('playwright');
   const browser = await chromium.launch();
   let pdfBuf: Buffer;
   try {

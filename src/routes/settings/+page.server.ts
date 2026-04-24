@@ -8,7 +8,27 @@ import {
 export const load: PageServerLoad = async ({ locals }) => {
   if (!locals.user) throw error(401, 'Not authenticated');
   const keys = await listApiKeys(locals.user.id);
-  return { keys, user: locals.user };
+
+  // Fetch Ollama model list — fail gracefully if unreachable
+  let ollamaModels: string[] = [];
+  const ollamaBase = process.env.OLLAMA_BASE_URL;
+  const ollamaKey = process.env.OLLAMA_API_KEY;
+  if (ollamaBase) {
+    try {
+      const res = await fetch(`${ollamaBase}/api/tags`, {
+        headers: ollamaKey ? { Authorization: `Bearer ${ollamaKey}` } : {},
+        signal: AbortSignal.timeout(4000),
+      });
+      if (res.ok) {
+        const json = (await res.json()) as { models: Array<{ name: string }> };
+        ollamaModels = json.models.map((m) => m.name);
+      }
+    } catch {
+      // Ollama unreachable — ollamaModels stays []
+    }
+  }
+
+  return { keys, user: locals.user, ollamaModels };
 };
 
 export const actions: Actions = {
@@ -58,9 +78,11 @@ export const actions: Actions = {
     const fd = await request.formData();
     const vim = fd.get('vim') === 'on';
     const locale = fd.get('locale') as 'da' | 'en' | null;
+    const aiModel = (fd.get('aiModel') as string | null) ?? undefined;
     await updatePreferences(locals.user.id, {
       vim,
       ...(locale ? { locale } : {}),
+      ...(aiModel ? { aiModel } : {}),
     });
     return { prefsSuccess: true };
   },

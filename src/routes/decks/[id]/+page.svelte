@@ -21,6 +21,24 @@
   let saveError = $state('');
   let showTypePicker = $state(false);
   let showAgent = $state(false);
+  let exporting = $state(false);
+
+  async function exportPdf() {
+    exporting = true;
+    try {
+      const res = await fetch(`/api/decks/${data.deck.id}/export`);
+      if (!res.ok) throw new Error('Export failed');
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${data.deck.title}.pdf`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } finally {
+      exporting = false;
+    }
+  }
 
   // When new slides arrive from server (after invalidateAll), add them to the map
   $effect(() => {
@@ -157,7 +175,10 @@
     <a href="/decks" class="back">← Decks</a>
     <span class="deck-title">{data.deck.title}</span>
     <a href="/api/decks/{data.deck.id}/present" target="_blank" class="btn-toolbar">Present</a>
-    <a href="/api/decks/{data.deck.id}/export" class="btn-toolbar">Export PDF</a>
+    <button class="btn-toolbar" onclick={exportPdf} disabled={exporting}>
+      {#if exporting}<span class="spinner"></span>{/if}
+      {exporting ? 'Building…' : 'Export PDF'}
+    </button>
     <span class="save-status">
       {#if saving}Saving…{:else if saveError}<span class="err">{saveError}</span>{:else}Saved{/if}
     </span>
@@ -284,7 +305,10 @@
   .save-status { font-size: 12px; color: #aaa; margin-left: auto; }
   .err { color: #c00; }
   .agent-toggle { background: #6e31ff; color: white; border: none; border-radius: 6px; padding: 6px 14px; font-size: 13px; cursor: pointer; }
-  .btn-toolbar { background: transparent; color: #6e31ff; border: 1px solid #6e31ff; border-radius: 6px; padding: 5px 12px; font-size: 13px; cursor: pointer; text-decoration: none; }
+  .btn-toolbar { background: transparent; color: #6e31ff; border: 1px solid #6e31ff; border-radius: 6px; padding: 5px 12px; font-size: 13px; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; }
+  .btn-toolbar:disabled { opacity: 0.6; cursor: default; }
+  .spinner { width: 11px; height: 11px; border: 2px solid #6e31ff; border-top-color: transparent; border-radius: 50%; animation: spin 0.7s linear infinite; flex-shrink: 0; }
+  @keyframes spin { to { transform: rotate(360deg); } }
 
   /* ── Editor body ──────────────────────────────────────────────── */
   .editor-body { display: flex; flex: 1; overflow: hidden; }

@@ -1,32 +1,33 @@
 <script lang="ts">
   import { enhance } from '$app/forms';
   import type { PageData, ActionData } from './$types.js';
+  import { t } from '$lib/i18n/index.ts';
 
   let { data, form }: { data: PageData; form: ActionData } = $props();
   let showCreate = $state(false);
   let newToken = $state<string | null>(form?.token ?? null);
 </script>
 
-<svelte:head><title>Settings — slidt</title></svelte:head>
+<svelte:head><title>{t('settings.title')}</title></svelte:head>
 
 <div class="head-band">
   <div class="head-index">SET</div>
   <div class="head-title">
-    <div class="meta">SETTINGS</div>
-    <h1>Settings</h1>
+    <div class="meta">{t('settings.meta')}</div>
+    <h1>{t('settings.headline')}</h1>
   </div>
 </div>
 
 <!-- ── Profile ──────────────────────────────────────────────── -->
 <section class="section">
-  <div class="section-label">PROFILE</div>
+  <div class="section-label">{t('settings.profile')}</div>
   <div class="section-body">
 
     <form method="POST" action="?/updateProfile" use:enhance class="form-row">
-      <label class="field-label" for="profile-name">DISPLAY NAME</label>
+      <label class="field-label" for="profile-name">{t('settings.display_name')}</label>
       <input id="profile-name" type="text" name="name" value={data.user.name} required />
-      <button type="submit" class="btn-accent">Save</button>
-      {#if form?.profileSuccess}<span class="ok">Saved.</span>{/if}
+      <button type="submit" class="btn-accent">{t('settings.save')}</button>
+      {#if form?.profileSuccess}<span class="ok">{t('settings.saved')}</span>{/if}
       {#if form?.profileError}<span class="err">{form.profileError}</span>{/if}
     </form>
 
@@ -34,21 +35,21 @@
 
     <form method="POST" action="?/changePassword" use:enhance class="form-stack">
       <div class="form-row">
-        <label class="field-label" for="pw-current">CURRENT PASSWORD</label>
+        <label class="field-label" for="pw-current">{t('settings.current_password')}</label>
         <input id="pw-current" type="password" name="current" autocomplete="current-password" required />
       </div>
       <div class="form-row">
-        <label class="field-label" for="pw-next">NEW PASSWORD</label>
+        <label class="field-label" for="pw-next">{t('settings.new_password')}</label>
         <input id="pw-next" type="password" name="next" autocomplete="new-password" minlength="8" required />
       </div>
       <div class="form-row">
-        <label class="field-label" for="pw-confirm">CONFIRM NEW</label>
+        <label class="field-label" for="pw-confirm">{t('settings.confirm_password')}</label>
         <input id="pw-confirm" type="password" name="confirm" autocomplete="new-password" required />
       </div>
       <div class="form-row">
         <span class="field-label"></span>
-        <button type="submit" class="btn-accent">Change password</button>
-        {#if form?.pwSuccess}<span class="ok">Password changed.</span>{/if}
+        <button type="submit" class="btn-accent">{t('settings.change_password')}</button>
+        {#if form?.pwSuccess}<span class="ok">{t('settings.password_changed')}</span>{/if}
         {#if form?.pwError}<span class="err">{form.pwError}</span>{/if}
       </div>
     </form>
@@ -58,14 +59,14 @@
 
 <!-- ── Preferences ──────────────────────────────────────────── -->
 <section class="section">
-  <div class="section-label">PREFERENCES</div>
+  <div class="section-label">{t('settings.preferences')}</div>
   <div class="section-body">
 
     <form method="POST" action="?/updatePreferences" use:enhance class="form-stack">
       <div class="pref-row">
         <div class="pref-info">
-          <span class="pref-name">VIM MODE</span>
-          <span class="pref-desc">j/k/d/gg/G navigation in the deck editor</span>
+          <span class="pref-name">{t('settings.vim_name')}</span>
+          <span class="pref-desc">{t('settings.vim_desc')}</span>
         </div>
         <label class="toggle">
           <input type="checkbox" name="vim" role="switch"
@@ -76,8 +77,8 @@
 
       <div class="pref-row">
         <div class="pref-info">
-          <span class="pref-name">LANGUAGE</span>
-          <span class="pref-desc">UI language across the platform</span>
+          <span class="pref-name">{t('settings.language_name')}</span>
+          <span class="pref-desc">{t('settings.language_desc')}</span>
         </div>
         <select name="locale">
           <option value="da" selected={!data.user.preferences?.locale || data.user.preferences.locale === 'da'}>Dansk</option>
@@ -86,8 +87,8 @@
       </div>
 
       <div class="form-row pref-save">
-        <button type="submit" class="btn-accent">Save preferences</button>
-        {#if form?.prefsSuccess}<span class="ok">Saved.</span>{/if}
+        <button type="submit" class="btn-accent">{t('settings.save_prefs')}</button>
+        {#if form?.prefsSuccess}<span class="ok">{t('settings.saved')}</span>{/if}
       </div>
     </form>
 
@@ -96,15 +97,15 @@
 
 <!-- ── API Keys ──────────────────────────────────────────────── -->
 <section class="section">
-  <div class="section-label">API KEYS</div>
+  <div class="section-label">{t('settings.api_keys')}</div>
   <div class="section-body">
 
     {#if newToken}
       <div class="token-reveal">
-        <div class="token-label">NEW KEY — COPY NOW, IT WILL NOT BE SHOWN AGAIN</div>
+        <div class="token-label">{t('settings.key_new_label')}</div>
         <code class="token-value">{newToken}</code>
         <div class="token-hint">Set as: <code>SLIDT_API_KEY={newToken}</code></div>
-        <button class="btn" onclick={() => { newToken = null; }}>Dismiss</button>
+        <button class="btn" onclick={() => { newToken = null; }}>{t('settings.key_dismiss')}</button>
       </div>
     {/if}
 
@@ -121,26 +122,26 @@
         }}
         class="create-form"
       >
-        <span class="create-label">KEY NAME</span>
+        <span class="create-label">{t('settings.key_name_label')}</span>
         <input type="text" name="name" placeholder="e.g. my-agent, ci-pipeline" required autofocus />
-        <button type="submit" class="btn-accent">Create</button>
-        <button type="button" class="btn" onclick={() => showCreate = false}>Cancel</button>
+        <button type="submit" class="btn-accent">{t('settings.save')}</button>
+        <button type="button" class="btn" onclick={() => showCreate = false}>{t('settings.key_cancel')}</button>
       </form>
     {:else}
       <div class="keys-toolbar">
-        <button class="btn-accent" onclick={() => { showCreate = true; newToken = null; }}>+ New Key</button>
+        <button class="btn-accent" onclick={() => { showCreate = true; newToken = null; }}>{t('settings.key_create')}</button>
       </div>
     {/if}
 
     {#if data.keys.length === 0}
-      <p class="empty">No API keys yet. Create one to allow CLI or agent access.</p>
+      <p class="empty">{t('settings.key_empty')}</p>
     {:else}
       <table class="key-table">
         <thead>
           <tr>
-            <th>Name</th>
-            <th>Created</th>
-            <th>Last used</th>
+            <th>{t('settings.col_name')}</th>
+            <th>{t('settings.col_created')}</th>
+            <th>{t('settings.col_last_used')}</th>
             <th></th>
           </tr>
         </thead>
@@ -152,9 +153,9 @@
               <td class="meta-cell">{key.lastUsedAt ? new Date(key.lastUsedAt).toLocaleDateString('da-DK') : '—'}</td>
               <td>
                 <form method="POST" action="?/revokeKey" use:enhance
-                  onsubmit={(e) => { if (!confirm('Revoke this key?')) e.preventDefault(); }}>
+                  onsubmit={(e) => { if (!confirm(t('settings.key_revoke_confirm'))) e.preventDefault(); }}>
                   <input type="hidden" name="id" value={key.id} />
-                  <button type="submit" class="btn-sm danger">Revoke</button>
+                  <button type="submit" class="btn-sm danger">{t('settings.key_revoke')}</button>
                 </form>
               </td>
             </tr>

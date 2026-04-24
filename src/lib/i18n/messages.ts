@@ -162,6 +162,78 @@ export const messages = {
   },
 
   'share.view_only': { da: 'KUN VISNING', en: 'VIEW ONLY' },
+
+  // ── Editor: theme picker & collaborators (new) ───────────────────────
+  'editor.theme_button': { da: 'TEMA', en: 'THEME' },
+  'editor.theme_picker_head': { da: 'SKIFT TEMA', en: 'CHANGE THEME' },
+  'editor.theme_active': { da: 'AKTIV', en: 'ACTIVE' },
+  'editor.collab_label': { da: 'SAMARBEJDSPARTNERE', en: 'COLLABORATORS' },
+  'editor.collab_role_editor': { da: 'Redigerer', en: 'Editor' },
+  'editor.collab_role_viewer': { da: 'Læser', en: 'Viewer' },
+  'editor.collab_add': { da: 'Tilføj', en: 'Add' },
+
+  // ── Settings ─────────────────────────────────────────────────────────
+  'settings.title': { da: 'Indstillinger — slidt', en: 'Settings — slidt' },
+  'settings.meta': { da: 'INDSTILLINGER', en: 'SETTINGS' },
+  'settings.headline': { da: 'Indstillinger', en: 'Settings' },
+
+  'settings.profile': { da: 'PROFIL', en: 'PROFILE' },
+  'settings.display_name': { da: 'VISNINGSNAVN', en: 'DISPLAY NAME' },
+  'settings.save': { da: 'Gem', en: 'Save' },
+  'settings.saved': { da: 'Gemt.', en: 'Saved.' },
+  'settings.current_password': { da: 'NUVÆRENDE ADGANGSKODE', en: 'CURRENT PASSWORD' },
+  'settings.new_password': { da: 'NY ADGANGSKODE', en: 'NEW PASSWORD' },
+  'settings.confirm_password': { da: 'BEKRÆFT NY', en: 'CONFIRM NEW' },
+  'settings.change_password': { da: 'Skift adgangskode', en: 'Change password' },
+  'settings.password_changed': { da: 'Adgangskode ændret.', en: 'Password changed.' },
+
+  'settings.preferences': { da: 'PRÆFERENCER', en: 'PREFERENCES' },
+  'settings.vim_name': { da: 'VIM-TILSTAND', en: 'VIM MODE' },
+  'settings.vim_desc': { da: 'j/k/d/gg/G navigation i dæk-editoren', en: 'j/k/d/gg/G navigation in the deck editor' },
+  'settings.language_name': { da: 'SPROG', en: 'LANGUAGE' },
+  'settings.language_desc': { da: 'Brugergrænsefladesprog på tværs af platformen', en: 'UI language across the platform' },
+  'settings.save_prefs': { da: 'Gem præferencer', en: 'Save preferences' },
+
+  'settings.api_keys': { da: 'API-NØGLER', en: 'API KEYS' },
+  'settings.key_new_label': { da: 'NY NØGLE — KOPIÉR NU, DEN VISES IKKE IGEN', en: 'NEW KEY — COPY NOW, IT WILL NOT BE SHOWN AGAIN' },
+  'settings.key_dismiss': { da: 'Afvis', en: 'Dismiss' },
+  'settings.key_name_label': { da: 'NØGLENAVN', en: 'KEY NAME' },
+  'settings.key_create': { da: '+ Ny nøgle', en: '+ New Key' },
+  'settings.key_cancel': { da: 'Annullér', en: 'Cancel' },
+  'settings.key_empty': {
+    da: 'Ingen API-nøgler endnu. Opret en for at tillade CLI- eller agent-adgang.',
+    en: 'No API keys yet. Create one to allow CLI or agent access.',
+  },
+  'settings.col_name': { da: 'Navn', en: 'Name' },
+  'settings.col_created': { da: 'Oprettet', en: 'Created' },
+  'settings.col_last_used': { da: 'Sidst brugt', en: 'Last used' },
+  'settings.key_revoke': { da: 'Tilbagekald', en: 'Revoke' },
+  'settings.key_revoke_confirm': { da: 'Tilbagekald denne nøgle?', en: 'Revoke this key?' },
+
+  // ── Admin ─────────────────────────────────────────────────────────────
+  'admin.title': { da: 'Admin — slidt', en: 'Admin — slidt' },
+  'admin.meta': { da: 'ADMINPANEL — {n} BRUGERE', en: 'ADMIN PANEL — {n} USERS' },
+  'admin.headline': { da: 'Brugere', en: 'Users' },
+  'admin.new_user': { da: '+ Ny bruger', en: '+ New User' },
+  'admin.create_user': { da: 'OPRET BRUGER', en: 'CREATE USER' },
+  'admin.col_name': { da: 'Navn', en: 'Name' },
+  'admin.col_email': { da: 'Mail', en: 'Email' },
+  'admin.col_role': { da: 'Rolle', en: 'Role' },
+  'admin.col_last_seen': { da: 'Sidst set', en: 'Last seen' },
+  'admin.col_actions': { da: 'Handlinger', en: 'Actions' },
+  'admin.badge_admin': { da: 'ADMIN', en: 'ADMIN' },
+  'admin.badge_user': { da: 'BRUGER', en: 'USER' },
+  'admin.remove_admin': { da: 'Fjern admin', en: 'Remove admin' },
+  'admin.make_admin': { da: 'Gør til admin', en: 'Make admin' },
+  'admin.reset_pw': { da: 'Nulstil adg.', en: 'Reset pw' },
+  'admin.pw_set': { da: 'Sæt', en: 'Set' },
+  'admin.delete': { da: 'Slet', en: 'Delete' },
+  'admin.delete_user_confirm': { da: 'Slet {name}?', en: 'Delete {name}?' },
+  'admin.issues': { da: 'PROBLEMER', en: 'ISSUES' },
+  'admin.issues_count': { da: '{total} total · {open} åbne', en: '{total} total · {open} open' },
+  'admin.issues_empty': { da: 'Ingen problemer rapporteret endnu.', en: 'No issues reported yet.' },
+  'admin.resolve': { da: 'Løs', en: 'Resolve' },
+  'admin.delete_issue_confirm': { da: 'Slet dette problem?', en: 'Delete this issue?' },
 } as const satisfies Record<string, { da: string; en: string }>;
 
 export type MessageKey = keyof typeof messages;

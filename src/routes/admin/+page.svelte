@@ -1,6 +1,7 @@
 <script lang="ts">
   import { enhance } from '$app/forms';
   import type { PageData, ActionData } from './$types.js';
+  import { t } from '$lib/i18n/index.ts';
 
   let { data, form }: { data: PageData; form: ActionData } = $props();
 
@@ -8,16 +9,16 @@
   let resetTarget = $state<string | null>(null);
 </script>
 
-<svelte:head><title>Admin — slidt</title></svelte:head>
+<svelte:head><title>{t('admin.title')}</title></svelte:head>
 
 <div class="head-band">
   <div class="head-index">ADM</div>
   <div class="head-title">
-    <div class="meta">ADMIN PANEL — {data.users.length} USERS</div>
-    <h1>Users</h1>
+    <div class="meta">{t('admin.meta', { n: String(data.users.length) })}</div>
+    <h1>{t('admin.headline')}</h1>
   </div>
   <div class="head-cta">
-    <button class="btn-accent" onclick={() => { showCreate = !showCreate; }}>+ New User</button>
+    <button class="btn-accent" onclick={() => { showCreate = !showCreate; }}>{t('admin.new_user')}</button>
   </div>
 </div>
 
@@ -29,7 +30,7 @@
 
 {#if showCreate}
   <form method="POST" action="?/createUser" use:enhance class="create-form">
-    <div class="create-title">CREATE USER</div>
+    <div class="create-title">{t('admin.create_user')}</div>
     <div class="field-row">
       <label>Email<input type="email" name="email" required autocomplete="off" /></label>
       <label>Name<input type="text" name="name" required /></label>
@@ -49,11 +50,11 @@
 <table class="user-table">
   <thead>
     <tr>
-      <th>Name</th>
-      <th>Email</th>
-      <th>Role</th>
-      <th>Last seen</th>
-      <th>Actions</th>
+      <th>{t('admin.col_name')}</th>
+      <th>{t('admin.col_email')}</th>
+      <th>{t('admin.col_role')}</th>
+      <th>{t('admin.col_last_seen')}</th>
+      <th>{t('admin.col_actions')}</th>
     </tr>
   </thead>
   <tbody>
@@ -63,9 +64,9 @@
         <td class="email">{user.email}</td>
         <td class="role">
           {#if user.isAdmin}
-            <span class="badge admin">ADMIN</span>
+            <span class="badge admin">{t('admin.badge_admin')}</span>
           {:else}
-            <span class="badge user">USER</span>
+            <span class="badge user">{t('admin.badge_user')}</span>
           {/if}
         </td>
         <td class="last-seen">
@@ -77,7 +78,7 @@
             <input type="hidden" name="id" value={user.id} />
             <input type="hidden" name="isAdmin" value={user.isAdmin ? 'false' : 'true'} />
             <button type="submit" class="btn-sm">
-              {user.isAdmin ? 'Remove admin' : 'Make admin'}
+              {user.isAdmin ? t('admin.remove_admin') : t('admin.make_admin')}
             </button>
           </form>
 
@@ -86,18 +87,18 @@
             <form method="POST" action="?/resetPassword" use:enhance={{ onResult: () => { resetTarget = null; } }} class="inline-form">
               <input type="hidden" name="id" value={user.id} />
               <input type="password" name="password" placeholder="New password" minlength="8" class="inline-pw" required />
-              <button type="submit" class="btn-sm warn">Set</button>
+              <button type="submit" class="btn-sm warn">{t('admin.pw_set')}</button>
               <button type="button" class="btn-sm" onclick={() => resetTarget = null}>✕</button>
             </form>
           {:else}
-            <button class="btn-sm" onclick={() => resetTarget = user.id}>Reset pw</button>
+            <button class="btn-sm" onclick={() => resetTarget = user.id}>{t('admin.reset_pw')}</button>
           {/if}
 
           <!-- Delete user -->
           <form method="POST" action="?/deleteUser" use:enhance class="inline-form"
-            onsubmit={(e) => { if (!confirm(`Delete ${user.name}?`)) e.preventDefault(); }}>
+            onsubmit={(e) => { if (!confirm(t('admin.delete_user_confirm', { name: user.name }))) e.preventDefault(); }}>
             <input type="hidden" name="id" value={user.id} />
-            <button type="submit" class="btn-sm danger">Delete</button>
+            <button type="submit" class="btn-sm danger">{t('admin.delete')}</button>
           </form>
         </td>
       </tr>
@@ -107,12 +108,12 @@
 
 <!-- ── Issues ──────────────────────────────────────────────── -->
 <div class="section-head">
-  <span class="section-label">ISSUES</span>
-  <span class="section-count">{data.issues.length} total · {data.issues.filter(i => i.status === 'open').length} open</span>
+  <span class="section-label">{t('admin.issues')}</span>
+  <span class="section-count">{t('admin.issues_count', { total: String(data.issues.length), open: String(data.issues.filter(i => i.status === 'open').length) })}</span>
 </div>
 
 {#if data.issues.length === 0}
-  <p class="empty">No issues reported yet.</p>
+  <p class="empty">{t('admin.issues_empty')}</p>
 {:else}
   {#each data.issues as issue (issue.id)}
     <div class="issue-row" class:resolved={issue.status === 'resolved'}>
@@ -132,13 +133,13 @@
         {#if issue.status === 'open'}
           <form method="POST" action="?/resolveIssue" use:enhance class="inline-form">
             <input type="hidden" name="id" value={issue.id} />
-            <button type="submit" class="btn-sm">Resolve</button>
+            <button type="submit" class="btn-sm">{t('admin.resolve')}</button>
           </form>
         {/if}
         <form method="POST" action="?/deleteIssue" use:enhance class="inline-form"
-          onsubmit={(e) => { if (!confirm('Delete this issue?')) e.preventDefault(); }}>
+          onsubmit={(e) => { if (!confirm(t('admin.delete_issue_confirm'))) e.preventDefault(); }}>
           <input type="hidden" name="id" value={issue.id} />
-          <button type="submit" class="btn-sm danger">Delete</button>
+          <button type="submit" class="btn-sm danger">{t('admin.delete')}</button>
         </form>
       </div>
     </div>

@@ -379,7 +379,7 @@
       <button class="action" onclick={exportPdf} disabled={exporting}>
         {exporting ? t('editor.action_export_busy') : t('editor.action_export')}
       </button>
-      <button class="action" type="button" onclick={() => showThemePicker = true}>THEME{data.theme ? ` · ${data.theme.name}` : ''}</button>
+      <button class="action" type="button" onclick={() => showThemePicker = true}>{t('editor.theme_button')}{data.theme ? ` · ${data.theme.name}` : ''}</button>
       <button class="action" type="button" onclick={openShareDialog}>{t('editor.action_share')}</button>
       <button class="action danger" type="button" onclick={deleteDeck}>{t('editor.action_delete')}</button>
       <button
@@ -548,7 +548,7 @@
 
       {#if data.isOwner}
         <div class="collab-section">
-          <div class="collab-label">COLLABORATORS</div>
+          <div class="collab-label">{t('editor.collab_label')}</div>
 
           {#if form?.collabError}
             <p class="collab-error">{form.collabError}</p>
@@ -569,10 +569,10 @@
           <form method="POST" action="?/addCollaborator" use:enhance class="collab-add">
             <input type="email" name="email" placeholder="colleague@example.com" required />
             <select name="role">
-              <option value="editor">Editor</option>
-              <option value="viewer">Viewer</option>
+              <option value="editor">{t('editor.collab_role_editor')}</option>
+              <option value="viewer">{t('editor.collab_role_viewer')}</option>
             </select>
-            <button type="submit" class="btn-sm">Add</button>
+            <button type="submit" class="btn-sm">{t('editor.collab_add')}</button>
           </form>
         </div>
       {/if}
@@ -634,8 +634,8 @@
       onkeydown={(e) => e.stopPropagation()}
     >
       <div class="picker-head">
-        <span>THEME</span>
-        <button onclick={() => showThemePicker = false} aria-label="Close">×</button>
+        <span>{t('editor.theme_picker_head')}</span>
+        <button onclick={() => showThemePicker = false} aria-label={t('editor.picker_close')}>×</button>
       </div>
       <div class="theme-list">
         {#each data.availableThemes as theme (theme.id)}
@@ -646,7 +646,7 @@
           >
             <span class="theme-name">{theme.name}</span>
             {#if data.deck.themeId === theme.id || (!data.deck.themeId && data.theme?.id === theme.id)}
-              <span class="theme-active">ACTIVE</span>
+              <span class="theme-active">{t('editor.theme_active')}</span>
             {/if}
           </button>
         {/each}

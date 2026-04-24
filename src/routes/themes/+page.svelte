@@ -169,4 +169,18 @@
     height: 22px;
     border: var(--st-rule-thin);
   }
+
+  @media (max-width: 768px) {
+    .head-band { grid-template-columns: 1fr auto; }
+    .head-index { display: none; }
+    .head-title { padding: 20px; border-right: none; }
+    .head-cta { padding: 14px 16px; }
+    h1 { font-size: clamp(40px, 12vw, 76px); }
+    .create-form { padding: 14px 16px; flex-wrap: wrap; }
+    .create-form input { width: 100%; }
+    .row { grid-template-columns: 1fr auto; }
+    .row::before { display: none; }
+    .row-link { padding: 16px; }
+    .swatches { padding: 16px 12px; }
+  }
 </style>

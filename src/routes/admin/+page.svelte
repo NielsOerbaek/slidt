@@ -309,6 +309,27 @@
     width: 140px;
   }
 
+  /* ── Mobile ── */
+  @media (max-width: 768px) {
+    .head-band { grid-template-columns: 1fr auto; }
+    .head-index { display: none; }
+    .head-title { padding: 20px; border-right: none; }
+    .head-cta { padding: 14px 16px; }
+    h1 { font-size: clamp(40px, 12vw, 76px); }
+    .create-form { padding: 16px 20px; }
+    .field-row { gap: 12px; }
+    label { width: 100%; }
+    input[type="email"], input[type="text"], input[type="password"] { min-width: 0; width: 100%; }
+    .user-table { display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    td, th { padding: 10px 12px; white-space: nowrap; }
+    .actions { flex-wrap: wrap; gap: 6px; }
+    .inline-pw { width: 100px; }
+    .section-head { padding: 16px 16px 8px; }
+    .issue-row { padding: 12px 16px; }
+    .issue-meta { flex-wrap: wrap; gap: 8px; }
+    .issue-actions { flex-wrap: wrap; }
+  }
+
   /* ── Issues ── */
   .section-head {
     display: flex;

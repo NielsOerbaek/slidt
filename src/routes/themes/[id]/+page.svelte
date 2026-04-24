@@ -202,4 +202,12 @@
     color: var(--st-ink-dim);
     margin: 0;
   }
+
+  @media (max-width: 768px) {
+    .page { padding: 16px 20px; }
+    .layout { grid-template-columns: 1fr; }
+    .token-key { min-width: 0; width: 140px; font-size: 10px; }
+    .token-row { flex-wrap: wrap; gap: 6px; }
+    .token-text { min-width: 0; }
+  }
 </style>

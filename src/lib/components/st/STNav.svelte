@@ -14,27 +14,26 @@
     { id: 'themes', key: 'nav.themes' },
     { id: 'templates', key: 'nav.templates' },
   ];
+
+  let menuOpen = $state(false);
+  function closeMenu() { menuOpen = false; }
 </script>
+
+<svelte:window onkeydown={(e) => e.key === 'Escape' && closeMenu()} />
 
 <nav class="st-nav">
   <div class="cell index">01</div>
 
   <div class="cell brand-row">
-    <a class="brand" href="/decks">
+    <a class="brand" href="/decks" onclick={closeMenu}>
       <STFace size={18} />
       <span class="word">slidt</span>
     </a>
     {#each items as item, i (item.id)}
-      <a
-        class="tab"
-        class:active={active === item.id}
-        href="/{item.id}"
-      >
+      <a class="tab" class:active={active === item.id} href="/{item.id}">
         <span class="tab-num">0{i + 2}</span>
         <span>{t(item.key)}</span>
-        {#if active === item.id}
-          <span class="dot" aria-hidden="true"></span>
-        {/if}
+        {#if active === item.id}<span class="dot" aria-hidden="true"></span>{/if}
       </a>
     {/each}
     {#if user.isAdmin}
@@ -59,8 +58,51 @@
     <form method="POST" action="/logout" class="logout-form">
       <button type="submit" class="logout">{t('nav.logout')}</button>
     </form>
+    <!-- Mobile hamburger -->
+    <button
+      class="mob-burger"
+      type="button"
+      onclick={() => menuOpen = !menuOpen}
+      aria-label="Menu"
+      aria-expanded={menuOpen}
+    >
+      <span class="burger-line" class:open={menuOpen}></span>
+      <span class="burger-line mid" class:open={menuOpen}></span>
+      <span class="burger-line" class:open={menuOpen}></span>
+    </button>
   </div>
 </nav>
+
+<!-- Mobile menu overlay -->
+{#if menuOpen}
+  <div class="mob-menu">
+    {#each items as item, i (item.id)}
+      <a class="mob-link" class:active={active === item.id} href="/{item.id}" onclick={closeMenu}>
+        <span class="mob-num">0{i + 2}</span>
+        <span>{t(item.key)}</span>
+        {#if active === item.id}<span class="mob-dot" aria-hidden="true"></span>{/if}
+      </a>
+    {/each}
+    {#if user.isAdmin}
+      <a class="mob-link" class:active={active === 'admin'} href="/admin" onclick={closeMenu}>
+        <span class="mob-num">05</span>
+        <span>{t('nav.admin')}</span>
+        {#if active === 'admin'}<span class="mob-dot" aria-hidden="true"></span>{/if}
+      </a>
+    {/if}
+    <a class="mob-link" class:active={active === 'settings'} href="/settings" onclick={closeMenu}>
+      <span class="mob-num">⚙</span>
+      <span>{t('nav.settings')}</span>
+      {#if active === 'settings'}<span class="mob-dot" aria-hidden="true"></span>{/if}
+    </a>
+    <div class="mob-user">
+      <span class="mob-user-name">{t('nav.user_prefix')}{(user.name ?? '').toUpperCase()}</span>
+      <form method="POST" action="/logout">
+        <button type="submit" class="mob-logout">{t('nav.logout')}</button>
+      </form>
+    </div>
+  </div>
+{/if}
 
 <style>
   .st-nav {
@@ -68,6 +110,8 @@
     grid-template-columns: 80px 1fr auto;
     border-bottom: var(--st-rule-thick);
     background: var(--st-bg);
+    position: relative;
+    z-index: 40;
   }
   .cell { display: flex; align-items: stretch; }
   .index {
@@ -146,31 +190,97 @@
   }
   .logout:hover { background: var(--st-bg-deep); }
 
-  @media (max-width: 768px) {
-    .st-nav {
-      grid-template-columns: 1fr auto;
-      flex-wrap: wrap;
-    }
-    .index { display: none; }
-    .brand-row {
-      grid-column: 1;
-      overflow-x: auto;
-      scrollbar-width: none;
-    }
-    .brand-row::-webkit-scrollbar { display: none; }
-    .right { grid-column: 2; }
-    .user-prefix { display: none; }
-    .tab-num { display: none; }
-    .tab { padding: 0 14px; font-size: 10px; letter-spacing: 0.15em; }
-    .brand { padding: 0 16px; }
+  /* ── Hamburger ── */
+  .mob-burger {
+    display: none;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 5px;
+    width: 49px;
+    height: 49px;
+    background: none;
+    border: 0;
+    border-left: var(--st-rule-thin);
+    cursor: pointer;
+    padding: 0;
+    flex-shrink: 0;
   }
+  .burger-line {
+    display: block;
+    width: 18px;
+    height: 2px;
+    background: var(--st-ink);
+    transition: opacity 120ms, transform 120ms;
+  }
+  .burger-line.mid.open { opacity: 0; }
+  .mob-burger:hover .burger-line { background: var(--st-cobalt); }
 
-  @media (max-width: 480px) {
-    /* On very small screens: brand + icon-only tabs */
-    .tab span:not(.dot) { display: none; }
-    /* Show only the first letter of each tab via pseudo — simpler: just keep the dot indicator */
-    .tab { padding: 0 10px; min-width: 36px; justify-content: center; }
-    .brand .word { font-size: 18px; }
-    .user-name { display: none; }
+  /* ── Mobile menu ── */
+  .mob-menu {
+    position: fixed;
+    top: 49px;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: var(--st-bg);
+    z-index: 50;
+    border-top: var(--st-rule-thick);
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+  }
+  .mob-link {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 18px 24px;
+    border-bottom: var(--st-rule-thin);
+    text-decoration: none;
+    color: var(--st-ink);
+    font-family: var(--st-font-mono);
+    font-size: 12px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+  }
+  .mob-link:hover { background: var(--st-bg-deep); }
+  .mob-link.active { color: var(--st-cobalt); background: var(--st-bg-deep); }
+  .mob-num { color: var(--st-ink-dim); width: 24px; flex-shrink: 0; }
+  .mob-dot { width: 8px; height: 8px; background: var(--st-cobalt); margin-left: auto; }
+  .mob-user {
+    margin-top: auto;
+    border-top: var(--st-rule-thick);
+    padding: 20px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+  }
+  .mob-user-name {
+    font-family: var(--st-font-mono);
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    color: var(--st-ink-dim);
+  }
+  .mob-logout {
+    background: none;
+    border: 0;
+    font-family: var(--st-font-mono);
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    color: var(--st-ink);
+    cursor: pointer;
+    padding: 0;
+  }
+  .mob-logout:hover { color: var(--st-cobalt); }
+
+  /* ── Responsive ── */
+  @media (max-width: 768px) {
+    .st-nav { grid-template-columns: 1fr auto; }
+    .index { display: none; }
+    .tab { display: none; }
+    .user { display: none; }
+    .logout-form { display: none; }
+    .mob-burger { display: flex; }
   }
 </style>

@@ -101,4 +101,15 @@
   }
   .scope-badge.global { background: var(--st-bg); color: var(--st-ink); }
   .scope-badge.deck { background: var(--st-cobalt); color: var(--st-bg); border-color: var(--st-cobalt); }
+
+  @media (max-width: 768px) {
+    .head-band { grid-template-columns: 1fr; }
+    .head-index { display: none; }
+    .head-title { padding: 20px; }
+    h1 { font-size: clamp(40px, 12vw, 76px); }
+    .row { grid-template-columns: 1fr auto; }
+    .row::before { display: none; }
+    .row-link { padding: 14px 16px; }
+    .scope-badge { margin-right: 12px; }
+  }
 </style>

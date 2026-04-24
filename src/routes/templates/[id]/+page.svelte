@@ -209,4 +209,12 @@
     color: var(--st-ink-dim);
     margin: 0;
   }
+
+  @media (max-width: 768px) {
+    .page { padding: 16px 20px; }
+    .layout { grid-template-columns: 1fr; }
+    .preview-col { position: static; }
+    .form-toolbar { flex-wrap: wrap; }
+    .label-input { width: 100%; }
+  }
 </style>

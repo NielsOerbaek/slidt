@@ -12,6 +12,7 @@
  *   slidt deck list
  *   slidt deck create --title "My Deck" --lang da
  *   slidt deck get <id>
+ *   slidt deck duplicate <id>
  *   slidt deck delete <id>
  *
  *   slidt slide list <deckId>
@@ -240,13 +241,19 @@ async function main() {
           out(await api('PATCH', `/api/decks/${pos1}`, body));
           break;
         }
+        case 'duplicate': {
+          if (!pos1) { console.error('Usage: deck duplicate <id>'); process.exit(1); }
+          const result = await api('POST', `/api/decks/${pos1}/duplicate`) as { id: string; title: string };
+          console.log(`Duplicated → ${result.id} "${result.title}"`);
+          break;
+        }
         case 'delete': {
           if (!pos1) { console.error('Usage: deck delete <id>'); process.exit(1); }
           out(await api('DELETE', `/api/decks/${pos1}`));
           break;
         }
         default:
-          console.error('Unknown deck subcommand. Available: list, get, create, patch, delete');
+          console.error('Unknown deck subcommand. Available: list, get, create, patch, duplicate, delete');
           process.exit(1);
       }
       break;
@@ -563,6 +570,7 @@ Commands:
   deck get <id>                 Get a deck
   deck create --title "..." [--lang da]
   deck patch <id> [--title "..."] [--lang ...] [--theme-id ...]
+  deck duplicate <id>           Deep-copy deck (slides, theme, deck-scoped types)
   deck delete <id>
 
   slide list <deckId>

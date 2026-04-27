@@ -43,6 +43,7 @@
   const fullBleedPaths = [
     /^\/decks\/[^/]+$/,
     /^\/themes\/[^/]+$/,
+    /^\/templates\/[^/]+$/,
     /^\/share\//,
     /^\/docs(\/|$)/,
   ];

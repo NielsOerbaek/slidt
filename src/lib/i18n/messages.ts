@@ -193,6 +193,10 @@ export const messages = {
   },
   'template_edit.promoted': { da: '✓ PROMOVERET', en: '✓ PROMOTED' },
   'template_edit.promote_admin_only': { da: 'Kræver admin-rettigheder', en: 'Admins only' },
+  'template_edit.promote_admin_only_intro': {
+    da: 'Denne skabelon er kun bundet til ét dæk. Promover for at gøre den global.',
+    en: 'This template is bound to a single deck. Promote to make it global.',
+  },
 
   'theme_edit.crumb': { da: 'Temaer', en: 'Themes' },
   'theme_edit.save': { da: 'GEM', en: 'SAVE' },

@@ -81,75 +81,74 @@
 
 <STUnsavedGuard {dirty} />
 
-<div class="page">
-  <div class="breadcrumb"><a href="/templates">{t('template_edit.crumb')}</a> / {data.slideType.name}</div>
-
-  <div class="scope-bar">
-    <span class="scope-label">{t('template_edit.scope_label')}</span>
-    <span class="scope-pill {data.slideType.scope}">{data.slideType.scope.toUpperCase()}</span>
-    {#if data.slideType.scope === 'deck' && data.deckTitle}
-      <span class="scope-deck">{t('template_edit.from_deck')}: <strong>{data.deckTitle}</strong></span>
-    {/if}
-    {#if data.slideType.scope === 'deck'}
-      <form
-        method="POST"
-        action="?/promote"
-        class="promote-form"
-        use:enhance={() => {
-          return async ({ result, update }) => {
-            if (result.type === 'success') {
-              promoted = true;
-              setTimeout(() => (promoted = false), 2500);
-            }
-            await update();
-          };
-        }}
-      >
-        <STBtn
-          type="submit"
-          variant="accent"
-          disabled={!data.user?.isAdmin}
-          onclick={(e: Event) => {
-            if (!confirm(t('template_edit.promote_confirm'))) e.preventDefault();
-          }}
-        >{promoted ? t('template_edit.promoted') : t('template_edit.promote')}</STBtn>
-        {#if !data.user?.isAdmin}
-          <span class="promote-hint">{t('template_edit.promote_admin_only')}</span>
-        {/if}
-      </form>
-    {/if}
+<form
+  method="POST"
+  action="?/save"
+  use:enhance={({ formData }) => {
+    formData.set('fields', fieldsJson);
+    formData.set('htmlTemplate', htmlTemplate);
+    formData.set('css', css);
+    return async ({ result, update }) => {
+      if (result.type === 'success') {
+        saved = true;
+        savedLabel = label;
+        savedFieldsJson = fieldsJson;
+        savedHtml = htmlTemplate;
+        savedCss = css;
+        setTimeout(() => (saved = false), 2000);
+      }
+      await update();
+    };
+  }}
+  class="page"
+>
+  <div class="topbar">
+    <div class="topbar-left">
+      <a class="crumb" href="/templates">{t('template_edit.crumb')}</a>
+      <span class="dim">/</span>
+      <input class="label-input" type="text" name="label" bind:value={label} />
+      <span class="type-name">{data.slideType.name}</span>
+    </div>
+    <div class="topbar-right">
+      <span class="scope-pill {data.slideType.scope}">{data.slideType.scope.toUpperCase()}</span>
+      {#if data.slideType.scope === 'deck' && data.deckTitle}
+        <span class="scope-deck">{t('template_edit.from_deck')}: <strong>{data.deckTitle}</strong></span>
+      {/if}
+      <STBtn type="submit" variant="accent">{saved ? t('theme_edit.saved') : t('theme_edit.save')}</STBtn>
+    </div>
   </div>
 
-  <div class="layout">
-    <form
-      method="POST"
-      action="?/save"
-      use:enhance={({ formData }) => {
-        formData.set('fields', fieldsJson);
-        formData.set('htmlTemplate', htmlTemplate);
-        formData.set('css', css);
-        return async ({ result, update }) => {
-          if (result.type === 'success') {
-            saved = true;
-            savedLabel = label;
-            savedFieldsJson = fieldsJson;
-            savedHtml = htmlTemplate;
-            savedCss = css;
-            setTimeout(() => (saved = false), 2000);
+  {#if data.slideType.scope === 'deck'}
+    <!-- Promote action lives in its own (sibling) form so it doesn't submit the editor. -->
+    <div class="promote-bar">
+      <span class="promote-info">{t('template_edit.promote_admin_only_intro')}</span>
+      <button
+        type="button"
+        class="promote-btn"
+        disabled={!data.user?.isAdmin}
+        onclick={async (e) => {
+          e.preventDefault();
+          if (!data.user?.isAdmin) return;
+          if (!confirm(t('template_edit.promote_confirm'))) return;
+          const fd = new FormData();
+          const res = await fetch('?/promote', { method: 'POST', body: fd });
+          if (res.ok) {
+            promoted = true;
+            setTimeout(() => (promoted = false), 2500);
+            location.reload();
           }
-          await update();
-        };
-      }}
-      class="editor-form"
-    >
-      <div class="form-toolbar">
-        <input class="label-input" type="text" name="label" bind:value={label} />
-        <span class="type-name">{data.slideType.name}</span>
-        <STBtn type="submit" variant="accent">{saved ? t('theme_edit.saved') : t('theme_edit.save')}</STBtn>
-      </div>
+        }}
+      >{promoted ? t('template_edit.promoted') : t('template_edit.promote')}</button>
+      {#if !data.user?.isAdmin}
+        <span class="promote-hint">{t('template_edit.promote_admin_only')}</span>
+      {/if}
+    </div>
+  {/if}
 
-      {#if form?.error}<p class="error">{form.error}</p>{/if}
+  {#if form?.error}<p class="error">{form.error}</p>{/if}
 
+  <div class="layout">
+    <div class="editor-form">
       <div class="editors">
         <div class="editor-section">
           <label class="editor-label">{t('template_edit.fields_label')}</label>
@@ -183,7 +182,7 @@
           ></textarea>
         </div>
       </div>
-    </form>
+    </div>
 
     <div class="preview-col">
       <p class="preview-label">{t('template_edit.preview_label')}</p>
@@ -194,34 +193,71 @@
       />
     </div>
   </div>
-</div>
+</form>
 
 <style>
-  .page { padding: 32px 40px; }
-  .breadcrumb {
-    font-family: var(--st-font-mono);
-    font-size: 11px;
-    letter-spacing: 0.18em;
-    color: var(--st-ink-dim);
-    margin-bottom: 20px;
+  .page {
+    display: flex;
+    flex-direction: column;
+    min-height: calc(100vh - 49px);
+    background: var(--st-bg);
   }
-  .breadcrumb a { color: var(--st-cobalt); text-decoration: none; }
-  .scope-bar {
+
+  /* Full-width top bar: breadcrumb + label + slug on the left,
+     scope pill + parent deck + Save on the right. */
+  .topbar {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    padding: 14px 32px;
+    border-bottom: var(--st-rule-thick);
+    background: var(--st-bg);
+    flex-shrink: 0;
+  }
+  .topbar-left {
     display: flex;
     align-items: center;
     gap: 14px;
-    flex-wrap: wrap;
-    margin-bottom: 22px;
-    padding: 12px 14px;
-    border: var(--st-rule-medium);
-    background: var(--st-bg-deep);
+    flex: 1;
+    min-width: 0;
   }
-  .scope-label {
+  .topbar-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+  }
+  .crumb {
     font-family: var(--st-font-mono);
-    font-size: 10px;
-    letter-spacing: 0.25em;
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    color: var(--st-cobalt);
+    text-decoration: none;
+  }
+  .dim {
+    font-family: var(--st-font-mono);
+    font-size: 11px;
     color: var(--st-ink-dim);
   }
+  .label-input {
+    flex: 1 1 auto;
+    min-width: 0;
+    padding: 8px 12px;
+    border: 2px solid var(--st-ink);
+    background: var(--st-bg);
+    color: var(--st-ink);
+    border-radius: 0;
+    font-family: var(--st-font-display);
+    font-size: 20px;
+  }
+  .type-name {
+    font-family: var(--st-font-mono);
+    font-size: 11px;
+    letter-spacing: 0.16em;
+    color: var(--st-ink-dim);
+    flex-shrink: 0;
+  }
+
   .scope-pill {
     font-family: var(--st-font-mono);
     font-size: 10px;
@@ -241,42 +277,52 @@
     letter-spacing: 0.12em;
     color: var(--st-ink-dim);
   }
-  .scope-deck strong {
-    color: var(--st-ink);
-    font-weight: 500;
-  }
-  .promote-form {
-    margin-left: auto;
+  .scope-deck strong { color: var(--st-ink); font-weight: 500; }
+
+  .promote-bar {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 14px;
+    padding: 10px 32px;
+    border-bottom: var(--st-rule-thin);
+    background: var(--st-bg-deep);
   }
+  .promote-info {
+    font-family: var(--st-font-mono);
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    color: var(--st-ink-dim);
+  }
+  .promote-btn {
+    padding: 6px 14px;
+    border: 2px solid var(--st-ink);
+    background: var(--st-cobalt);
+    color: var(--st-bg);
+    font-family: var(--st-font-mono);
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    cursor: pointer;
+  }
+  .promote-btn:disabled { background: var(--st-bg); color: var(--st-ink-dim); cursor: not-allowed; }
   .promote-hint {
     font-family: var(--st-font-mono);
     font-size: 10px;
     letter-spacing: 0.16em;
     color: var(--st-ink-dim);
   }
-  .layout { display: grid; grid-template-columns: 1fr 380px; gap: 32px; }
-  @media (min-width: 1200px) {
-    .layout { grid-template-columns: 1fr 760px; }
-  }
-  .form-toolbar { display: flex; gap: 12px; align-items: center; margin-bottom: 24px; }
-  .label-input {
+
+  /* Full-width grid below the bar. */
+  .layout {
+    display: grid;
+    grid-template-columns: minmax(420px, 1fr) minmax(520px, 1fr);
+    gap: 0;
     flex: 1;
-    padding: 10px 14px;
-    border: 3px solid var(--st-ink);
-    background: var(--st-bg);
-    color: var(--st-ink);
-    border-radius: 0;
-    font-family: var(--st-font-display);
-    font-size: 22px;
+    min-height: 0;
   }
-  .type-name {
-    font-family: var(--st-font-mono);
-    font-size: 11px;
-    letter-spacing: 0.16em;
-    color: var(--st-ink-dim);
+  .editor-form {
+    padding: 24px 32px;
+    border-right: var(--st-rule-medium);
+    overflow-y: auto;
   }
   .error, .inline-error {
     color: var(--st-ink);
@@ -312,9 +358,10 @@
   .preview-col {
     display: flex;
     flex-direction: column;
-    gap: 10px;
-    position: sticky;
-    top: 72px;
+    gap: 12px;
+    padding: 24px 32px;
+    overflow-y: auto;
+    background: var(--st-bg-deep);
   }
   .preview-label {
     font-family: var(--st-font-mono);
@@ -325,12 +372,16 @@
   }
 
   @media (max-width: 768px) {
-    .page { padding: 16px 20px; }
+    .topbar {
+      flex-wrap: wrap;
+      padding: 12px 16px;
+      gap: 10px;
+    }
+    .topbar-left, .topbar-right { flex-wrap: wrap; gap: 8px; }
+    .label-input { width: 100%; flex: 1 0 100%; }
     .layout { grid-template-columns: 1fr; }
-    .preview-col { position: static; }
-    .form-toolbar { flex-wrap: wrap; }
-    .label-input { width: 100%; }
-    .scope-bar { padding: 10px 12px; gap: 10px; }
-    .promote-form { margin-left: 0; width: 100%; }
+    .editor-form { border-right: 0; border-bottom: var(--st-rule-medium); padding: 16px; }
+    .preview-col { padding: 16px; }
+    .promote-bar { padding: 10px 16px; flex-wrap: wrap; }
   }
 </style>

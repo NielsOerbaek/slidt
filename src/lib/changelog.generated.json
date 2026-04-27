@@ -1,0 +1,2112 @@
+{
+  "generatedAt": "2026-04-27T13:51:06.540Z",
+  "days": [
+    {
+      "date": "2026-04-27",
+      "commits": [
+        {
+          "hash": "c3ac3a6899981059ed009029bbb8030374baf4e2",
+          "shortHash": "c3ac3a6",
+          "date": "2026-04-27T15:45:26+02:00",
+          "isoDate": "2026-04-27",
+          "subject": "issues API, slide-types API, model badge, nav→settings link",
+          "body": "- API: GET /api/issues (admin, filter by status/severity/limit) and\n  GET/PATCH/DELETE /api/issues/[id]. Lets admins triage agent reports\n  without shelling into psql.\n- API: GET /api/decks/[id]/slide-types returns global + deck-scoped\n  types in one shot, with both id (UUID) and name (slug). Useful for\n  the agent and for external scripts that don't want to stitch two\n  sources together.\n- Agent drawer header now shows a small model badge: host\n  (LOCAL/API) + model name. Click to /settings. aiModel is plumbed\n  from user prefs through the deck loader.\n- Settings: API \"metered\" note only renders when an API model is\n  selected — was redundant when the user is on a local Ollama model.\n- Nav: BRUGER/NAME label is now a link to /settings on desktop, with\n  hover state. Mobile retains the existing menu route.",
+          "author": "Niels Ørbæk Chemnitz",
+          "type": "feat"
+        },
+        {
+          "hash": "383e626effec9a9dc9336bd45cec66c8b97891ff",
+          "shortHash": "383e626",
+          "date": "2026-04-27T15:38:29+02:00",
+          "isoDate": "2026-04-27",
+          "subject": "settings auto-save, editor menu reorg, model grouping, agent fix",
+          "body": "- Settings: prefs form auto-submits on toggle / select change so the\n  vim binding (and locale, model) actually persist without the user\n  having to hunt for the Save button. Explicit Save still works.\n- Settings → AI model: split into Local (Ollama) / API optgroups; new\n  metered note under the dropdown clarifying API models cost per prompt.\n- Deck editor action bar reorg: PRESENT | EXPORT | SHARE | more ▾ |\n  AGENT. The theme picker entry and Delete deck moved into the new\n  \"more\" dropdown. Outside-click closes it; transition:slide on open.\n- Fix admin-captured issue (47f315e3…): slideType agent tools tried\n  eq(slideTypes.id, $name) which Postgres rejected as a UUID cast.\n  add_slide / patch_slide_type / delete_slide_type / inspect_slide_type\n  now accept either UUID or name slug; lookup by name is scoped to\n  global + this deck so we don't leak other decks' types. Tool\n  descriptions updated.",
+          "author": "Niels Ørbæk Chemnitz",
+          "type": "feat"
+        },
+        {
+          "hash": "129c9621eed07a097217a1ad5a97081434d877c7",
+          "shortHash": "129c962",
+          "date": "2026-04-27T15:21:20+02:00",
+          "isoDate": "2026-04-27",
+          "subject": "hover preview on slide-list rows",
+          "body": "Hovering a row in the deck's left-hand slide list now floats a 360px\nSlidePreview to the right of the row after a 220ms delay so quick\nmouse passes don't trigger renders. The preview is anchored to the\nrow's vertical center and clamped to the viewport. Suppressed on\nmobile (the slide list is full-screen there) and while a slide is\nbeing dragged.\n\nOnly the hovered slide renders — we don't keep N preview iframes\nalive in the list permanently.",
+          "author": "Niels Ørbæk Chemnitz",
+          "type": "feat",
+          "scope": "editor"
+        },
+        {
+          "hash": "9d5c746439359ad0ff4bf178585df81b42fc24a7",
+          "shortHash": "9d5c746",
+          "date": "2026-04-27T15:17:10+02:00",
+          "isoDate": "2026-04-27",
+          "subject": "Ctrl/Cmd-Z undo for deck-level actions",
+          "body": "Adds an undo/redo stack to the deck editor covering the actions a user\nis most likely to do by accident:\n\n- Delete slide — re-creates with the same typeId + data, then PATCHes\n  the deck's slideOrder to put the slide back at its original index.\n- Add slide — deletes the newly created slide.\n- Reorder slides — PATCHes slideOrder back to the previous array.\n- Apply theme — PATCHes themeId back to the previous value.\n\nBindings: Cmd/Ctrl-Z to undo, Cmd/Ctrl-Shift-Z or Ctrl-Y to redo.\nInside an input/textarea/contenteditable we let the browser handle the\nshortcut for native input-level undo, so typing history isn't shoved\ninto the deck stack. A small bottom-center toast confirms each action\n(\"UNDONE: Delete slide\" / \"REDONE: …\"). Stack is bounded at 50 entries\nand any new action clears the redo side.\n\ni18n: 7 new editor.* keys (da + en).",
+          "author": "Niels Ørbæk Chemnitz",
+          "type": "feat",
+          "scope": "editor"
+        },
+        {
+          "hash": "609a7a4271f9406475baaa830c5999bdc9983e18",
+          "shortHash": "609a7a4",
+          "date": "2026-04-27T15:13:17+02:00",
+          "isoDate": "2026-04-27",
+          "subject": "inline section number with label, sink × into group box",
+          "body": "STField no longer reserves a 32px column for the section number — it\nsits inline before the label. FieldEditor's group-typed list rows lose\nthe right-side column for ×: the button is now absolutely positioned\ninside the group box's top-right corner. Group-field padding gets a\nright gutter so the × doesn't overlap the inner inputs.\n\nWith both back, form column drops from 380–520 / 440–620 down to\n340–420 / 380–480 (default / above 1440px), giving the preview area\nback the space.",
+          "author": "Niels Ørbæk Chemnitz",
+          "type": "fix",
+          "scope": "editor"
+        },
+        {
+          "hash": "eec77ab10add552afe41f5794a0fefeb1b366cf8",
+          "shortHash": "eec77ab",
+          "date": "2026-04-27T15:06:51+02:00",
+          "isoDate": "2026-04-27",
+          "subject": "redirect / to /decks for authenticated users",
+          "body": "The root path had no page handler, so anyone signed in hitting\nslidt.osogdata.dk/ directly got a 404. Anonymous users were already\nfine — the layout redirects them to /login. Add a minimal root page\nload that throws redirect(302, '/decks').",
+          "author": "Niels Ørbæk Chemnitz",
+          "type": "fix",
+          "scope": "routes"
+        },
+        {
+          "hash": "6cd2634124048930c7a65d189e45ac345be89ada",
+          "shortHash": "6cd2634",
+          "date": "2026-04-27T14:56:57+02:00",
+          "isoDate": "2026-04-27",
+          "subject": "warn before navigating away with unsaved changes",
+          "body": "New STUnsavedGuard component: hooks beforeNavigate to cancel in-app\nnavigations and show a fade/scale modal (\"Stay\" / \"Leave anyway\"), and\nbeforeunload to trigger the browser's native prompt on tab close /\nhard reload.\n\nWired into:\n- /templates/[id] — dirty when label / fields JSON / template HTML /\n  CSS differ from last-saved snapshot. Snapshot refreshes on success.\n- /themes/[id] — dirty when tokens / name / system prompt diverge.\n- /settings — per-form dirty flags for profile and preferences,\n  triggered on input/change and reset on successful submission.\n  (Password form intentionally excluded.)\n\ni18n: adds unsaved.title / body / stay / leave (da + en).",
+          "author": "Niels Ørbæk Chemnitz",
+          "type": "feat",
+          "scope": "editor"
+        },
+        {
+          "hash": "ecc3afa69302db347d7e380573bed712178da306",
+          "shortHash": "ecc3afa",
+          "date": "2026-04-27T14:53:06+02:00",
+          "isoDate": "2026-04-27",
+          "subject": "drop iframe allow-scripts, attach editors from parent",
+          "body": "The previous setup used sandbox=\"allow-same-origin allow-scripts\" plus\nan in-iframe script to wire contenteditable. The browser warns that\nthose two flags together let an iframe escape its sandbox.\n\nSwitch to attaching contenteditable + key/blur listeners from the\nparent window via iframe.contentDocument (allow-same-origin lets us\nreach into the iframe DOM, and the parent script controls the\nlisteners). The injected EDITOR_STYLES still go into the rendered HTML\nso hover/focus affordances work without parent script. onload re-runs\nattachEditors after every render.",
+          "author": "Niels Ørbæk Chemnitz",
+          "type": "fix",
+          "scope": "preview"
+        },
+        {
+          "hash": "daa637b82b4a8ef598d036495feb45bf2358403b",
+          "shortHash": "daa637b",
+          "date": "2026-04-27T14:51:55+02:00",
+          "isoDate": "2026-04-27",
+          "subject": "widen form column to use horizontal space",
+          "body": "Form column was a fixed 340px, so inputs in dense templates (friction's\nsideA/sideB groups, principles' item lists) wrapped unnecessarily even\nat desktop widths. Switch to minmax(380px, 520px) at default and\nminmax(440px, 620px) above 1440px viewport, while keeping the slide\nlist narrower (260 → 240) to keep the preview area generous.",
+          "author": "Niels Ørbæk Chemnitz",
+          "type": "fix",
+          "scope": "editor"
+        },
+        {
+          "hash": "1e42ce055f4306c7765049f3d72db7867d891dc9",
+          "shortHash": "1e42ce0",
+          "date": "2026-04-27T14:44:04+02:00",
+          "isoDate": "2026-04-27",
+          "subject": "list deck-scoped templates + admin promote-to-global",
+          "body": "- /templates now loads global *and* deck-scoped templates (joined to\n  decks for attribution). New scope filter chips (All / Global /\n  Deck-scoped) with counts; deck-scoped cards show their parent deck.\n- /templates/[id] gets a scope bar at the top: shows the current\n  scope, the parent deck (if any), and a \"Promote to global\" button.\n  Admin-only — non-admin users see a disabled button + hint. The\n  promote action checks for a name collision against existing global\n  templates and refuses with a 409 if it would collide.\n- Deck editor type picker shows a small DECK badge on the preview of\n  deck-scoped types so they're visually distinct from globals.\n- Adds 11 new i18n keys (da + en) for the scope UI and promote flow.",
+          "author": "Niels Ørbæk Chemnitz",
+          "type": "feat",
+          "scope": "templates"
+        },
+        {
+          "hash": "14c4021842cd20e3c9849a3c4acbe2d8be7b23af",
+          "shortHash": "14c4021",
+          "date": "2026-04-27T14:39:31+02:00",
+          "isoDate": "2026-04-27",
+          "subject": "inline-edit list-item fields (one level of #each)",
+          "body": "makeEditable now tracks #each list paths so fields inside iterations\nget a data-slidt-field of \"<list>.{{@index}}.<ref>\" (or just\n\"<list>.{{@index}}\" for {{fmt this}}). Handlebars renders {{@index}}\nper iteration, giving each rendered element a unique path.\n\nAlso handles dotted top-level paths (e.g. {{fmt sideA.label}}) and\n#each over a dotted source (e.g. {{#each sideA.body}}). Two-or-more\nlevels of nested #each remain un-tagged for now (would require\n{{@../index}} chaining).\n\nThe deck editor's onedit handler walks the dotted path with an\nimmutable setDeep helper so list/group reactivity works, and it\ntolerates malformed paths by leaving state untouched.",
+          "author": "Niels Ørbæk Chemnitz",
+          "type": "feat",
+          "scope": "editor"
+        },
+        {
+          "hash": "bb76890c5f59e3dea095506ec22fa1a3ba3d7451",
+          "shortHash": "bb76890",
+          "date": "2026-04-27T14:35:19+02:00",
+          "isoDate": "2026-04-27",
+          "subject": "double preview width on wide screens",
+          "body": "At ≥1200px viewport, the template editor's right column grows from\n380px to 760px so the live preview reads at a useful size. Below\nthat threshold the layout stays at 380px so the form column doesn't\ncollapse.",
+          "author": "Niels Ørbæk Chemnitz",
+          "type": "fix",
+          "scope": "templates"
+        },
+        {
+          "hash": "0e905eba3b057520926cf65ecf52c616581841c4",
+          "shortHash": "0e905eb",
+          "date": "2026-04-27T14:33:19+02:00",
+          "isoDate": "2026-04-27",
+          "subject": "inline-editable preview for top-level scalar fields",
+          "body": "Click a title, eyebrow, kicker, etc. directly in the live preview to\nedit it. Edits debounce-save through the same path as the form editor.\n\nHow it works:\n- renderer.makeEditable wraps top-level {{fmt fieldName}} references with\n  <span data-slidt-field=\"…\"> markers. Fields inside #each blocks are\n  skipped (no path to map them back); fields inside #if/#unless are\n  still wrappable since context is unchanged.\n- An EDITOR_SCRIPT is appended to the page body when render() is called\n  with editable: true. It attaches contenteditable + focus/hover styling\n  to marked elements and postMessages {type:'slidt:edit', field, value}\n  back to the parent on blur or Enter.\n- SlidePreview gains editable + onedit props. When editable, the iframe\n  sandbox grants allow-scripts; the parent listens for messages from\n  this iframe only and forwards edits.\n- The deck editor passes editable={data.canEdit} and an onedit handler\n  that updates slideDataMap[selectedSlideId] and triggers autosave.\n- Lists and grouped fields stay form-only for now (deferred to a v2 that\n  tracks per-item paths).",
+          "author": "Niels Ørbæk Chemnitz",
+          "type": "feat",
+          "scope": "editor"
+        },
+        {
+          "hash": "d4f70fe3b770e7d1c44af2a5ef8fa4c2ca1c2120",
+          "shortHash": "d4f70fe",
+          "date": "2026-04-27T14:28:45+02:00",
+          "isoDate": "2026-04-27",
+          "subject": "cross-route morph + dropdown/overlay transitions",
+          "body": "- onNavigate hook in +layout.svelte uses the View Transitions API where\n  available; deck list rows and the editor breadcrumb title share\n  view-transition-name=\"deck-<id>\" so clicking a deck morphs the row\n  into the editor title. Falls back to a normal navigation on Safari.\n- transition:slide on the More dropdown; transition:fade on the mobile\n  menu; transition:fade backdrop + transition:scale picker for the\n  type and theme overlays in the deck editor.",
+          "author": "Niels Ørbæk Chemnitz",
+          "type": "feat",
+          "scope": "motion"
+        },
+        {
+          "hash": "ae2196958cb700e201c0070aa81e455d2af469bc",
+          "shortHash": "ae21969",
+          "date": "2026-04-27T12:35:14+02:00",
+          "isoDate": "2026-04-27",
+          "subject": "plausible Danish dummy copy for template previews",
+          "body": "Replace name-echo placeholders with field-name-aware sample copy so\ntemplate tiles (in the type picker and on /templates) read like real\nslides. Lists with primitive items get three plausible bullets;\ngroup-typed list items now produce three rows instead of two.",
+          "author": "Niels Ørbæk Chemnitz",
+          "type": "feat",
+          "scope": "previews"
+        },
+        {
+          "hash": "cd0fc9554a2682469c454b80d4059f00c6a9460d",
+          "shortHash": "cd0fc95",
+          "date": "2026-04-27T12:32:18+02:00",
+          "isoDate": "2026-04-27",
+          "subject": "stretch page-frame to fill shell height",
+          "body": "Flex the page-shell so the framed area extends to the bottom of the\nviewport instead of hugging short page content.",
+          "author": "Niels Ørbæk Chemnitz",
+          "type": "fix",
+          "scope": "layout"
+        },
+        {
+          "hash": "7db2cd288894702ba23896df604b088382a95d27",
+          "shortHash": "7db2cd2",
+          "date": "2026-04-27T12:19:15+02:00",
+          "isoDate": "2026-04-27",
+          "subject": "framed page shell, 60-day sessions, /templates grid + dummy previews",
+          "body": "- Wrap authenticated content pages in a 1280px max-width frame with\n  light-gray surround and subtle shadow; full-bleed routes (deck/theme\n  editors, /share, /docs) opt out. Settings drops its own max-width since\n  the global frame now provides it.\n- resolveSession filters by expiresAt > now so stale tokens return null\n  and the layout redirect to /login fires instead of leaking through into\n  page loads (which produced a 404). SESSION_DURATION_SECONDS bumped to\n  60 days and shared with both login routes' cookie maxAge.\n- Type picker in the deck editor renders previews with buildDummyData so\n  tiles show realistic placeholder content instead of empty fields.\n- /templates is now a searchable card grid: server preloads a preset\n  theme, page filters by label/name. Adds templates.search_placeholder\n  and templates.empty_search i18n keys (da + en).\n- Adds scripts/deploy.sh for ig-sub deploys (pull, rebuild app, healthz).",
+          "author": "Niels Ørbæk Chemnitz",
+          "type": "feat"
+        }
+      ]
+    },
+    {
+      "date": "2026-04-24",
+      "commits": [
+        {
+          "hash": "a2d6bfc4d7645b44c1e71ad1ea2746881cd48598",
+          "shortHash": "a2d6bfc",
+          "date": "2026-04-24T19:48:56+00:00",
+          "isoDate": "2026-04-24",
+          "subject": "add build/ to .gitignore; remove tracked build artefacts",
+          "body": "Generated with [Claude Code](https://claude.ai/code)\nvia [Happy](https://happy.engineering)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nCo-Authored-By: Happy <yesreply@happy.engineering>",
+          "author": "slidt ralph loop",
+          "type": "chore"
+        },
+        {
+          "hash": "4aceba65ca14a5cd0cabca8f4ac9e299fd51619b",
+          "shortHash": "4aceba6",
+          "date": "2026-04-24T19:48:37+00:00",
+          "isoDate": "2026-04-24",
+          "subject": "address code review findings",
+          "body": "Settings page:\n- Restore max-width wrapper (1100px, centered, bordered) — regression from redesign\n- Fix date locale to follow user's locale preference (da-DK / en-GB)\n- Validate aiModel on server: must be 'claude' or 'ollama:<tag>'\n- Use t() for hardcoded 'Set as:' token hint and model name\n\nAgent drawer:\n- thinking <details> now open during streaming, closes when done\n- close button aria-label uses i18n key\n- undo header uses i18n key with {n} interpolation\n\ni18n (messages.ts):\n- Add: agent.thinking_summary, agent.undoable_header, agent.close\n- Add: nav.menu_label, settings.agent_model_claude, settings.key_set_as\n- Remove: settings.col_created (dead key — column was dropped in redesign)\n\nSTNav:\n- Hamburger aria-label uses t('nav.menu_label')\n\nollama-runner.ts:\n- Early guard: throw if OLLAMA_BASE_URL is empty\n\nGenerated with [Claude Code](https://claude.ai/code)\nvia [Happy](https://happy.engineering)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nCo-Authored-By: Happy <yesreply@happy.engineering>",
+          "author": "slidt ralph loop",
+          "type": "fix"
+        },
+        {
+          "hash": "5d517046f0a29eda54993a3f9aab9bea8ab4fd27",
+          "shortHash": "5d51704",
+          "date": "2026-04-24T19:37:18+00:00",
+          "isoDate": "2026-04-24",
+          "subject": "make moreActive reactive with \\$derived",
+          "body": "Plain const doesn't update when the active prop changes on navigation,\nleaving the MORE button permanently highlighted after visiting settings/docs/admin.\n\nGenerated with [Claude Code](https://claude.ai/code)\nvia [Happy](https://happy.engineering)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nCo-Authored-By: Happy <yesreply@happy.engineering>",
+          "author": "slidt ralph loop",
+          "type": "fix",
+          "scope": "nav"
+        },
+        {
+          "hash": "f798184157379c01d89f93ee7954e83af2318320",
+          "shortHash": "f798184",
+          "date": "2026-04-24T19:34:19+00:00",
+          "isoDate": "2026-04-24",
+          "subject": "3-column grid layout matching design system",
+          "body": "Replace stacked sections + max-width hack with a proper 3-column grid:\nPROFILE | PREFERENCES | API KEYS — separated by thick vertical borders,\neach with a dimmed col-head label on dark background. Follows the same\nborder/index column patterns used throughout the app. Mobile collapses\nto single column with thick bottom borders between sections.\n\nGenerated with [Claude Code](https://claude.ai/code)\nvia [Happy](https://happy.engineering)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nCo-Authored-By: Happy <yesreply@happy.engineering>",
+          "author": "slidt ralph loop",
+          "type": "redesign",
+          "scope": "settings"
+        },
+        {
+          "hash": "79aee20f0f3a36cfba9e30b2ee5a4ee8834d0e90",
+          "shortHash": "79aee20",
+          "date": "2026-04-24T19:29:40+00:00",
+          "isoDate": "2026-04-24",
+          "subject": "constrain desktop layout to 960px with side borders",
+          "body": "Page was stretching to full viewport width making forms feel disconnected.\nAdded .page-wrap with max-width: 960px, margin: auto, and side rule borders\nmatching the app's grid aesthetic. Removed borders on mobile.\n\nGenerated with [Claude Code](https://claude.ai/code)\nvia [Happy](https://happy.engineering)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nCo-Authored-By: Happy <yesreply@happy.engineering>",
+          "author": "slidt ralph loop",
+          "type": "fix",
+          "scope": "settings"
+        },
+        {
+          "hash": "40f64366b72b3e567bdd27c4d9b95a00da4d064a",
+          "shortHash": "40f6436",
+          "date": "2026-04-24T19:26:31+00:00",
+          "isoDate": "2026-04-24",
+          "subject": "!important on input font-size to beat scoped component styles",
+          "body": "Component-scoped CSS (e.g. compose textarea at 14px, collab inputs at 11-12px)\nhas higher specificity than the global rule and was overriding it, so iOS\nwas still zooming. Force 16px on all inputs at mobile with !important.\n\nGenerated with [Claude Code](https://claude.ai/code)\nvia [Happy](https://happy.engineering)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nCo-Authored-By: Happy <yesreply@happy.engineering>",
+          "author": "slidt ralph loop",
+          "type": "fix",
+          "scope": "mobile"
+        },
+        {
+          "hash": "c696755afe18313b5a77c004385ba3c2702b625b",
+          "shortHash": "c696755",
+          "date": "2026-04-24T19:21:07+00:00",
+          "isoDate": "2026-04-24",
+          "subject": "prevent input zoom; app-like feel",
+          "body": "- global.css: font-size 16px on inputs at ≤768px (iOS won't zoom if ≥16px)\n- global.css: touch-action: manipulation on all interactive elements (kills 300ms delay + double-tap zoom)\n- global.css: overscroll-behavior: none (no pull-to-refresh)\n- app.html: apple-mobile-web-app-capable + status bar meta for full-screen feel\n- app.html: interactive-widget=resizes-content so keyboard shrinks content, not viewport\n\nGenerated with [Claude Code](https://claude.ai/code)\nvia [Happy](https://happy.engineering)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nCo-Authored-By: Happy <yesreply@happy.engineering>",
+          "author": "slidt ralph loop",
+          "type": "fix",
+          "scope": "mobile"
+        },
+        {
+          "hash": "da41e94b722ad8949da1d52c28aa7468e15502b8",
+          "shortHash": "da41e94",
+          "date": "2026-04-24T19:18:33+00:00",
+          "isoDate": "2026-04-24",
+          "subject": "use delta.reasoning not delta.thinking for Gemma4/Ollama",
+          "body": "Ollama streams reasoning tokens under 'reasoning', not 'thinking'.\nAlso confirmed: 504 was a cold-start issue, not a persistent problem.\n\nGenerated with [Claude Code](https://claude.ai/code)\nvia [Happy](https://happy.engineering)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nCo-Authored-By: Happy <yesreply@happy.engineering>",
+          "author": "slidt ralph loop",
+          "type": "fix",
+          "scope": "ollama"
+        },
+        {
+          "hash": "10ae15deb1fa6881fb2725aee2d5dd470686c126",
+          "shortHash": "10ae15d",
+          "date": "2026-04-24T19:14:34+00:00",
+          "isoDate": "2026-04-24",
+          "subject": "stream thinking tokens from reasoning models",
+          "body": "Ollama returns delta.thinking for qwen3 and other reasoning models.\nPipe those through as 'thinking' SSE events and render them in the\nagent drawer as a collapsible block, styled dim and left-bordered.\n\nGenerated with [Claude Code](https://claude.ai/code)\nvia [Happy](https://happy.engineering)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nCo-Authored-By: Happy <yesreply@happy.engineering>",
+          "author": "slidt ralph loop",
+          "type": "feat",
+          "scope": "ollama"
+        },
+        {
+          "hash": "e42e118ef4118969c8a0068a1935711a4ad0d8d2",
+          "shortHash": "e42e118",
+          "date": "2026-04-24T19:11:23+00:00",
+          "isoDate": "2026-04-24",
+          "subject": "clean up HTTP error message — don't show raw HTML on 504",
+          "body": "When Ollama's nginx returns a 504 (or other non-2xx), show a human-readable\nmessage instead of leaking the full HTML error page to the user.\n\nGenerated with [Claude Code](https://claude.ai/code)\nvia [Happy](https://happy.engineering)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nCo-Authored-By: Happy <yesreply@happy.engineering>",
+          "author": "slidt ralph loop",
+          "type": "fix",
+          "scope": "ollama"
+        },
+        {
+          "hash": "4e27be3b5a55e603d126899b127023c8358b4ae2",
+          "shortHash": "4e27be3",
+          "date": "2026-04-24T19:05:22+00:00",
+          "isoDate": "2026-04-24",
+          "subject": "add CLAUDE.md with pre-commit checklist",
+          "body": "Reminds Claude to check i18n keys, mobile styling, and docs on every commit.\n\nGenerated with [Claude Code](https://claude.ai/code)\nvia [Happy](https://happy.engineering)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nCo-Authored-By: Happy <yesreply@happy.engineering>",
+          "author": "slidt ralph loop",
+          "type": "chore"
+        },
+        {
+          "hash": "e99588ce467bdb7692522e89a523f9fce5b3d110",
+          "shortHash": "e99588c",
+          "date": "2026-04-24T19:04:05+00:00",
+          "isoDate": "2026-04-24",
+          "subject": "pass Ollama env vars into container; fix settings nav label",
+          "body": "- docker-compose: forward OLLAMA_BASE_URL + OLLAMA_API_KEY to app container\n- i18n: rename nav.settings from KEYS/NØGLER → SETTINGS/INDSTILLINGER\n- agent server: ensure Ollama dispatch is included in build\n\nGenerated with [Claude Code](https://claude.ai/code)\nvia [Happy](https://happy.engineering)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nCo-Authored-By: Happy <yesreply@happy.engineering>",
+          "author": "slidt ralph loop",
+          "type": "fix"
+        },
+        {
+          "hash": "49a4737701c110cd6223bc8d3ddca32d58662cec",
+          "shortHash": "49a4737",
+          "date": "2026-04-24T18:58:31+00:00",
+          "isoDate": "2026-04-24",
+          "subject": "merge svelte:window handlers — Svelte 5 only allows one",
+          "body": "Generated with [Claude Code](https://claude.ai/code)\nvia [Happy](https://happy.engineering)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nCo-Authored-By: Happy <yesreply@happy.engineering>",
+          "author": "slidt ralph loop",
+          "type": "fix",
+          "scope": "nav"
+        },
+        {
+          "hash": "8d59205e8d920c4a8334035acf46ac7f16c09f28",
+          "shortHash": "8d59205",
+          "date": "2026-04-24T18:57:53+00:00",
+          "isoDate": "2026-04-24",
+          "subject": "update AGENT_TOOLS count to 14",
+          "body": "Generated with [Claude Code](https://claude.ai/code)\nvia [Happy](https://happy.engineering)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nCo-Authored-By: Happy <yesreply@happy.engineering>",
+          "author": "slidt ralph loop",
+          "type": "fix",
+          "scope": "tests"
+        },
+        {
+          "hash": "426620be90323c61e1a5c28b5898f1c9ba52959a",
+          "shortHash": "426620b",
+          "date": "2026-04-24T18:56:25+00:00",
+          "isoDate": "2026-04-24",
+          "subject": "add agent model selector to preferences form",
+          "body": "Generated with [Claude Code](https://claude.ai/code)\nvia [Happy](https://happy.engineering)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nCo-Authored-By: Happy <yesreply@happy.engineering>",
+          "author": "slidt ralph loop",
+          "type": "feat",
+          "scope": "settings"
+        },
+        {
+          "hash": "048f580fbe5695f0fbbde9a9e993c0576d55c882",
+          "shortHash": "048f580",
+          "date": "2026-04-24T18:55:19+00:00",
+          "isoDate": "2026-04-24",
+          "subject": "Ollama runner with OpenAI-compatible tool calling",
+          "body": "Generated with [Claude Code](https://claude.ai/code)\nvia [Happy](https://happy.engineering)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nCo-Authored-By: Happy <yesreply@happy.engineering>",
+          "author": "slidt ralph loop",
+          "type": "feat",
+          "scope": "agent"
+        },
+        {
+          "hash": "1c7a4aa83403695571178e9bd39486c191fe58fb",
+          "shortHash": "1c7a4aa",
+          "date": "2026-04-24T18:52:23+00:00",
+          "isoDate": "2026-04-24",
+          "subject": "fetch Ollama model list and persist aiModel preference",
+          "body": "Generated with [Claude Code](https://claude.ai/code)\nvia [Happy](https://happy.engineering)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nCo-Authored-By: Happy <yesreply@happy.engineering>",
+          "author": "slidt ralph loop",
+          "type": "feat",
+          "scope": "settings"
+        },
+        {
+          "hash": "70b3386cfaa4911c5c417d1de5e37fd8f8f73767",
+          "shortHash": "70b3386",
+          "date": "2026-04-24T18:51:20+00:00",
+          "isoDate": "2026-04-24",
+          "subject": "add aiModel to UserPreferences; export BASE_SYSTEM_PROMPT",
+          "body": "Generated with [Claude Code](https://claude.ai/code)\nvia [Happy](https://happy.engineering)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nCo-Authored-By: Happy <yesreply@happy.engineering>",
+          "author": "slidt ralph loop",
+          "type": "feat",
+          "scope": "schema"
+        },
+        {
+          "hash": "ba2195f53092e2274f94fb42e54cc38fb93c4be0",
+          "shortHash": "ba2195f",
+          "date": "2026-04-24T18:50:09+00:00",
+          "isoDate": "2026-04-24",
+          "subject": "collapse docs/admin/settings into More dropdown",
+          "body": "Generated with [Claude Code](https://claude.ai/code)\nvia [Happy](https://happy.engineering)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nCo-Authored-By: Happy <yesreply@happy.engineering>",
+          "author": "slidt ralph loop",
+          "type": "feat",
+          "scope": "nav"
+        },
+        {
+          "hash": "3ef0a7b103a05445c8d24de810ad728404d1b3a8",
+          "shortHash": "3ef0a7b",
+          "date": "2026-04-24T18:48:13+00:00",
+          "isoDate": "2026-04-24",
+          "subject": "add nav.more and settings agent-model keys",
+          "body": "Generated with [Claude Code](https://claude.ai/code)\nvia [Happy](https://happy.engineering)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nCo-Authored-By: Happy <yesreply@happy.engineering>",
+          "author": "slidt ralph loop",
+          "type": "feat",
+          "scope": "i18n"
+        },
+        {
+          "hash": "740943b9dc5850e259d4f896270e6ddc7f8c2b6c",
+          "shortHash": "740943b",
+          "date": "2026-04-24T18:18:43+00:00",
+          "isoDate": "2026-04-24",
+          "subject": "full /docs subsite — overview, agent, templates, themes, cli, api",
+          "body": "- New /docs route with sticky sidebar nav (200px) + mobile pill nav\n- 6 pages: overview, agent tools, templates/fields, themes/tokens, CLI reference, API reference\n- DOCS tab added to STNav (desktop tab 05, mobile menu); admin bumped to 06\n- Shared doc.css with editorial table/code/dl/pre styles matching design system\n\nGenerated with [Claude Code](https://claude.ai/code)\nvia [Happy](https://happy.engineering)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nCo-Authored-By: Happy <yesreply@happy.engineering>",
+          "author": "slidt ralph loop",
+          "type": "feat",
+          "scope": "docs"
+        },
+        {
+          "hash": "cfe00e7e0ef5475483c0e03f3c373048b7104f33",
+          "shortHash": "cfe00e7",
+          "date": "2026-04-24T17:59:56+00:00",
+          "isoDate": "2026-04-24",
+          "subject": "agent tab, enter-to-send, auto-grow input; fix screenshot renderer",
+          "body": "- Editor: add Agent as 4th mobile tab (slides/edit/preview/agent)\n- Agent drawer: Enter submits, Shift+Enter newline (was Cmd+Enter only)\n- Agent drawer: textarea auto-grows up to 2.5 lines, resets on send\n- Screenshot: fix Playwright bundled by Rollup — use new Function trick\n  same as pdf.ts to prevent static analysis; inspect_slide_type now works\n\nGenerated with [Claude Code](https://claude.ai/code)\nvia [Happy](https://happy.engineering)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nCo-Authored-By: Happy <yesreply@happy.engineering>",
+          "author": "slidt ralph loop",
+          "type": "feat",
+          "scope": "mobile"
+        },
+        {
+          "hash": "e7ed055457690d01549f2fc5e09152a041888cbc",
+          "shortHash": "e7ed055",
+          "date": "2026-04-24T17:28:27+00:00",
+          "isoDate": "2026-04-24",
+          "subject": "hamburger nav + full mobile pass on all pages",
+          "body": "STNav:\n- Replace scrollable-tab-row with hamburger menu on mobile (≤768px)\n- Full-screen overlay menu with all nav links, user info, logout\n- Desktop nav unchanged\n\nMobile fixes (all previously zero @media queries):\n- admin: scrollable user table, stacked create form, reduced padding\n- themes list: collapsed 80px sidebar, stacked rows, wrapped create form\n- templates list: collapsed sidebar, stacked rows\n- themes/[id]: single-column layout (was 1fr 1fr), token rows wrap\n- templates/[id]: single-column layout (was 1fr 380px), preview unstickied\n\nGenerated with [Claude Code](https://claude.ai/code)\nvia [Happy](https://happy.engineering)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nCo-Authored-By: Happy <yesreply@happy.engineering>",
+          "author": "slidt ralph loop",
+          "type": "feat",
+          "scope": "mobile"
+        },
+        {
+          "hash": "691276657117e296220dbe4251ce1844227c37f2",
+          "shortHash": "6912766",
+          "date": "2026-04-24T17:21:29+00:00",
+          "isoDate": "2026-04-24",
+          "subject": "complete danish copy audit — all hardcoded strings translated",
+          "body": "- Nav: ADMIN and KEYS tabs through t()\n- Decks list: DUP button and SHARED WITH ME section\n- Editor mobile tabs: REDIGER / FORHÅNDSVIS\n- Admin: create form labels, flash success, password placeholder,\n  issue status (åben/løst), deck link\n- Theme editor: system prompt label, help text, placeholder\n- FieldEditor: select default (vælg), remove aria-label, add-item button\n\nGenerated with [Claude Code](https://claude.ai/code)\nvia [Happy](https://happy.engineering)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nCo-Authored-By: Happy <yesreply@happy.engineering>",
+          "author": "slidt ralph loop",
+          "type": "feat",
+          "scope": "i18n"
+        },
+        {
+          "hash": "b615219147191065f9aad64dabd8438b0803898e",
+          "shortHash": "b615219",
+          "date": "2026-04-24T17:16:37+00:00",
+          "isoDate": "2026-04-24",
+          "subject": "danish copy for settings, admin, theme picker; fix agent panel width",
+          "body": "- Add 60+ da/en translation keys for settings (profile, password, prefs,\n  API keys), admin (users table, issues section), and editor (theme picker,\n  collaborators)\n- Wire all new pages/components through t() — no more hardcoded English\n- Agent panel now opens at fixed 420px width (right-anchored, ~44% of\n  typical preview column) instead of covering the full column\n\nGenerated with [Claude Code](https://claude.ai/code)\nvia [Happy](https://happy.engineering)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nCo-Authored-By: Happy <yesreply@happy.engineering>",
+          "author": "slidt ralph loop",
+          "type": "feat",
+          "scope": "i18n"
+        },
+        {
+          "hash": "f449663e254230d4368559e64d682bfccb6c681a",
+          "shortHash": "f449663",
+          "date": "2026-04-24T17:08:15+00:00",
+          "isoDate": "2026-04-24",
+          "subject": "agent can report issues, visible in admin panel",
+          "body": "- Add `issues` DB table (migration 0004) with severity/status fields\n- Add `report_issue` tool to agent so it can flag platform bugs/feedback\n- Pass userId through executeTool so issues are attributed to the user\n- Admin panel shows all issues with resolve/delete actions and severity badges\n\nGenerated with [Claude Code](https://claude.ai/code)\nvia [Happy](https://happy.engineering)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nCo-Authored-By: Happy <yesreply@happy.engineering>",
+          "author": "slidt ralph loop",
+          "type": "feat",
+          "scope": "issues"
+        },
+        {
+          "hash": "968d8c4b0c11997489f547ebb483b29139676de7",
+          "shortHash": "968d8c4",
+          "date": "2026-04-24T16:59:13+00:00",
+          "isoDate": "2026-04-24",
+          "subject": "agent overlay, theme picker, template previews",
+          "body": "Agent panel:\n- Removed bottom-expand drawer; now a right-side overlay panel (position: absolute, inset: 0) over the preview column when open\n- Panel header shows face + status + × close button\n- .right gets position: relative to contain it\n\nTheme selector:\n- THEME · <name> button in breadcrumb action bar\n- Picker overlay lists all global themes; active theme highlighted in cobalt\n- Applies via PATCH /api/decks/:id and invalidates page data\n\nTemplate picker:\n- Each slide type tile now renders a SlidePreview with buildDefaultData() as a 16:9 thumbnail above the label\n- Tiles show real rendered previews using the deck's current theme\n\nGenerated with [Claude Code](https://claude.ai/code)\nvia [Happy](https://happy.engineering)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nCo-Authored-By: Happy <yesreply@happy.engineering>",
+          "author": "slidt ralph loop",
+          "type": "feat",
+          "scope": "editor"
+        },
+        {
+          "hash": "c5f00d146726b6171fbecb93e5458013ee50772a",
+          "shortHash": "c5f00d1",
+          "date": "2026-04-24T18:53:40+02:00",
+          "isoDate": "2026-04-24",
+          "subject": "stop iframe inflating preview-frame height",
+          "body": "The iframe declared width:1920px/height:1080px and used transform:scale()\nto shrink visually, but transforms don't affect layout. The reserve div\nadded below the iframe meant the wrap grew to ~1080 + 1080*scale instead\nof the intended ~1080*scale, so the framed border extended well past the\nrendered slide. Positioning the iframe absolutely removes it from layout\nflow; the reserve div alone now sizes the wrap.",
+          "author": "Niels Ørbæk Chemnitz",
+          "type": "fix",
+          "scope": "preview"
+        },
+        {
+          "hash": "77bc48916b69db6e999a32d8f54fc6df184717b7",
+          "shortHash": "77bc489",
+          "date": "2026-04-24T16:41:03+00:00",
+          "isoDate": "2026-04-24",
+          "subject": "profile management, preferences, vim toggle, language",
+          "body": "- Profile section: change display name, change password (with current-password verification)\n- Preferences section: vim mode toggle (persisted, gates deck editor bindings) + language selector (da/en)\n- API keys section: moved into settings layout alongside new sections\n- DB: users.preferences jsonb column (migration 0003)\n- auth.ts: updateProfile(), changePassword(), updatePreferences() helpers; resolveSession/resolveApiKey now return preferences\n- app.d.ts: App.Locals.user includes preferences type\n- Layout: returns locale from user preferences for downstream use\n- Deck editor: vim bindings now gated on data.vim (user preference); n key stays always-on\n- Mobile responsive styles for all new settings sections\n\nGenerated with [Claude Code](https://claude.ai/code)\nvia [Happy](https://happy.engineering)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nCo-Authored-By: Happy <yesreply@happy.engineering>",
+          "author": "slidt ralph loop",
+          "type": "feat",
+          "scope": "settings"
+        },
+        {
+          "hash": "cef74ef36aba6289cde8db23f74113299454d9dd",
+          "shortHash": "cef74ef",
+          "date": "2026-04-24T16:29:50+00:00",
+          "isoDate": "2026-04-24",
+          "subject": "vim-style keyboard bindings for slide navigation",
+          "body": "j/k — next/previous slide\nG — last slide, gg — first slide\nd — delete current slide\nn/o — open type picker (add slide)\ne — focus edit fields\np — switch to preview pane\nEscape — blur active input (return to normal mode)\n\nAll bindings fire only when not editing text; g chord uses 500ms timeout.\n\nGenerated with [Claude Code](https://claude.ai/code)\nvia [Happy](https://happy.engineering)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nCo-Authored-By: Happy <yesreply@happy.engineering>",
+          "author": "slidt ralph loop",
+          "type": "feat",
+          "scope": "editor"
+        },
+        {
+          "hash": "713c82652a01f1cbbbf2c027a1cbd2a6867d9fe2",
+          "shortHash": "713c826",
+          "date": "2026-04-24T16:26:31+00:00",
+          "isoDate": "2026-04-24",
+          "subject": "full responsive pass — README, nav, login, decks, editor",
+          "body": "- README: hero image with slidt brand font + mascot; no emoji in titles\n- STNav: collapses to 1fr layout at 768px; hides tab numbers/labels at 480px\n- Login: single-column stacked layout on mobile; scaled wordmark with clamp()\n- Decks list: 6-col table collapses to title-only at 768px; stat block goes inline\n- Deck editor: 3-pane switches to tabbed UI on mobile (SLIDES/EDIT/PREVIEW);\n  breadcrumb scrolls horizontally; mob-tabs bar fixed at bottom\n\nGenerated with [Claude Code](https://claude.ai/code)\nvia [Happy](https://happy.engineering)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nCo-Authored-By: Happy <yesreply@happy.engineering>",
+          "author": "slidt ralph loop",
+          "type": "feat",
+          "scope": "mobile"
+        },
+        {
+          "hash": "66132cad656bfbad59c8ca759dcf3c373759f078",
+          "shortHash": "66132ca",
+          "date": "2026-04-24T16:23:46+00:00",
+          "isoDate": "2026-04-24",
+          "subject": "responsive decks list",
+          "body": "",
+          "author": "slidt ralph loop",
+          "type": "feat",
+          "scope": "mobile"
+        },
+        {
+          "hash": "df8a8225ef4eb6fa64d7543019555fd086c5e54e",
+          "shortHash": "df8a822",
+          "date": "2026-04-24T16:23:40+00:00",
+          "isoDate": "2026-04-24",
+          "subject": "responsive nav + login",
+          "body": "Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>",
+          "author": "slidt ralph loop",
+          "type": "feat",
+          "scope": "mobile"
+        },
+        {
+          "hash": "08a4426c934427db64563de7797aef9684757e94",
+          "shortHash": "08a4426",
+          "date": "2026-04-24T16:17:33+00:00",
+          "isoDate": "2026-04-24",
+          "subject": "exclude docs/superpowers from git",
+          "body": "",
+          "author": "slidt ralph loop",
+          "type": "chore"
+        },
+        {
+          "hash": "55e42dcef90c815abb870e59f890048909ed07ed",
+          "shortHash": "55e42dc",
+          "date": "2026-04-24T16:15:06+00:00",
+          "isoDate": "2026-04-24",
+          "subject": "real platform screenshots — editor, agent, themes, admin",
+          "body": "Generated with [Claude Code](https://claude.ai/code)\nvia [Happy](https://happy.engineering)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nCo-Authored-By: Happy <yesreply@happy.engineering>",
+          "author": "slidt ralph loop",
+          "type": "docs",
+          "scope": "readme"
+        },
+        {
+          "hash": "8affbd07da2979e57f36c4b05889d86bba9606fb",
+          "shortHash": "8affbd0",
+          "date": "2026-04-24T16:02:29+00:00",
+          "isoDate": "2026-04-24",
+          "subject": "structured documentation tree for GUI, CLI, and reference",
+          "body": "Generated with [Claude Code](https://claude.ai/code)\nvia [Happy](https://happy.engineering)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nCo-Authored-By: Happy <yesreply@happy.engineering>",
+          "author": "slidt ralph loop",
+          "type": "docs"
+        },
+        {
+          "hash": "eda698784b73b0acd30d290bfadef3d94c80e830",
+          "shortHash": "eda6987",
+          "date": "2026-04-24T16:00:47+00:00",
+          "isoDate": "2026-04-24",
+          "subject": "add slide screenshots + festive rewrite",
+          "body": "Generated with [Claude Code](https://claude.ai/code)\nvia [Happy](https://happy.engineering)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nCo-Authored-By: Happy <yesreply@happy.engineering>",
+          "author": "slidt ralph loop",
+          "type": "docs",
+          "scope": "readme"
+        },
+        {
+          "hash": "ecc662eb18b54eba9487cf6b350c35daa93ba4b2",
+          "shortHash": "ecc662e",
+          "date": "2026-04-24T15:56:27+00:00",
+          "isoDate": "2026-04-24",
+          "subject": "deck collaborator list/add/remove subcommands",
+          "body": "Adds `deck collaborator list <deckId>`, `deck collaborator add <deckId> --email <email> [--role editor|viewer]`, and `deck collaborator remove <deckId> --email <email>` subcommands to the CLI, wiring them to the existing `/api/decks/:id/collaborators` endpoints.\n\nCo-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>",
+          "author": "slidt ralph loop",
+          "type": "feat",
+          "scope": "cli"
+        },
+        {
+          "hash": "de85033edb32bd7e6898301a6f70cbbc9da10577",
+          "shortHash": "de85033",
+          "date": "2026-04-24T15:56:24+00:00",
+          "isoDate": "2026-04-24",
+          "subject": "collaborators UI in deck editor share panel",
+          "body": "",
+          "author": "slidt ralph loop",
+          "type": "feat"
+        },
+        {
+          "hash": "871137e9662a087c33129193b6ceb44a62f3a886",
+          "shortHash": "871137e",
+          "date": "2026-04-24T15:55:41+00:00",
+          "isoDate": "2026-04-24",
+          "subject": "full documentation tree (guide, cli, reference)",
+          "body": "Adds user-facing docs under docs/ with three sections: guide (GUI\nworkflows), cli (all commands with flags and examples), and reference\n(field types, Handlebars, theme tokens, SSE events, collaborator roles).\nAlso adds docs/README.md master index and docs/index.json for search.\n\nCo-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>",
+          "author": "slidt ralph loop",
+          "type": "docs"
+        },
+        {
+          "hash": "bc5477fceb6f0b4b277814ba9af8ae56149d9343",
+          "shortHash": "bc5477f",
+          "date": "2026-04-24T15:54:32+00:00",
+          "isoDate": "2026-04-24",
+          "subject": "collaborator access on all deck/slide/agent routes + shared decks in list",
+          "body": "All API routes (deck CRUD, slides, agent) now use requireDeckRole from\ndeck-access.ts so collaborators can access decks per their assigned role.\nPage load returns isOwner/canEdit/collaborators; deck list includes sharedDecks.\nAdds form actions addCollaborator/removeCollaborator to deck editor page server.\n\nCo-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>",
+          "author": "slidt ralph loop",
+          "type": "feat"
+        },
+        {
+          "hash": "96a84e3acc28c337dfb8607f2929a873be94b1e8",
+          "shortHash": "96a84e3",
+          "date": "2026-04-24T15:50:09+00:00",
+          "isoDate": "2026-04-24",
+          "subject": "collaborators API (list/add/update/remove)",
+          "body": "Generated with [Claude Code](https://claude.ai/code)\nvia [Happy](https://happy.engineering)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nCo-Authored-By: Happy <yesreply@happy.engineering>",
+          "author": "slidt ralph loop",
+          "type": "feat"
+        },
+        {
+          "hash": "04182624262f8a59a57fcd9a066813058c5f398e",
+          "shortHash": "0418262",
+          "date": "2026-04-24T15:49:12+00:00",
+          "isoDate": "2026-04-24",
+          "subject": "agent undo stack — all session tool calls undoable",
+          "body": "Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>",
+          "author": "slidt ralph loop",
+          "type": "feat"
+        },
+        {
+          "hash": "8f278f35894e45916020c47886bf26ece50a5284",
+          "shortHash": "8f278f3",
+          "date": "2026-04-24T15:49:03+00:00",
+          "isoDate": "2026-04-24",
+          "subject": "resolveDeckAccess helper + collaborator CRUD functions",
+          "body": "Generated with [Claude Code](https://claude.ai/code)\nvia [Happy](https://happy.engineering)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nCo-Authored-By: Happy <yesreply@happy.engineering>",
+          "author": "slidt ralph loop",
+          "type": "feat"
+        },
+        {
+          "hash": "dd8f957bb54065fd1543b77cb566dd7c9a3be535",
+          "shortHash": "dd8f957",
+          "date": "2026-04-24T15:45:40+00:00",
+          "isoDate": "2026-04-24",
+          "subject": "add deck_collaborators table",
+          "body": "",
+          "author": "slidt ralph loop",
+          "type": "feat",
+          "scope": "db"
+        },
+        {
+          "hash": "395132e2469120ce1fe1c1dee858974074767410",
+          "shortHash": "395132e",
+          "date": "2026-04-24T15:44:56+00:00",
+          "isoDate": "2026-04-24",
+          "subject": "deck duplicate button in deck list UI",
+          "body": "Generated with [Claude Code](https://claude.ai/code)\nvia [Happy](https://happy.engineering)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nCo-Authored-By: Happy <yesreply@happy.engineering>",
+          "author": "slidt ralph loop",
+          "type": "feat"
+        },
+        {
+          "hash": "9fc6105a9adfa7f844bab60026f4d92df0eac335",
+          "shortHash": "9fc6105",
+          "date": "2026-04-24T15:43:08+00:00",
+          "isoDate": "2026-04-24",
+          "subject": "deck duplication API + CLI command",
+          "body": "Generated with [Claude Code](https://claude.ai/code)\nvia [Happy](https://happy.engineering)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nCo-Authored-By: Happy <yesreply@happy.engineering>",
+          "author": "slidt ralph loop",
+          "type": "feat"
+        },
+        {
+          "hash": "e842c0cffe3da61189e64a9dea6d4f24d04af7e8",
+          "shortHash": "e842c0c",
+          "date": "2026-04-24T15:41:14+00:00",
+          "isoDate": "2026-04-24",
+          "subject": "add --json, --quiet, --no-stream flags to agent chat",
+          "body": "Generated with [Claude Code](https://claude.ai/code)\nvia [Happy](https://happy.engineering)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nCo-Authored-By: Happy <yesreply@happy.engineering>",
+          "author": "slidt ralph loop",
+          "type": "feat",
+          "scope": "cli"
+        },
+        {
+          "hash": "a41361bae87e4f1dcdf0e01892a8c0a816686b64",
+          "shortHash": "a41361b",
+          "date": "2026-04-24T15:08:22+00:00",
+          "isoDate": "2026-04-24",
+          "subject": "theme prompts, agent CLI, admin UI, history persistence",
+          "body": "- Theme system_prompt: each theme now carries a skill-like system prompt\n  that sets tone and content direction for the agent; editable in the\n  theme detail UI; seeded on antal-theta-default with Os & Data guidelines\n- No-HTML rule: agent system prompt now explicitly forbids HTML markup\n  in content fields across all interactions\n- Agent history persistence: full Anthropic message exchange (tool_use +\n  tool_result blocks, images stripped) stored as rawContent and\n  reconstructed on next session for true cross-session continuity\n- CLI for agents (scripts/slidt.ts): comprehensive HTTP client CLI with\n  deck/slide/theme/template/agent/key/export commands; auth via\n  SLIDT_API_KEY or --api-key; built-in template and theme validation\n- API key auth: api_keys table with SHA-256 hashed tokens; Bearer token\n  auth in hooks.server.ts alongside existing cookie sessions\n- Admin interface (/admin): list users, create/delete/reset-password/\n  toggle admin role; protected by isAdmin flag on users table\n- Settings page (/settings): any user can create/revoke their own API keys\n- create-user.ts now accepts --admin flag\n- DB migration 0001 (idempotent IF NOT EXISTS) + schema.ts updated\n\nGenerated with [Claude Code](https://claude.ai/code)\nvia [Happy](https://happy.engineering)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nCo-Authored-By: Happy <yesreply@happy.engineering>",
+          "author": "slidt ralph loop",
+          "type": "feat"
+        },
+        {
+          "hash": "7c3e23cc76508d7c3555cc3380bdbfe32938a82e",
+          "shortHash": "7c3e23c",
+          "date": "2026-04-24T15:11:24+02:00",
+          "isoDate": "2026-04-24",
+          "subject": "validate inputs, accumulate text, add patch/delete_slide_type, broaden inspection",
+          "body": "Findings from a real run (Flyttebussen deck): the agent shipped a deck\nthat 500s on export, with three slides whose data was JSON-stringified\ninstead of nested, and several list-of-string fields wrapped as\n[{key:\"…\"}] objects. The final assistant message persisted as\n\"(tool calls only)\" so the user couldn't see what the agent did. This\ncommit closes those holes.\n\nTooling:\n- add_slide / patch_slide now validate the resolved data against the\n  slide type's field schema (using the existing renderer/validate.ts).\n  Validation errors are returned as the tool result so the agent sees\n  them and can self-correct, instead of being discovered at render time.\n- coerceObject() defensively JSON.parse's `data`/`patch` when Anthropic\n  delivers them as a stringified blob (observed on deeply nested\n  payloads). Stops \"data stored as string\" → silently empty slide.\n- New patch_slide_type tool: update label/fields/htmlTemplate/css for\n  deck-scoped types, with the same checkHandlebarsTemplate / checkCss\n  guardrails create_slide_type uses. Undo restores the previous values.\n- New delete_slide_type tool: deck-scoped only, refuses if any slide\n  still references it. Undo recreates the type.\n- inspect_slide_type now accepts an optional slideId so it can render\n  with that slide's actual data, not just dummies. Closes the loop:\n  create_slide_type → inspect (dummy) → add_slide → inspect (real).\n\nRunner:\n- finalText is no longer reset between iterations. The persisted\n  assistant message now contains everything the user saw streaming\n  across the whole turn, not only the last iteration's text.\n- MAX_ITERATIONS 10 → 25. Real prompts (\"build a deck from this URL\")\n  routinely hit the old cap with a few add_slide calls plus the new\n  inspect cycles.\n\nSystem prompt:\n- Field-shape rules now include concrete WRONG/RIGHT examples for\n  list-of-strings ([{item:\"x\"}] vs [\"x\"]) and list-of-groups, the two\n  shapes the agent kept getting wrong.\n- Visual verification rule extended: inspect after the FIRST add_slide\n  of any slide type you haven't seen render before, with slideId so you\n  see real content, not just dummies. Mention patch_slide_type and\n  delete_slide_type as the iteration tools.\n- Explicit \"pass real JSON, never a stringified blob\" line.\n\nTests: AGENT_TOOLS count 11 → 13 (patch_slide_type, delete_slide_type).\n\nCo-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>",
+          "author": "Niels Ørbæk Chemnitz",
+          "type": "fix",
+          "scope": "agent"
+        },
+        {
+          "hash": "7d431f35142f83d3797ec6959509043854c2986c",
+          "shortHash": "7d431f3",
+          "date": "2026-04-24T14:56:49+02:00",
+          "isoDate": "2026-04-24",
+          "subject": "favicon to Swiss-terminal palette + gitignore design.zip",
+          "body": "Favicon: warm-bg fill, 3px ink border, cobalt -_- mark to match the\nnew platform chrome.\n\ndesign.zip: design-team handoff bundle, kept around locally for\nreference but not part of the repo.\n\nCo-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>",
+          "author": "Niels Ørbæk Chemnitz",
+          "type": "chore"
+        },
+        {
+          "hash": "7ba1d112afe32527136d93e9ef52a6872c33a3f1",
+          "shortHash": "7ba1d11",
+          "date": "2026-04-24T14:54:44+02:00",
+          "isoDate": "2026-04-24",
+          "subject": "Swiss-terminal platform redesign + Danish locale + agent visual inspection",
+          "body": "Implements the design-team handoff (design_handoff_slidt_swiss_terminal):\nwarm off-white + cobalt + ink, JetBrains Mono chrome, Neureal display,\n3px ink rules, square corners, strict numbered grid, -_- as a system\nelement rather than mascot.\n\nFoundation:\n- src/lib/design/{tokens,fonts,global}.css — palette, @font-face, reset.\n- @fontsource/jetbrains-mono added; 400+500 woff2 self-hosted in\n  static/fonts/jetbrains-mono/ for the preview iframe.\n- src/lib/i18n with t(key, params, locale) helper and a flat messages\n  registry. Default locale 'da'; English alternates kept for future\n  toggling. decksHeadline() handles Danish word-numerals.\n\nPrimitives (src/lib/components/st/):\n- STBtn (ghost/primary/accent), STFace (idle/thinking/happy/sleep/alert),\n  STField (numbered, schema-friendly), STTurn (transcript row),\n  STMetaBar (pre-auth top bar), STNav (authenticated nav with indexed\n  tabs + user/logout), STAgentDrawer (replaces AgentPanel — single-col\n  transcript with parts[] interleaving, tool-call inline, image inline,\n  cobalt undo chip, ⌘K toggle, bindable open prop).\n\nScreens:\n- Login: §01 — LOG IND, slidt + -_- hero, → FORTSÆT cobalt CTA.\n- Decks list: 'X dæk i gang' (numeral-word) headline band, LAST WEEK\n  agent-edit stat, table with hover, cobalt dot on most-recent.\n- Empty state: hero with sleeping z_z mascot, 'Intet at sidde med endnu.'\n- Editor: breadcrumb with GEMT pill + PRÆSENTÉR/EKSPORT.PDF/DEL/SLET DÆK\n  / -_- ON · OFF, three-column body (slides 260px / form 340px / preview\n  + agent), STField wrappers around FieldEditor, type-picker overlay.\n- Themes/Templates/Share pages: chrome swept to tokens, contents kept.\n\nEditor functional wiring (per spec section B):\n- SAVED / GEMMER / FEJL pill from autosave state.\n- Slide list rows show data-derived snippet (title or first text)\n  primary, type label dimmed below; ⋮⋮ grip with optimistic local\n  reorder so dropping snaps without waiting for the PATCH; cobalt\n  drop indicator above/below the target depending on cursor half;\n  delete (×) hover-revealed.\n- Share dialog opens an overlay with the URL pre-selected and a copy\n  button; auto-copy attempted, manual fallback when blocked.\n- Delete deck via DELETE /api/decks/[id] with native confirm.\n- -_- ON button toggles the agent drawer (bind:open).\n- Tool-call chip + ↶ FORTRYD in the agent drawer footer; uses the\n  existing undoPatch returned by agent tools.\n\nAgent visual inspection:\n- New tool inspect_slide_type(id): renders the slide type with dummy\n  data via the existing renderer + Playwright at 1920×1080, returns\n  PNG bytes. Tool result builds an Anthropic content block array with\n  both image and text so the model literally sees the rendered slide.\n- src/lib/server/screenshot.ts isolates the renderer + Playwright path.\n- Runner emits image base64 over SSE; STAgentDrawer renders the\n  thumbnail inline under the tool line.\n- System prompt instructs to call inspect_slide_type after\n  create_slide_type and iterate until the rendering looks right.\n- agent-tools test count bumped 10 → 11.\n\nsrc/lib/components/FieldEditor.svelte restyled to tokens; behaviour\nunchanged. Decks loader queries agent_messages count (last 7d) for the\nleft-rail stat. Backwards-compat shims dropped — no fallback path needed.\n\nCo-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>",
+          "author": "Niels Ørbæk Chemnitz",
+          "type": "feat"
+        },
+        {
+          "hash": "97018ac8ecda8c5fa676dfd2a2d0e8a8efbf86b4",
+          "shortHash": "97018ac",
+          "date": "2026-04-24T13:32:22+02:00",
+          "isoDate": "2026-04-24",
+          "subject": "align renderer with frozen reference for ANTAL-Theta visual parity",
+          "body": "Port base CSS, slide-type templates, and brand assets so the PDF export\nof the ANTAL deck matches reference/ANTAL-Theta-slides.pdf page-by-page.\nPer-slide-type CSS/HTML rewritten against reference/slides/styles.css\nand generate.py; base-styles aligned with the reference typography,\nlayout, and page chrome (corner wordmark, top-right page numbers,\n.slide.dark/.light/.white theme variants, h1-h4 + em in deep-violet).\n\n- src/renderer/symbols.ts: new. Loads corner wordmark + dandelion SVGs\n  via Vite ?raw imports so the renderer runs in both server (PDF) and\n  browser (SlidePreview) contexts without node:fs. Exports symbolDefs()\n  + cornerMarkup() + dandelionSvg() used via a Handlebars helper.\n- src/renderer/assets/: four logo SVGs bundled in src/ for ?raw.\n- src/renderer/slide-wrap.ts: emits SVG corner via <use>.\n- src/renderer/index.ts: prepends symbol defs to body.\n- src/slide-types/*.ts: all 13 types ported to the reference's markup\n  and scoped CSS.\n- src/lib/server/font-css.ts: add Inter 500 for strong/.subheading.\n- src/lib/components/SlidePreview.svelte: inject Inter @font-face\n  alongside Neureal so web preview matches PDF output.\n- static/fonts/inter/: Inter woff2 files for the preview iframe.\n\n- scripts/import-deck-parse.ts: also accept reference's inline\n  {type, ...inline-fields} slide shape, and auto-expand a top-level\n  appendix array into a trailing appendix-list slide (mirrors\n  generate.py's expand_appendix).\n- scripts/import-deck.ts: default theme name matches seeded name.\n- package.json: dev + CLI scripts use --env-file-if-exists=.env so\n  process.env.DATABASE_URL is populated in SvelteKit dev and tsx.\n\n- reference/: the frozen reference project committed as the source\n  of truth for future visual diffs.\n\n- Unrelated pre-existing fixes swept up to keep pnpm test green:\n  field-defaults.ts buildDummyData typing (?? {} -> ?? []); agent-tools\n  test updated for the fetch_url tool count (9 -> 10).\n\nCo-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>",
+          "author": "Niels Ørbæk Chemnitz",
+          "type": "feat"
+        },
+        {
+          "hash": "99e74bf7310ebbf154560d28d2ff33f9b3cd7c58",
+          "shortHash": "99e74bf",
+          "date": "2026-04-24T10:53:52+00:00",
+          "isoDate": "2026-04-24",
+          "subject": "loading spinner on Export PDF button",
+          "body": "Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>",
+          "author": "slidt ralph loop",
+          "type": "feat"
+        },
+        {
+          "hash": "231667aaf37cde898821216316c17ebaaa6a534b",
+          "shortHash": "231667a",
+          "date": "2026-04-24T10:51:37+00:00",
+          "isoDate": "2026-04-24",
+          "subject": "use new Function to prevent Vite bundling playwright",
+          "body": "/* @vite-ignore */ only suppresses warnings; Rollup still bundles playwright\nand strips its internal chromium-bidi dependency. new Function('m','return import(m)')\nis opaque to static analysis so Node resolves playwright at runtime.\n\nCo-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>",
+          "author": "slidt ralph loop",
+          "type": "fix"
+        },
+        {
+          "hash": "d00f116677c945a27a0cbfa9a149720cf51a9fc1",
+          "shortHash": "d00f116",
+          "date": "2026-04-24T10:34:06+00:00",
+          "isoDate": "2026-04-24",
+          "subject": "slide transitions in /present + fix playwright bundling",
+          "body": "Transitions: none, fade, slide (directional), zoom. All CSS-animation\nbased with animation-fill-mode:both. Default is fade, switchable via\n?t= param or T key at runtime. F key for fullscreen.\n\nHUD in bottom-right: transition name button (click/T to cycle) + counter.\n\nFix export/present 500: use /* @vite-ignore */ on the playwright dynamic\nimport so Vite skips bundling it and Node resolves it at runtime.\n\nCo-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>",
+          "author": "slidt ralph loop",
+          "type": "feat"
+        },
+        {
+          "hash": "57e38adcabd029f77e42207c091934a0bccefed8",
+          "shortHash": "57e38ad",
+          "date": "2026-04-24T10:26:07+00:00",
+          "isoDate": "2026-04-24",
+          "subject": "remove font-family:inherit override in presentation CSS",
+          "body": "Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>",
+          "author": "slidt ralph loop",
+          "type": "fix"
+        },
+        {
+          "hash": "1550f92853dd260b6a329ef498cdd25d432dd84e",
+          "shortHash": "1550f92",
+          "date": "2026-04-24T10:23:24+00:00",
+          "isoDate": "2026-04-24",
+          "subject": "interactive presentation mode, Present/Export buttons, template preview fixes",
+          "body": "- Add /api/decks/[id]/present endpoint with click/arrow-key navigation,\n  fullscreen scaling to viewport, and slide counter\n- Add Present and Export PDF buttons to deck editor toolbar\n- Fix Playwright bundling (dynamic import + ssr.external) so present\n  endpoint no longer 500s on chromium-bidi\n- Add skipValidation renderer option so empty/partial slides preview\n  without throwing ValidationError\n- Inject Neureal/@font-face into SlidePreview iframe for correct fonts\n- Fix section divider h2 missing font-family (now uses Neureal)\n- Add buildDummyData() with realistic placeholder values for template editor\n- Complete theme token set in template editor preview\n\nCo-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>",
+          "author": "slidt ralph loop",
+          "type": "feat"
+        },
+        {
+          "hash": "60575a544a8552885b44dc9d21f80f9d4c0f71c0",
+          "shortHash": "60575a5",
+          "date": "2026-04-24T09:12:49+00:00",
+          "isoDate": "2026-04-24",
+          "subject": "resizable columns, agent chat below preview",
+          "body": "",
+          "author": "slidt ralph loop",
+          "type": "feat"
+        },
+        {
+          "hash": "c0f5ed0cbff1066823331bcf9f12c9b05d41e598",
+          "shortHash": "c0f5ed0",
+          "date": "2026-04-24T09:08:08+00:00",
+          "isoDate": "2026-04-24",
+          "subject": "-_- identity — favicon, nav brand, login heading",
+          "body": "",
+          "author": "slidt ralph loop",
+          "type": "feat"
+        },
+        {
+          "hash": "87c8cbf59dcebba6cb788624b41eb9adaacc7a7a",
+          "shortHash": "87c8cbf",
+          "date": "2026-04-24T09:01:17+00:00",
+          "isoDate": "2026-04-24",
+          "subject": "real-time slide updates, [object Object] in templates, add fetch_url tool",
+          "body": "",
+          "author": "slidt ralph loop",
+          "type": "fix"
+        },
+        {
+          "hash": "050329189008faf5c0b8f61a83933aa31a2145dd",
+          "shortHash": "0503291",
+          "date": "2026-04-24T08:25:45+00:00",
+          "isoDate": "2026-04-24",
+          "subject": "add playwright e2e tests for deck list and create flow",
+          "body": "Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>",
+          "author": "slidt ralph loop",
+          "type": "feat"
+        },
+        {
+          "hash": "5f23c8954aa3329edca2d7a7f9e5e67367b095f9",
+          "shortHash": "5f23c89",
+          "date": "2026-04-24T08:24:00+00:00",
+          "isoDate": "2026-04-24",
+          "subject": "add playwright e2e tests for login/logout flows",
+          "body": "Add ORIGIN env var to docker-compose so SvelteKit's CSRF check passes\non http://localhost:3000 (production build defaults to https otherwise).\n\nCo-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>",
+          "author": "slidt ralph loop",
+          "type": "feat"
+        },
+        {
+          "hash": "86f0be71e28eb107c136bf0bb23e9cb819b4aeb2",
+          "shortHash": "86f0be7",
+          "date": "2026-04-24T08:17:29+00:00",
+          "isoDate": "2026-04-24",
+          "subject": "add playwright e2e config and test:e2e script",
+          "body": "",
+          "author": "slidt ralph loop",
+          "type": "feat"
+        },
+        {
+          "hash": "1b6659bd3d326fe4a20fca4f91efcb521fffc5a2",
+          "shortHash": "1b6659b",
+          "date": "2026-04-24T08:15:12+00:00",
+          "isoDate": "2026-04-24",
+          "subject": "add missing env vars and expose app port; deploy via docker compose",
+          "body": "- Changed app service from expose to ports: 3000:3000 for host access\n- Added profiles: ['caddy'] to slidt caddy service (ig-sub-caddy handles TLS)\n- Added DNS servers to caddy service for ACME certificate resolution\n- Fixed seed.ts to call process.exit(0) so the entrypoint chain completes\n- Updated ig-sub Caddyfile to proxy slidt.osogdata.dk to port 3000\n\nCo-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>",
+          "author": "slidt ralph loop",
+          "type": "fix"
+        },
+        {
+          "hash": "3d0909a7f7dda57abeb8f7d0c0717e3cfc545bae",
+          "shortHash": "3d0909a",
+          "date": "2026-04-24T00:40:08+00:00",
+          "isoDate": "2026-04-24",
+          "subject": "expose dev server on 0.0.0.0 with allowed host for slidt.osogdata.dk",
+          "body": "Co-authored-by: Ralphify <noreply@ralphify.co>",
+          "author": "slidt ralph loop",
+          "type": "chore"
+        },
+        {
+          "hash": "dee0ec5d62c3e15c5a9e89120fb3343a0a84487d",
+          "shortHash": "dee0ec5",
+          "date": "2026-04-24T11:01:16+02:00",
+          "isoDate": "2026-04-24",
+          "subject": "commit Os & Data brand fonts + logo assets",
+          "body": "Adds Neureal display and mono woff2 files under static/fonts/ and the\ncore OOD logo SVGs (full, colors, stem, horizontal/vertical type, mark)\nunder static/assets/logo/. Wires Neureal Regular into font-css.ts so\nslide-type headings that reference 'Neureal' actually resolve instead\nof falling back to sans-serif. Drops the NeurealMono-Bold spec since\nthe brand pack only ships the regular weight.\n\nCo-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>",
+          "author": "Niels Ørbæk Chemnitz",
+          "type": "feat"
+        }
+      ]
+    },
+    {
+      "date": "2026-04-23",
+      "commits": [
+        {
+          "hash": "880810ca9970df4aeab1e7d5ecd0cb584bd73a25",
+          "shortHash": "880810c",
+          "date": "2026-04-23T20:15:28+00:00",
+          "isoDate": "2026-04-23",
+          "subject": "Mark Task 6: Backup script + README deploy guide complete",
+          "body": "Co-authored-by: Ralphify <noreply@ralphify.co>",
+          "author": "slidt ralph loop"
+        },
+        {
+          "hash": "bbec4bea5029cfe58defa82bda826d00402fd63f",
+          "shortHash": "bbec4be",
+          "date": "2026-04-23T20:15:06+00:00",
+          "isoDate": "2026-04-23",
+          "subject": "add backup script and full README deploy guide",
+          "body": "Co-authored-by: Ralphify <noreply@ralphify.co>",
+          "author": "slidt ralph loop",
+          "type": "feat"
+        },
+        {
+          "hash": "dd7e42e2441d90005bf7c3013841e22a2196f970",
+          "shortHash": "dd7e42e",
+          "date": "2026-04-23T20:12:50+00:00",
+          "isoDate": "2026-04-23",
+          "subject": "Mark Task 5: import-deck main CLI + package.json script complete",
+          "body": "Co-authored-by: Ralphify <noreply@ralphify.co>",
+          "author": "slidt ralph loop"
+        },
+        {
+          "hash": "005b332215aeb3e288e6b3304c30261f2d15ab7c",
+          "shortHash": "005b332",
+          "date": "2026-04-23T20:12:21+00:00",
+          "isoDate": "2026-04-23",
+          "subject": "add import-deck CLI to import slides.json into the database",
+          "body": "Fix TS2532 strict null errors in import-deck-parse test (non-null assertions).\n\nCo-authored-by: Ralphify <noreply@ralphify.co>",
+          "author": "slidt ralph loop",
+          "type": "feat"
+        },
+        {
+          "hash": "434b782ecd6d27d98a18636979d2901770015a5c",
+          "shortHash": "434b782",
+          "date": "2026-04-23T20:09:12+00:00",
+          "isoDate": "2026-04-23",
+          "subject": "Mark Task 4: import-deck parse module + unit test complete",
+          "body": "Co-authored-by: Ralphify <noreply@ralphify.co>",
+          "author": "slidt ralph loop"
+        },
+        {
+          "hash": "786ef2a56f5a315cfac8210255013dbf17297585",
+          "shortHash": "786ef2a",
+          "date": "2026-04-23T20:08:59+00:00",
+          "isoDate": "2026-04-23",
+          "subject": "add import-deck parse module with unit tests",
+          "body": "Co-authored-by: Ralphify <noreply@ralphify.co>",
+          "author": "slidt ralph loop",
+          "type": "feat"
+        },
+        {
+          "hash": "dc94dff060524cb91d1afddecfecf9d2ce1044fd",
+          "shortHash": "dc94dff",
+          "date": "2026-04-23T20:07:10+00:00",
+          "isoDate": "2026-04-23",
+          "subject": "Mark Task 3: Docker Compose full stack + Caddyfile + .env.example complete",
+          "body": "Co-authored-by: Ralphify <noreply@ralphify.co>",
+          "author": "slidt ralph loop"
+        },
+        {
+          "hash": "6beab8eba1feef61c69a25812d90ce7abc64ac66",
+          "shortHash": "6beab8e",
+          "date": "2026-04-23T20:06:53+00:00",
+          "isoDate": "2026-04-23",
+          "subject": "add full Docker Compose stack (app + caddy) and Caddyfile",
+          "body": "Co-authored-by: Ralphify <noreply@ralphify.co>",
+          "author": "slidt ralph loop",
+          "type": "feat"
+        },
+        {
+          "hash": "a4016cf331ae8ab4a0df6e8bb398409975acc1ab",
+          "shortHash": "a4016cf",
+          "date": "2026-04-23T20:05:09+00:00",
+          "isoDate": "2026-04-23",
+          "subject": "Mark Task 2: Dockerfile + .dockerignore complete",
+          "body": "Co-authored-by: Ralphify <noreply@ralphify.co>",
+          "author": "slidt ralph loop"
+        },
+        {
+          "hash": "c92a4c56f13c0402447d3a969a728bb43fe7258b",
+          "shortHash": "c92a4c5",
+          "date": "2026-04-23T20:04:51+00:00",
+          "isoDate": "2026-04-23",
+          "subject": "add Dockerfile (single-stage bookworm with Playwright Chromium)",
+          "body": "Co-authored-by: Ralphify <noreply@ralphify.co>",
+          "author": "slidt ralph loop",
+          "type": "feat"
+        },
+        {
+          "hash": "de8819643b93f880f76ac06aea6e6e184bd3e24a",
+          "shortHash": "de88196",
+          "date": "2026-04-23T19:55:15+00:00",
+          "isoDate": "2026-04-23",
+          "subject": "Mark Task 1: Health module + DB-check unit test complete",
+          "body": "Co-authored-by: Ralphify <noreply@ralphify.co>",
+          "author": "slidt ralph loop"
+        },
+        {
+          "hash": "01f45d7724c8d65f9ba6150ceda486891fe4a732",
+          "shortHash": "01f45d7",
+          "date": "2026-04-23T19:54:50+00:00",
+          "isoDate": "2026-04-23",
+          "subject": "add health module with injectable DB ping and update /healthz route",
+          "body": "Co-authored-by: Ralphify <noreply@ralphify.co>",
+          "author": "slidt ralph loop",
+          "type": "feat"
+        },
+        {
+          "hash": "1ab9a15aae38012cba66355a47a5617e90c51144",
+          "shortHash": "1ab9a15",
+          "date": "2026-04-23T19:52:38+00:00",
+          "isoDate": "2026-04-23",
+          "subject": "Add Plan 6: Migration + Deployment implementation plan",
+          "body": "Co-authored-by: Ralphify <noreply@ralphify.co>",
+          "author": "slidt ralph loop"
+        },
+        {
+          "hash": "535914f18bd7b215593fd22c1f78f4c38c35ad41",
+          "shortHash": "535914f",
+          "date": "2026-04-23T19:44:33+00:00",
+          "isoDate": "2026-04-23",
+          "subject": "Mark Task 4: Wire up AgentPanel with real SSE streaming complete",
+          "body": "Co-authored-by: Ralphify <noreply@ralphify.co>",
+          "author": "slidt ralph loop"
+        },
+        {
+          "hash": "6455eca3b5c10502add2a5de0aebbb6987c83935",
+          "shortHash": "6455eca",
+          "date": "2026-04-23T19:44:09+00:00",
+          "isoDate": "2026-04-23",
+          "subject": "wire AgentPanel to agent SSE endpoint with streaming and undo",
+          "body": "Co-authored-by: Ralphify <noreply@ralphify.co>",
+          "author": "slidt ralph loop",
+          "type": "feat"
+        },
+        {
+          "hash": "bdd3ecdef6966b552d6d433c6f6d612dc1dbf9c9",
+          "shortHash": "bdd3ecd",
+          "date": "2026-04-23T19:41:10+00:00",
+          "isoDate": "2026-04-23",
+          "subject": "Mark Task 3: Agent SSE runner + route complete",
+          "body": "Co-authored-by: Ralphify <noreply@ralphify.co>",
+          "author": "slidt ralph loop"
+        },
+        {
+          "hash": "9466477c260c71c65d0a49f9219ae201cf66e67d",
+          "shortHash": "9466477",
+          "date": "2026-04-23T19:40:50+00:00",
+          "isoDate": "2026-04-23",
+          "subject": "add agent SSE runner and POST /api/decks/[id]/agent route",
+          "body": "Co-authored-by: Ralphify <noreply@ralphify.co>",
+          "author": "slidt ralph loop",
+          "type": "feat"
+        },
+        {
+          "hash": "5dbc8f55c88e784f537b9c6364a2542cec37ecab",
+          "shortHash": "5dbc8f5",
+          "date": "2026-04-23T19:37:57+00:00",
+          "isoDate": "2026-04-23",
+          "subject": "Mark Task 2: Agent tool definitions and handlers complete",
+          "body": "Co-authored-by: Ralphify <noreply@ralphify.co>",
+          "author": "slidt ralph loop"
+        },
+        {
+          "hash": "fe73ee1183edd6e3ea9b9e75c8511c5b02f0a703",
+          "shortHash": "fe73ee1",
+          "date": "2026-04-23T19:37:40+00:00",
+          "isoDate": "2026-04-23",
+          "subject": "add agent tool definitions and executeTool dispatcher",
+          "body": "Co-authored-by: Ralphify <noreply@ralphify.co>",
+          "author": "slidt ralph loop",
+          "type": "feat"
+        },
+        {
+          "hash": "82d242cb7ddf634bc35392be735a28e1dbd77c79",
+          "shortHash": "82d242c",
+          "date": "2026-04-23T19:34:52+00:00",
+          "isoDate": "2026-04-23",
+          "subject": "Mark Task 1: Install @anthropic-ai/sdk + guardrails module complete",
+          "body": "Co-authored-by: Ralphify <noreply@ralphify.co>",
+          "author": "slidt ralph loop"
+        },
+        {
+          "hash": "bd586fa721ca7216312553de0f5e77ed2a13075a",
+          "shortHash": "bd586fa",
+          "date": "2026-04-23T19:34:29+00:00",
+          "isoDate": "2026-04-23",
+          "subject": "add agent guardrails for Handlebars AST and CSS safety checks",
+          "body": "Co-authored-by: Ralphify <noreply@ralphify.co>",
+          "author": "slidt ralph loop",
+          "type": "feat"
+        },
+        {
+          "hash": "af54b3ae845aff421de87d7efbd16bc955f57285",
+          "shortHash": "af54b3a",
+          "date": "2026-04-23T19:31:52+00:00",
+          "isoDate": "2026-04-23",
+          "subject": "Add Plan 5: Agent implementation plan",
+          "body": "Co-authored-by: Ralphify <noreply@ralphify.co>",
+          "author": "slidt ralph loop"
+        },
+        {
+          "hash": "11a3edc8a14d0112b1dc92793afe4bf93c6fba35",
+          "shortHash": "11a3edc",
+          "date": "2026-04-23T19:17:39+00:00",
+          "isoDate": "2026-04-23",
+          "subject": "Mark Task 5: Playwright visual regression tests complete",
+          "body": "Co-authored-by: Ralphify <noreply@ralphify.co>",
+          "author": "slidt ralph loop"
+        },
+        {
+          "hash": "fec3250ab318e6ebd51c80a614a37e3f7d2aaa0b",
+          "shortHash": "fec3250",
+          "date": "2026-04-23T19:17:10+00:00",
+          "isoDate": "2026-04-23",
+          "subject": "add Playwright visual regression tests for all 13 built-in slide types",
+          "body": "Fix Buffer→Uint8Array typecheck error in export route\n\nCo-authored-by: Ralphify <noreply@ralphify.co>",
+          "author": "slidt ralph loop",
+          "type": "feat"
+        },
+        {
+          "hash": "166cfcb6bff80abfdd2ca62331cc7b1180cbe5c1",
+          "shortHash": "166cfcb",
+          "date": "2026-04-23T19:12:37+00:00",
+          "isoDate": "2026-04-23",
+          "subject": "Mark Task 4: Export PDF route complete",
+          "body": "Co-authored-by: Ralphify <noreply@ralphify.co>",
+          "author": "slidt ralph loop"
+        },
+        {
+          "hash": "d19d6a04ed9bc7c1eec7880325ad29851bc3fcc2",
+          "shortHash": "d19d6a0",
+          "date": "2026-04-23T19:12:17+00:00",
+          "isoDate": "2026-04-23",
+          "subject": "add GET /api/decks/[id]/export PDF export route",
+          "body": "Co-authored-by: Ralphify <noreply@ralphify.co>",
+          "author": "slidt ralph loop",
+          "type": "feat"
+        },
+        {
+          "hash": "d3d001aa15280630685fbaeee7d05feab09a0eee",
+          "shortHash": "d3d001a",
+          "date": "2026-04-23T19:10:14+00:00",
+          "isoDate": "2026-04-23",
+          "subject": "Mark Task 3: Playwright install + PDF renderer complete",
+          "body": "Co-authored-by: Ralphify <noreply@ralphify.co>",
+          "author": "slidt ralph loop"
+        },
+        {
+          "hash": "969db72d24c1e2daad483f080ae9972d3f56f9b1",
+          "shortHash": "969db72",
+          "date": "2026-04-23T19:09:53+00:00",
+          "isoDate": "2026-04-23",
+          "subject": "add Playwright PDF renderer with font injection",
+          "body": "Co-authored-by: Ralphify <noreply@ralphify.co>",
+          "author": "slidt ralph loop",
+          "type": "feat"
+        },
+        {
+          "hash": "d0bd4486fff8ec19bf1376daca54d443762e5080",
+          "shortHash": "d0bd448",
+          "date": "2026-04-23T19:06:56+00:00",
+          "isoDate": "2026-04-23",
+          "subject": "Mark Task 2: Font-face CSS helper complete",
+          "body": "Co-authored-by: Ralphify <noreply@ralphify.co>",
+          "author": "slidt ralph loop"
+        },
+        {
+          "hash": "ae6c2525b437cad13e77208aa9e55aed20657947",
+          "shortHash": "ae6c252",
+          "date": "2026-04-23T19:06:37+00:00",
+          "isoDate": "2026-04-23",
+          "subject": "add font-css helper with base64 Inter @font-face rules",
+          "body": "Co-authored-by: Ralphify <noreply@ralphify.co>",
+          "author": "slidt ralph loop",
+          "type": "feat"
+        },
+        {
+          "hash": "18ea7e96b78bd73f129be3d36d1ba9f58eb72d8d",
+          "shortHash": "18ea7e9",
+          "date": "2026-04-23T19:04:22+00:00",
+          "isoDate": "2026-04-23",
+          "subject": "Mark Task 1: pdf-lib stitching utility complete",
+          "body": "Co-authored-by: Ralphify <noreply@ralphify.co>",
+          "author": "slidt ralph loop"
+        },
+        {
+          "hash": "e1fde29c1cd65508c78de0d77a8f28232a239ad5",
+          "shortHash": "e1fde29",
+          "date": "2026-04-23T19:04:04+00:00",
+          "isoDate": "2026-04-23",
+          "subject": "add pdf-lib stitching utility",
+          "body": "Co-authored-by: Ralphify <noreply@ralphify.co>",
+          "author": "slidt ralph loop",
+          "type": "feat"
+        },
+        {
+          "hash": "ceeafebb548d5dbca646e498d963c12e0e39d53d",
+          "shortHash": "ceeafeb",
+          "date": "2026-04-23T19:02:35+00:00",
+          "isoDate": "2026-04-23",
+          "subject": "Add Plan 4: PDF export implementation plan",
+          "body": "Co-authored-by: Ralphify <noreply@ralphify.co>",
+          "author": "slidt ralph loop"
+        },
+        {
+          "hash": "6a07ad8e110970d737984d43648a0d6e66cdb2ae",
+          "shortHash": "6a07ad8",
+          "date": "2026-04-23T18:59:56+00:00",
+          "isoDate": "2026-04-23",
+          "subject": "update ralph commands + renderer for 6-plan roadmap",
+          "body": "- Fix roadmap-status.sh slug for Plan 2 (02-data-api-auth)\n- Update ralph commands (plan-status, next-task-header, next-unchecked)\n  to use get-current-plan.sh instead of hardcoded Plan 1 path\n- Add roadmap-status and current-plan commands to RALPH.md\n- Extract cornerStyles from baseStyles as a named export\n- Add hideCorner? to SlideType interface\n- Conditionally include cornerStyles only when slides use the corner logo\n\nCo-authored-by: Ralphify <noreply@ralphify.co>",
+          "author": "slidt ralph loop",
+          "type": "chore"
+        },
+        {
+          "hash": "668e25b07bdba31fb3cace74976631e5b7c8ec3f",
+          "shortHash": "668e25b",
+          "date": "2026-04-23T18:49:38+00:00",
+          "isoDate": "2026-04-23",
+          "subject": "Mark Task 12: Typecheck + full test run + roadmap complete",
+          "body": "Co-authored-by: Ralphify <noreply@ralphify.co>",
+          "author": "slidt ralph loop"
+        },
+        {
+          "hash": "05709a1c3e6596b9fbfa194c715e64fdc1a5d944",
+          "shortHash": "05709a1",
+          "date": "2026-04-23T18:47:53+00:00",
+          "isoDate": "2026-04-23",
+          "subject": "Mark Task 11: Share link view complete",
+          "body": "Co-authored-by: Ralphify <noreply@ralphify.co>",
+          "author": "slidt ralph loop"
+        },
+        {
+          "hash": "fee8af8b7557a47472278d0492b1f386d7f43719",
+          "shortHash": "fee8af8",
+          "date": "2026-04-23T18:47:32+00:00",
+          "isoDate": "2026-04-23",
+          "subject": "add share link view (server-rendered read-only deck iframe)",
+          "body": "Co-authored-by: Ralphify <noreply@ralphify.co>",
+          "author": "slidt ralph loop",
+          "type": "feat"
+        },
+        {
+          "hash": "3083d8c374e1377a7b0f2956aee1d5833632a116",
+          "shortHash": "3083d8c",
+          "date": "2026-04-23T18:45:18+00:00",
+          "isoDate": "2026-04-23",
+          "subject": "Mark Task 10: Template editor complete",
+          "body": "Co-authored-by: Ralphify <noreply@ralphify.co>",
+          "author": "slidt ralph loop"
+        },
+        {
+          "hash": "ab219ec24587bce742e0d24c5a36d8690a80a98a",
+          "shortHash": "ab219ec",
+          "date": "2026-04-23T18:44:53+00:00",
+          "isoDate": "2026-04-23",
+          "subject": "add template list and editor (fields JSON + Handlebars + CSS + live preview)",
+          "body": "Co-authored-by: Ralphify <noreply@ralphify.co>",
+          "author": "slidt ralph loop",
+          "type": "feat"
+        },
+        {
+          "hash": "92f1508a476b9748e84f6ffa3e67b173af0a7070",
+          "shortHash": "92f1508",
+          "date": "2026-04-23T18:42:24+00:00",
+          "isoDate": "2026-04-23",
+          "subject": "Mark Task 9: Theme editor complete",
+          "body": "Co-authored-by: Ralphify <noreply@ralphify.co>",
+          "author": "slidt ralph loop"
+        },
+        {
+          "hash": "cfd180eaefd1a9396a1fa1f46a940669d42bd7ba",
+          "shortHash": "cfd180e",
+          "date": "2026-04-23T18:41:53+00:00",
+          "isoDate": "2026-04-23",
+          "subject": "add theme list and token editor with live preview",
+          "body": "Co-authored-by: Ralphify <noreply@ralphify.co>",
+          "author": "slidt ralph loop",
+          "type": "feat"
+        },
+        {
+          "hash": "d45a12bda4d7a159c55062c191d984f6fd580810",
+          "shortHash": "d45a12b",
+          "date": "2026-04-23T18:39:13+00:00",
+          "isoDate": "2026-04-23",
+          "subject": "Mark Task 8: Agent panel shell component complete",
+          "body": "Co-authored-by: Ralphify <noreply@ralphify.co>",
+          "author": "slidt ralph loop"
+        },
+        {
+          "hash": "0485ddfa69dde53f959d632fc77183bd5d694e71",
+          "shortHash": "0485ddf",
+          "date": "2026-04-23T18:38:55+00:00",
+          "isoDate": "2026-04-23",
+          "subject": "add AgentPanel component (chat shell, LLM wired in Plan 5)",
+          "body": "Co-authored-by: Ralphify <noreply@ralphify.co>",
+          "author": "slidt ralph loop",
+          "type": "feat"
+        },
+        {
+          "hash": "ef80b2660643fb4f6dc2cf004847a25327d44f3a",
+          "shortHash": "ef80b26",
+          "date": "2026-04-23T18:36:50+00:00",
+          "isoDate": "2026-04-23",
+          "subject": "Mark Task 7: Deck editor — client page complete",
+          "body": "Co-authored-by: Ralphify <noreply@ralphify.co>",
+          "author": "slidt ralph loop"
+        },
+        {
+          "hash": "7fdf46b7bc485b819c262a34425a1e280e7a9e1c",
+          "shortHash": "7fdf46b",
+          "date": "2026-04-23T18:36:32+00:00",
+          "isoDate": "2026-04-23",
+          "subject": "add deck editor page (slide list, field form, live preview, autosave, drag-reorder, type picker)",
+          "body": "Co-authored-by: Ralphify <noreply@ralphify.co>",
+          "author": "slidt ralph loop",
+          "type": "feat"
+        },
+        {
+          "hash": "3d112dd3334ae565691a88192083ef87f7d40aac",
+          "shortHash": "3d112dd",
+          "date": "2026-04-23T18:34:24+00:00",
+          "isoDate": "2026-04-23",
+          "subject": "Mark Task 6: Deck editor — server data loading complete",
+          "body": "Co-authored-by: Ralphify <noreply@ralphify.co>",
+          "author": "slidt ralph loop"
+        },
+        {
+          "hash": "412a77c1ed6695d8201c32bf84cdc95b9d6b24b6",
+          "shortHash": "412a77c",
+          "date": "2026-04-23T18:34:11+00:00",
+          "isoDate": "2026-04-23",
+          "subject": "add deck editor server load (deck, ordered slides, slideTypes, theme)",
+          "body": "Co-authored-by: Ralphify <noreply@ralphify.co>",
+          "author": "slidt ralph loop",
+          "type": "feat"
+        },
+        {
+          "hash": "f7ab7115b15a4e5715102bc0158eba39d8c84630",
+          "shortHash": "f7ab711",
+          "date": "2026-04-23T18:32:38+00:00",
+          "isoDate": "2026-04-23",
+          "subject": "Mark Task 5: SlidePreview component complete",
+          "body": "Co-authored-by: Ralphify <noreply@ralphify.co>",
+          "author": "slidt ralph loop"
+        },
+        {
+          "hash": "debac97a71b0bc01cd2fd4bd2d25e40f9324d4dc",
+          "shortHash": "debac97",
+          "date": "2026-04-23T18:32:26+00:00",
+          "isoDate": "2026-04-23",
+          "subject": "add SlidePreview component (iframe preview using browser-side render())",
+          "body": "Co-authored-by: Ralphify <noreply@ralphify.co>",
+          "author": "slidt ralph loop",
+          "type": "feat"
+        },
+        {
+          "hash": "271ace9b23d182acd284adda9c05afd69a4a3eb6",
+          "shortHash": "271ace9",
+          "date": "2026-04-23T18:30:42+00:00",
+          "isoDate": "2026-04-23",
+          "subject": "Mark Task 4: FieldEditor component complete",
+          "body": "Co-authored-by: Ralphify <noreply@ralphify.co>",
+          "author": "slidt ralph loop"
+        },
+        {
+          "hash": "7e2d9bede9ed50f2bca2924d15922bdf217c70c4",
+          "shortHash": "7e2d9be",
+          "date": "2026-04-23T18:30:29+00:00",
+          "isoDate": "2026-04-23",
+          "subject": "add FieldEditor component (recursive field renderer for all field types)",
+          "body": "Co-authored-by: Ralphify <noreply@ralphify.co>",
+          "author": "slidt ralph loop",
+          "type": "feat"
+        },
+        {
+          "hash": "d167c25ef8ffbdd468395c926e45aa653fe3a830",
+          "shortHash": "d167c25",
+          "date": "2026-04-23T18:29:03+00:00",
+          "isoDate": "2026-04-23",
+          "subject": "Mark Task 3: Deck list page complete",
+          "body": "Co-authored-by: Ralphify <noreply@ralphify.co>",
+          "author": "slidt ralph loop"
+        },
+        {
+          "hash": "9f4ef9edbaf39375315ab0748331550bc9b67ddf",
+          "shortHash": "9f4ef9e",
+          "date": "2026-04-23T18:28:38+00:00",
+          "isoDate": "2026-04-23",
+          "subject": "add deck list page with create/delete actions",
+          "body": "Co-authored-by: Ralphify <noreply@ralphify.co>",
+          "author": "slidt ralph loop",
+          "type": "feat"
+        },
+        {
+          "hash": "13cd031fbd65c9795360cb2f38f21ef89c018a86",
+          "shortHash": "13cd031",
+          "date": "2026-04-23T18:26:45+00:00",
+          "isoDate": "2026-04-23",
+          "subject": "Mark Task 2: Auth layout + login + logout complete",
+          "body": "Co-authored-by: Ralphify <noreply@ralphify.co>",
+          "author": "slidt ralph loop"
+        },
+        {
+          "hash": "9b507cd66932e9957a387fb61144dc38b02b04f3",
+          "shortHash": "9b507cd",
+          "date": "2026-04-23T18:26:21+00:00",
+          "isoDate": "2026-04-23",
+          "subject": "add auth layout, login page, and logout route",
+          "body": "Co-authored-by: Ralphify <noreply@ralphify.co>",
+          "author": "slidt ralph loop",
+          "type": "feat"
+        },
+        {
+          "hash": "5a9fb7f4c74e135d4eeae5e735b52f4d2f164dcf",
+          "shortHash": "5a9fb7f",
+          "date": "2026-04-23T18:23:28+00:00",
+          "isoDate": "2026-04-23",
+          "subject": "Mark Task 1: Utility helpers complete",
+          "body": "Co-authored-by: Ralphify <noreply@ralphify.co>",
+          "author": "slidt ralph loop"
+        },
+        {
+          "hash": "cd415ebd94a776640756ac78f3d713f594c7bc1f",
+          "shortHash": "cd415eb",
+          "date": "2026-04-23T18:23:09+00:00",
+          "isoDate": "2026-04-23",
+          "subject": "add utility helpers with tests (field-defaults, debounce, paths, filter-slide-types)",
+          "body": "Co-authored-by: Ralphify <noreply@ralphify.co>",
+          "author": "slidt ralph loop",
+          "type": "feat"
+        },
+        {
+          "hash": "eda3a386e24a79fdbf09f2da59ffce7cb7a8e56f",
+          "shortHash": "eda3a38",
+          "date": "2026-04-23T18:20:50+00:00",
+          "isoDate": "2026-04-23",
+          "subject": "Add Plan 3: Editor UI implementation plan",
+          "body": "Co-authored-by: Ralphify <noreply@ralphify.co>",
+          "author": "slidt ralph loop"
+        },
+        {
+          "hash": "32bcdac4b1aeabc9d050a3fcbf030da10a842088",
+          "shortHash": "32bcdac",
+          "date": "2026-04-23T18:04:24+00:00",
+          "isoDate": "2026-04-23",
+          "subject": "Mark Task 15: Final cleanup + update roadmap complete",
+          "body": "Co-authored-by: Ralphify <noreply@ralphify.co>",
+          "author": "slidt ralph loop"
+        },
+        {
+          "hash": "d1bed27c07ee85dd142ccbeeabe757539263a14d",
+          "shortHash": "d1bed27",
+          "date": "2026-04-23T18:04:08+00:00",
+          "isoDate": "2026-04-23",
+          "subject": "mark Plan 2 data/API/auth as written in roadmap",
+          "body": "Co-authored-by: Ralphify <noreply@ralphify.co>",
+          "author": "slidt ralph loop",
+          "type": "docs"
+        },
+        {
+          "hash": "67ade62a4bfb875166e40228ee04f4b6b85e11e9",
+          "shortHash": "67ade62",
+          "date": "2026-04-23T18:02:33+00:00",
+          "isoDate": "2026-04-23",
+          "subject": "Mark Task 14: Integration tests + full test suite complete",
+          "body": "Co-authored-by: Ralphify <noreply@ralphify.co>",
+          "author": "slidt ralph loop"
+        },
+        {
+          "hash": "7ef1f5a018e6b04b887e66c3ec29875496435a7c",
+          "shortHash": "7ef1f5a",
+          "date": "2026-04-23T18:02:06+00:00",
+          "isoDate": "2026-04-23",
+          "subject": "resolve TypeScript errors and unit test config",
+          "body": "- Add \\`extends: .svelte-kit/tsconfig.json\\` so \\`\\$lib\\` paths resolve\n- Exclude tests/api/** from unit test run (vitest.config.ts)\n- Cast Buffer to Uint8Array in asset GET route for BodyInit compat\n\nCo-authored-by: Ralphify <noreply@ralphify.co>",
+          "author": "slidt ralph loop",
+          "type": "fix"
+        },
+        {
+          "hash": "656651f66baadf0d60beeba0eb0ca52dcc3530b6",
+          "shortHash": "656651f",
+          "date": "2026-04-23T17:53:30+00:00",
+          "isoDate": "2026-04-23",
+          "subject": "Mark Task 13: Seed migration complete",
+          "body": "Co-authored-by: Ralphify <noreply@ralphify.co>",
+          "author": "slidt ralph loop"
+        },
+        {
+          "hash": "8d509c04523f0cb2a51cfe4ba173475802439a49",
+          "shortHash": "8d509c0",
+          "date": "2026-04-23T17:53:09+00:00",
+          "isoDate": "2026-04-23",
+          "subject": "add seed script for built-in slide types and ANTAL-Theta theme",
+          "body": "Co-authored-by: Ralphify <noreply@ralphify.co>",
+          "author": "slidt ralph loop",
+          "type": "feat"
+        },
+        {
+          "hash": "08461e061995b9d50b97e184a30e23cf2b7b5f22",
+          "shortHash": "08461e0",
+          "date": "2026-04-23T17:50:52+00:00",
+          "isoDate": "2026-04-23",
+          "subject": "Mark Task 12: Share-link API complete",
+          "body": "Co-authored-by: Ralphify <noreply@ralphify.co>",
+          "author": "slidt ralph loop"
+        },
+        {
+          "hash": "1f447b79cd516a2df9db023ff4479f7797dfa812",
+          "shortHash": "1f447b7",
+          "date": "2026-04-23T17:50:24+00:00",
+          "isoDate": "2026-04-23",
+          "subject": "add share-link API for decks",
+          "body": "Co-authored-by: Ralphify <noreply@ralphify.co>",
+          "author": "slidt ralph loop",
+          "type": "feat"
+        },
+        {
+          "hash": "404eb911a73ebe6ee6b7fb1cd51448028aa92398",
+          "shortHash": "404eb91",
+          "date": "2026-04-23T17:48:03+00:00",
+          "isoDate": "2026-04-23",
+          "subject": "Mark Task 11: Asset upload + local-disk storage complete",
+          "body": "Co-authored-by: Ralphify <noreply@ralphify.co>",
+          "author": "slidt ralph loop"
+        },
+        {
+          "hash": "9f058b1ba05f952a7527f57cd6db764bbd4c7d39",
+          "shortHash": "9f058b1",
+          "date": "2026-04-23T17:47:29+00:00",
+          "isoDate": "2026-04-23",
+          "subject": "add Asset upload and serve API with local-disk storage",
+          "body": "Co-authored-by: Ralphify <noreply@ralphify.co>",
+          "author": "slidt ralph loop",
+          "type": "feat"
+        },
+        {
+          "hash": "bc0f5c4d9eecba548e4f40e894c01c59f20808f2",
+          "shortHash": "bc0f5c4",
+          "date": "2026-04-23T17:45:17+00:00",
+          "isoDate": "2026-04-23",
+          "subject": "Mark Task 10: Theme + SlideType CRUD APIs complete",
+          "body": "Co-authored-by: Ralphify <noreply@ralphify.co>",
+          "author": "slidt ralph loop"
+        },
+        {
+          "hash": "14b07994fef42af6fc9b88d3bbebcd1aa2588b3b",
+          "shortHash": "14b0799",
+          "date": "2026-04-23T17:44:55+00:00",
+          "isoDate": "2026-04-23",
+          "subject": "add Theme and SlideType (Template) CRUD API routes",
+          "body": "Co-authored-by: Ralphify <noreply@ralphify.co>",
+          "author": "slidt ralph loop",
+          "type": "feat"
+        },
+        {
+          "hash": "72c2b6b1e45756397fd4d51cb12a878a4c954460",
+          "shortHash": "72c2b6b",
+          "date": "2026-04-23T17:42:43+00:00",
+          "isoDate": "2026-04-23",
+          "subject": "Mark Task 9: Slide CRUD API complete",
+          "body": "Co-authored-by: Ralphify <noreply@ralphify.co>",
+          "author": "slidt ralph loop"
+        },
+        {
+          "hash": "494b4f90b37cd51eab6d8553403c620b60bb8d52",
+          "shortHash": "494b4f9",
+          "date": "2026-04-23T17:42:21+00:00",
+          "isoDate": "2026-04-23",
+          "subject": "add Slide CRUD API routes",
+          "body": "Co-authored-by: Ralphify <noreply@ralphify.co>",
+          "author": "slidt ralph loop",
+          "type": "feat"
+        },
+        {
+          "hash": "57802492308abb4bbcd12bf7ccfb26c57ff02335",
+          "shortHash": "5780249",
+          "date": "2026-04-23T17:40:21+00:00",
+          "isoDate": "2026-04-23",
+          "subject": "Mark Task 8: Deck CRUD API complete",
+          "body": "Co-authored-by: Ralphify <noreply@ralphify.co>",
+          "author": "slidt ralph loop"
+        },
+        {
+          "hash": "f7495e6a23f55a62822b8207dad2864e11eb4118",
+          "shortHash": "f7495e6",
+          "date": "2026-04-23T17:40:01+00:00",
+          "isoDate": "2026-04-23",
+          "subject": "add Deck CRUD API routes",
+          "body": "Co-authored-by: Ralphify <noreply@ralphify.co>",
+          "author": "slidt ralph loop",
+          "type": "feat"
+        },
+        {
+          "hash": "754bc62f8890eb2eb489ac71d6dda8ac972aa4bd",
+          "shortHash": "754bc62",
+          "date": "2026-04-23T17:36:58+00:00",
+          "isoDate": "2026-04-23",
+          "subject": "Mark Task 7: create-user + reset-password CLIs complete",
+          "body": "Co-authored-by: Ralphify <noreply@ralphify.co>",
+          "author": "slidt ralph loop"
+        },
+        {
+          "hash": "a2db77a27be0d75fc67c4b068fdcfd2d389e3890",
+          "shortHash": "a2db77a",
+          "date": "2026-04-23T17:36:35+00:00",
+          "isoDate": "2026-04-23",
+          "subject": "add create-user and reset-password CLI scripts",
+          "body": "Co-authored-by: Ralphify <noreply@ralphify.co>",
+          "author": "slidt ralph loop",
+          "type": "feat"
+        },
+        {
+          "hash": "3496bccdebdc9cd1e00e395bcb9861c1e7746ad8",
+          "shortHash": "3496bcc",
+          "date": "2026-04-23T17:34:21+00:00",
+          "isoDate": "2026-04-23",
+          "subject": "Mark Task 6: Auth routes (login + logout) complete",
+          "body": "Co-authored-by: Ralphify <noreply@ralphify.co>",
+          "author": "slidt ralph loop"
+        },
+        {
+          "hash": "9512fa78516a7e15f0d8472f47a00b35c06e01ae",
+          "shortHash": "9512fa7",
+          "date": "2026-04-23T17:33:57+00:00",
+          "isoDate": "2026-04-23",
+          "subject": "add login/logout API routes with session cookie",
+          "body": "Co-authored-by: Ralphify <noreply@ralphify.co>",
+          "author": "slidt ralph loop",
+          "type": "feat"
+        },
+        {
+          "hash": "155b5224b6455c63bc059e6494c44f41dd69f1e8",
+          "shortHash": "155b522",
+          "date": "2026-04-23T17:30:52+00:00",
+          "isoDate": "2026-04-23",
+          "subject": "Mark Task 5: hooks.server.ts + integration test helpers complete",
+          "body": "Co-authored-by: Ralphify <noreply@ralphify.co>",
+          "author": "slidt ralph loop"
+        },
+        {
+          "hash": "b6f758547dedc63becf655fe24117503e7825dc7",
+          "shortHash": "b6f7585",
+          "date": "2026-04-23T17:30:35+00:00",
+          "isoDate": "2026-04-23",
+          "subject": "add hooks.server.ts session resolver and integration test helpers",
+          "body": "Co-authored-by: Ralphify <noreply@ralphify.co>",
+          "author": "slidt ralph loop",
+          "type": "feat"
+        },
+        {
+          "hash": "0573b570e6d483afd1d645e22d20c7309361b2e4",
+          "shortHash": "0573b57",
+          "date": "2026-04-23T17:28:27+00:00",
+          "isoDate": "2026-04-23",
+          "subject": "Mark Task 4: Password hashing (argon2id) complete",
+          "body": "Co-authored-by: Ralphify <noreply@ralphify.co>",
+          "author": "slidt ralph loop"
+        },
+        {
+          "hash": "5e43a58fb1875c92feace43072e050d892e29e88",
+          "shortHash": "5e43a58",
+          "date": "2026-04-23T17:28:05+00:00",
+          "isoDate": "2026-04-23",
+          "subject": "add argon2id password hashing and session management",
+          "body": "Co-authored-by: Ralphify <noreply@ralphify.co>",
+          "author": "slidt ralph loop",
+          "type": "feat"
+        },
+        {
+          "hash": "326334a0a75442c03ab7dd1c0b31703fc77fbbf8",
+          "shortHash": "326334a",
+          "date": "2026-04-23T17:25:39+00:00",
+          "isoDate": "2026-04-23",
+          "subject": "Mark Task 3: DB client + migrations + integration test config complete",
+          "body": "Co-authored-by: Ralphify <noreply@ralphify.co>",
+          "author": "slidt ralph loop"
+        },
+        {
+          "hash": "23e364f6bac8928a4ecbf4ab453cc63917a0f244",
+          "shortHash": "23e364f",
+          "date": "2026-04-23T17:25:20+00:00",
+          "isoDate": "2026-04-23",
+          "subject": "add DB client, Drizzle migration, and integration test config",
+          "body": "Co-authored-by: Ralphify <noreply@ralphify.co>",
+          "author": "slidt ralph loop",
+          "type": "feat"
+        },
+        {
+          "hash": "b6f847191f5f0e9ebf040b0de345cdf7bb5094ca",
+          "shortHash": "b6f8471",
+          "date": "2026-04-23T17:22:31+00:00",
+          "isoDate": "2026-04-23",
+          "subject": "Mark Task 2: Drizzle schema complete",
+          "body": "Co-authored-by: Ralphify <noreply@ralphify.co>",
+          "author": "slidt ralph loop"
+        },
+        {
+          "hash": "ae9802a384444fbe683a06c00eb9c6b441e4e1d5",
+          "shortHash": "ae9802a",
+          "date": "2026-04-23T17:22:00+00:00",
+          "isoDate": "2026-04-23",
+          "subject": "add Drizzle schema (9 tables) and docker-compose",
+          "body": "Co-authored-by: Ralphify <noreply@ralphify.co>",
+          "author": "slidt ralph loop",
+          "type": "feat"
+        },
+        {
+          "hash": "e083b8cb2fa650c0b8a4b537f2925d05c7c589b7",
+          "shortHash": "e083b8c",
+          "date": "2026-04-23T17:18:42+00:00",
+          "isoDate": "2026-04-23",
+          "subject": "Mark Task 1: SvelteKit scaffold + healthz endpoint complete",
+          "body": "Co-authored-by: Ralphify <noreply@ralphify.co>",
+          "author": "slidt ralph loop"
+        },
+        {
+          "hash": "d38edb9a09d4e885e5bcc321e3a42445d7e9544b",
+          "shortHash": "d38edb9",
+          "date": "2026-04-23T17:18:14+00:00",
+          "isoDate": "2026-04-23",
+          "subject": "add SvelteKit scaffold and /healthz endpoint",
+          "body": "Co-authored-by: Ralphify <noreply@ralphify.co>",
+          "author": "slidt ralph loop",
+          "type": "feat"
+        },
+        {
+          "hash": "9a868349da09150cc926e7b93f5dfb188fe3b31e",
+          "shortHash": "9a86834",
+          "date": "2026-04-23T17:15:52+00:00",
+          "isoDate": "2026-04-23",
+          "subject": "Add Plan 2: data model + API + auth implementation plan",
+          "body": "Co-authored-by: Ralphify <noreply@ralphify.co>",
+          "author": "slidt ralph loop"
+        },
+        {
+          "hash": "ff33a4a92d862801818464f14d676d3f9fea40b2",
+          "shortHash": "ff33a4a",
+          "date": "2026-04-23T15:52:16+00:00",
+          "isoDate": "2026-04-23",
+          "subject": "Mark Task 16: Full-deck golden test complete",
+          "body": "Generated with [Claude Code](https://claude.ai/code)\nvia [Happy](https://happy.engineering)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nCo-Authored-By: Happy <yesreply@happy.engineering>\nCo-authored-by: Ralphify <noreply@ralphify.co>",
+          "author": "slidt ralph loop"
+        },
+        {
+          "hash": "b9a59cb4620aa974aae11e5f05254bb67c0f3808",
+          "shortHash": "b9a59cb",
+          "date": "2026-04-23T15:51:03+00:00",
+          "isoDate": "2026-04-23",
+          "subject": "Add end-to-end golden test rendering the full ANTAL deck",
+          "body": "Generated with [Claude Code](https://claude.ai/code)\nvia [Happy](https://happy.engineering)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nCo-Authored-By: Happy <yesreply@happy.engineering>\nCo-authored-by: Ralphify <noreply@ralphify.co>",
+          "author": "slidt ralph loop"
+        },
+        {
+          "hash": "1ec6dca6a4b5adf62920a7a42d18ebafa32f978a",
+          "shortHash": "1ec6dca",
+          "date": "2026-04-23T15:46:32+00:00",
+          "isoDate": "2026-04-23",
+          "subject": "Mark Task 15: ANTAL-Theta default theme complete",
+          "body": "Generated with [Claude Code](https://claude.ai/code)\nvia [Happy](https://happy.engineering)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nCo-Authored-By: Happy <yesreply@happy.engineering>\nCo-authored-by: Ralphify <noreply@ralphify.co>",
+          "author": "slidt ralph loop"
+        },
+        {
+          "hash": "a5a406b10543eaa0efee069397c71c18ea638e8d",
+          "shortHash": "a5a406b",
+          "date": "2026-04-23T15:46:12+00:00",
+          "isoDate": "2026-04-23",
+          "subject": "Extract ANTAL-Theta default theme tokens from styles.css",
+          "body": "Generated with [Claude Code](https://claude.ai/code)\nvia [Happy](https://happy.engineering)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nCo-Authored-By: Happy <yesreply@happy.engineering>\nCo-authored-by: Ralphify <noreply@ralphify.co>",
+          "author": "slidt ralph loop"
+        },
+        {
+          "hash": "d7c319b29ba73183292096b78ba2166d6cdb4636",
+          "shortHash": "d7c319b",
+          "date": "2026-04-23T15:45:07+00:00",
+          "isoDate": "2026-04-23",
+          "subject": "Mark Task 14: Built-in slide types appendix-list + registry complete",
+          "body": "Generated with [Claude Code](https://claude.ai/code)\nvia [Happy](https://happy.engineering)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nCo-Authored-By: Happy <yesreply@happy.engineering>\nCo-authored-by: Ralphify <noreply@ralphify.co>",
+          "author": "slidt ralph loop"
+        },
+        {
+          "hash": "f636d9af04fcb7951e752da149b92a8334b540ba",
+          "shortHash": "f636d9a",
+          "date": "2026-04-23T15:44:44+00:00",
+          "isoDate": "2026-04-23",
+          "subject": "Add appendix-list slide type and BUILT_IN_SLIDE_TYPES registry",
+          "body": "Generated with [Claude Code](https://claude.ai/code)\nvia [Happy](https://happy.engineering)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nCo-Authored-By: Happy <yesreply@happy.engineering>\nCo-authored-by: Ralphify <noreply@ralphify.co>",
+          "author": "slidt ralph loop"
+        },
+        {
+          "hash": "19bcf0df64d880fc120cfa1298cd01ea98335241",
+          "shortHash": "19bcf0d",
+          "date": "2026-04-23T15:42:56+00:00",
+          "isoDate": "2026-04-23",
+          "subject": "Mark Task 13: Built-in slide types batch 3 complete",
+          "body": "Generated with [Claude Code](https://claude.ai/code)\nvia [Happy](https://happy.engineering)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nCo-Authored-By: Happy <yesreply@happy.engineering>\nCo-authored-by: Ralphify <noreply@ralphify.co>",
+          "author": "slidt ralph loop"
+        },
+        {
+          "hash": "4c7c250f37018cdff8cc8897bd0ca80272fd9fe9",
+          "shortHash": "4c7c250",
+          "date": "2026-04-23T15:42:25+00:00",
+          "isoDate": "2026-04-23",
+          "subject": "Port 4 more built-in slide types (reserve, purposes, ownership, friction)",
+          "body": "Generated with [Claude Code](https://claude.ai/code)\nvia [Happy](https://happy.engineering)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nCo-Authored-By: Happy <yesreply@happy.engineering>\nCo-authored-by: Ralphify <noreply@ralphify.co>",
+          "author": "slidt ralph loop"
+        },
+        {
+          "hash": "39485f7eb957836b4b2eb77bc735297f3859e216",
+          "shortHash": "39485f7",
+          "date": "2026-04-23T15:40:24+00:00",
+          "isoDate": "2026-04-23",
+          "subject": "Mark Task 12: Built-in slide types batch 2 complete",
+          "body": "Generated with [Claude Code](https://claude.ai/code)\nvia [Happy](https://happy.engineering)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nCo-Authored-By: Happy <yesreply@happy.engineering>\nCo-authored-by: Ralphify <noreply@ralphify.co>",
+          "author": "slidt ralph loop"
+        },
+        {
+          "hash": "3717a6a24eb5b41173350d6eb4202ec7c7ede157",
+          "shortHash": "3717a6a",
+          "date": "2026-04-23T15:39:29+00:00",
+          "isoDate": "2026-04-23",
+          "subject": "Port 4 more built-in slide types (content, principles, discussion, values)",
+          "body": "Generated with [Claude Code](https://claude.ai/code)\nvia [Happy](https://happy.engineering)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nCo-Authored-By: Happy <yesreply@happy.engineering>\nCo-authored-by: Ralphify <noreply@ralphify.co>",
+          "author": "slidt ralph loop"
+        },
+        {
+          "hash": "1321aa7d6e23438b2aa0102508fdc120590485e5",
+          "shortHash": "1321aa7",
+          "date": "2026-04-23T15:37:20+00:00",
+          "isoDate": "2026-04-23",
+          "subject": "Mark Task 11: Built-in slide types batch 1 complete",
+          "body": "Generated with [Claude Code](https://claude.ai/code)\nvia [Happy](https://happy.engineering)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nCo-Authored-By: Happy <yesreply@happy.engineering>\nCo-authored-by: Ralphify <noreply@ralphify.co>",
+          "author": "slidt ralph loop"
+        },
+        {
+          "hash": "7e83fed9c7ccfaeb009cc679b6d847dec3f36875",
+          "shortHash": "7e83fed",
+          "date": "2026-04-23T15:36:41+00:00",
+          "isoDate": "2026-04-23",
+          "subject": "Port 4 built-in slide types (title, closing, section, agenda) + & CSS support",
+          "body": "Generated with [Claude Code](https://claude.ai/code)\nvia [Happy](https://happy.engineering)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nCo-Authored-By: Happy <yesreply@happy.engineering>\nCo-authored-by: Ralphify <noreply@ralphify.co>",
+          "author": "slidt ralph loop"
+        },
+        {
+          "hash": "e1c98f8b80325f04071ef28a8a8ddabb0613e5fc",
+          "shortHash": "e1c98f8",
+          "date": "2026-04-23T13:43:40+00:00",
+          "isoDate": "2026-04-23",
+          "subject": "Mark Task 10: Core render() function complete",
+          "body": "Generated with [Claude Code](https://claude.ai/code)\nvia [Happy](https://happy.engineering)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nCo-Authored-By: Happy <yesreply@happy.engineering>\nCo-authored-by: Ralphify <noreply@ralphify.co>",
+          "author": "slidt ralph loop"
+        },
+        {
+          "hash": "8c3fada13d8cc10366b74743769e6c2c27796194",
+          "shortHash": "8c3fada",
+          "date": "2026-04-23T13:43:18+00:00",
+          "isoDate": "2026-04-23",
+          "subject": "Add render() tying together validate, compile, scope, and wrap",
+          "body": "Generated with [Claude Code](https://claude.ai/code)\nvia [Happy](https://happy.engineering)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nCo-Authored-By: Happy <yesreply@happy.engineering>\nCo-authored-by: Ralphify <noreply@ralphify.co>",
+          "author": "slidt ralph loop"
+        },
+        {
+          "hash": "1a0044053453344fb2992486f8d5acdf45f7c2cd",
+          "shortHash": "1a00440",
+          "date": "2026-04-23T13:41:32+00:00",
+          "isoDate": "2026-04-23",
+          "subject": "Mark Task 9: Base styles + page shell complete",
+          "body": "Generated with [Claude Code](https://claude.ai/code)\nvia [Happy](https://happy.engineering)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nCo-Authored-By: Happy <yesreply@happy.engineering>\nCo-authored-by: Ralphify <noreply@ralphify.co>",
+          "author": "slidt ralph loop"
+        },
+        {
+          "hash": "e37a2ee6c1b82b854d6117024eeb723081b7cfce",
+          "shortHash": "e37a2ee",
+          "date": "2026-04-23T13:41:10+00:00",
+          "isoDate": "2026-04-23",
+          "subject": "Add baseStyles global stylesheet and pageShell document wrapper",
+          "body": "Generated with [Claude Code](https://claude.ai/code)\nvia [Happy](https://happy.engineering)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nCo-Authored-By: Happy <yesreply@happy.engineering>\nCo-authored-by: Ralphify <noreply@ralphify.co>",
+          "author": "slidt ralph loop"
+        },
+        {
+          "hash": "fc2f70381604ff338c8c5f57f804fc42d3c6e430",
+          "shortHash": "fc2f703",
+          "date": "2026-04-23T13:39:38+00:00",
+          "isoDate": "2026-04-23",
+          "subject": "Mark Task 8: Slide wrapping with page chrome complete",
+          "body": "Co-authored-by: Ralphify <noreply@ralphify.co>",
+          "author": "slidt ralph loop"
+        },
+        {
+          "hash": "8f998f56d4a727a25aa510f88e290bff079e6567",
+          "shortHash": "8f998f5",
+          "date": "2026-04-23T13:39:19+00:00",
+          "isoDate": "2026-04-23",
+          "subject": "Wrap slide content with page chrome (corner logo + page counter)",
+          "body": "Co-authored-by: Ralphify <noreply@ralphify.co>",
+          "author": "slidt ralph loop"
+        },
+        {
+          "hash": "e580d220ecddeaabfccdd36d8669414820c00081",
+          "shortHash": "e580d22",
+          "date": "2026-04-23T13:37:58+00:00",
+          "isoDate": "2026-04-23",
+          "subject": "Mark Task 7: CSS scoping with PostCSS complete",
+          "body": "Generated with [Claude Code](https://claude.ai/code)\nvia [Happy](https://happy.engineering)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nCo-Authored-By: Happy <yesreply@happy.engineering>\nCo-authored-by: Ralphify <noreply@ralphify.co>",
+          "author": "slidt ralph loop"
+        },
+        {
+          "hash": "934f3faa8523dc7c706c77b699d02f0d17b2fdde",
+          "shortHash": "934f3fa",
+          "date": "2026-04-23T13:37:32+00:00",
+          "isoDate": "2026-04-23",
+          "subject": "Add PostCSS-based CSS scoping for slide types",
+          "body": "Generated with [Claude Code](https://claude.ai/code)\nvia [Happy](https://happy.engineering)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nCo-Authored-By: Happy <yesreply@happy.engineering>\nCo-authored-by: Ralphify <noreply@ralphify.co>",
+          "author": "slidt ralph loop"
+        },
+        {
+          "hash": "9bf25b425c16a7bb73afbcdf10141b837b4c9aa9",
+          "shortHash": "9bf25b4",
+          "date": "2026-04-23T13:36:17+00:00",
+          "isoDate": "2026-04-23",
+          "subject": "Mark Task 6: Theme CSS generation complete",
+          "body": "Co-authored-by: Ralphify <noreply@ralphify.co>",
+          "author": "slidt ralph loop"
+        },
+        {
+          "hash": "199555de6a112816a3663534b9a3f08d705eb760",
+          "shortHash": "199555d",
+          "date": "2026-04-23T13:35:58+00:00",
+          "isoDate": "2026-04-23",
+          "subject": "Emit theme tokens as :root CSS custom properties",
+          "body": "Co-authored-by: Ralphify <noreply@ralphify.co>",
+          "author": "slidt ralph loop"
+        },
+        {
+          "hash": "10fe9c47c4d757a7c806e257dcb59f7558f2bf1c",
+          "shortHash": "10fe9c4",
+          "date": "2026-04-23T13:34:42+00:00",
+          "isoDate": "2026-04-23",
+          "subject": "Mark Task 5: Field validation complete",
+          "body": "Generated with [Claude Code](https://claude.ai/code)\nvia [Happy](https://happy.engineering)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nCo-Authored-By: Happy <yesreply@happy.engineering>\nCo-authored-by: Ralphify <noreply@ralphify.co>",
+          "author": "slidt ralph loop"
+        },
+        {
+          "hash": "a5611a798685bedc88f9e3cfdcd6151cc5530235",
+          "shortHash": "a5611a7",
+          "date": "2026-04-23T13:34:23+00:00",
+          "isoDate": "2026-04-23",
+          "subject": "Add field validation with nested list/group support",
+          "body": "Generated with [Claude Code](https://claude.ai/code)\nvia [Happy](https://happy.engineering)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nCo-Authored-By: Happy <yesreply@happy.engineering>\nCo-authored-by: Ralphify <noreply@ralphify.co>",
+          "author": "slidt ralph loop"
+        },
+        {
+          "hash": "3a011e9cc815f08786c991f2a737828b7f8f738a",
+          "shortHash": "3a011e9",
+          "date": "2026-04-23T13:31:38+00:00",
+          "isoDate": "2026-04-23",
+          "subject": "Mark Task 4: Handlebars helper registration complete",
+          "body": "Generated with [Claude Code](https://claude.ai/code)\nvia [Happy](https://happy.engineering)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nCo-Authored-By: Happy <yesreply@happy.engineering>\nCo-authored-by: Ralphify <noreply@ralphify.co>",
+          "author": "slidt ralph loop"
+        },
+        {
+          "hash": "4deeae73b64ba59a184f2e0caa562ea3bcd7543f",
+          "shortHash": "4deeae7",
+          "date": "2026-04-23T13:31:17+00:00",
+          "isoDate": "2026-04-23",
+          "subject": "Set up isolated Handlebars env with fmt, eq, default helpers",
+          "body": "Generated with [Claude Code](https://claude.ai/code)\nvia [Happy](https://happy.engineering)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nCo-Authored-By: Happy <yesreply@happy.engineering>\nCo-authored-by: Ralphify <noreply@ralphify.co>",
+          "author": "slidt ralph loop"
+        },
+        {
+          "hash": "601eebe69bd296e6ea2ec35aeaff12fb1288105a",
+          "shortHash": "601eebe",
+          "date": "2026-04-23T15:25:45+02:00",
+          "isoDate": "2026-04-23",
+          "subject": "Add project README",
+          "body": "Covers what slidt is, architecture, roadmap, and doc pointers — gives\nanyone landing on the repo a clear picture before Plan 1 lands code.\n\nCo-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>",
+          "author": "Niels Ørbæk Chemnitz"
+        },
+        {
+          "hash": "937abc2bed5138eca55190e1236513566b12650a",
+          "shortHash": "937abc2",
+          "date": "2026-04-23T13:30:00+00:00",
+          "isoDate": "2026-04-23",
+          "subject": "Mark Task 3: fmt helper complete",
+          "body": "Co-authored-by: Ralphify <noreply@ralphify.co>\nGenerated with [Claude Code](https://claude.ai/code)\nvia [Happy](https://happy.engineering)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nCo-Authored-By: Happy <yesreply@happy.engineering>",
+          "author": "slidt ralph loop"
+        },
+        {
+          "hash": "bd3f197704be5543fac8bb9fb9d79cf7912a60b3",
+          "shortHash": "bd3f197",
+          "date": "2026-04-23T13:29:39+00:00",
+          "isoDate": "2026-04-23",
+          "subject": "Port fmt helper (bold, em, linebreak inline markup)",
+          "body": "Co-authored-by: Ralphify <noreply@ralphify.co>\nGenerated with [Claude Code](https://claude.ai/code)\nvia [Happy](https://happy.engineering)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nCo-Authored-By: Happy <yesreply@happy.engineering>",
+          "author": "slidt ralph loop"
+        },
+        {
+          "hash": "83a2a39849750ee1a4cc6f21e17aa74ffcf56361",
+          "shortHash": "83a2a39",
+          "date": "2026-04-23T13:28:15+00:00",
+          "isoDate": "2026-04-23",
+          "subject": "Mark Task 2: Core types complete",
+          "body": "Generated with [Claude Code](https://claude.ai/code)\nvia [Happy](https://happy.engineering)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nCo-Authored-By: Happy <yesreply@happy.engineering>\nCo-authored-by: Ralphify <noreply@ralphify.co>",
+          "author": "slidt ralph loop"
+        },
+        {
+          "hash": "7914d619bdc59c6a4c2aa38c8779f50023ef46ae",
+          "shortHash": "7914d61",
+          "date": "2026-04-23T13:27:54+00:00",
+          "isoDate": "2026-04-23",
+          "subject": "Define core renderer types (Deck, Slide, SlideType, Field, Theme)",
+          "body": "Generated with [Claude Code](https://claude.ai/code)\nvia [Happy](https://happy.engineering)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nCo-Authored-By: Happy <yesreply@happy.engineering>\nCo-authored-by: Ralphify <noreply@ralphify.co>",
+          "author": "slidt ralph loop"
+        },
+        {
+          "hash": "f6c9d3ed594e9d9de114608dbb6c7e6f477dd3b3",
+          "shortHash": "f6c9d3e",
+          "date": "2026-04-23T13:26:00+00:00",
+          "isoDate": "2026-04-23",
+          "subject": "Mark Task 1: Scaffold the project complete",
+          "body": "Generated with [Claude Code](https://claude.ai/code)\nvia [Happy](https://happy.engineering)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nCo-Authored-By: Happy <yesreply@happy.engineering>\nCo-authored-by: Ralphify <noreply@ralphify.co>",
+          "author": "slidt ralph loop"
+        },
+        {
+          "hash": "db5a1e3cad74c1c2fe8f2f8f8bcef0127b1da6fc",
+          "shortHash": "db5a1e3",
+          "date": "2026-04-23T13:25:06+00:00",
+          "isoDate": "2026-04-23",
+          "subject": "Scaffold slidt project with TS, Vitest, and deps",
+          "body": "Generated with [Claude Code](https://claude.ai/code)\nvia [Happy](https://happy.engineering)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nCo-Authored-By: Happy <yesreply@happy.engineering>\nCo-authored-by: Ralphify <noreply@ralphify.co>",
+          "author": "slidt ralph loop"
+        },
+        {
+          "hash": "2e51f25b87017224ffe307057480e3fbbb311886",
+          "shortHash": "2e51f25",
+          "date": "2026-04-23T15:18:36+02:00",
+          "isoDate": "2026-04-23",
+          "subject": "Use script files for ralph commands and push progress after each task",
+          "body": "Ralphify execs each command directly (no shell), so shell syntax like\nif-then and pipes failed. Moved each command into a small executable\nscript under .ralph-commands/. Also added a final git-push step so\nprogress shows up on GitHub after each task.\n\nCo-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>",
+          "author": "Niels Ørbæk Chemnitz"
+        },
+        {
+          "hash": "e074969dd52d3440ce12054ffc41130d34b8b6dd",
+          "shortHash": "e074969",
+          "date": "2026-04-23T15:16:10+02:00",
+          "isoDate": "2026-04-23",
+          "subject": "Gitignore .env and fix ralph PATH in tmux session",
+          "body": "Non-interactive tmux shells don't inherit ~/.local/bin from login\nscripts, so the tmux command needs to prepend it explicitly for\nralph (pipx-installed) to be found.\n\nCo-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>",
+          "author": "Niels Ørbæk Chemnitz"
+        },
+        {
+          "hash": "932368565c9cb30177c5e803ca54e247ee5706a8",
+          "shortHash": "9323685",
+          "date": "2026-04-23T15:14:06+02:00",
+          "isoDate": "2026-04-23",
+          "subject": "Route ralph through happy (-p --yolo) and add start-ralph.sh helper",
+          "body": "Happy wraps claude with the same flags plus mobile-app visibility of\nthe running session. The start script sets IS_SANDBOX=1 so the\nyolo flag is accepted under root, sets a 30-min per-iteration\ntimeout, and writes per-iteration logs under .ralph-logs/.\n\nCo-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>",
+          "author": "Niels Ørbæk Chemnitz"
+        },
+        {
+          "hash": "4593737144bc1379386e4fd81d3d94dd3895221a",
+          "shortHash": "4593737",
+          "date": "2026-04-23T15:12:07+02:00",
+          "isoDate": "2026-04-23",
+          "subject": "Add RALPH.md to drive the autonomous implementation loop",
+          "body": "Ralphify reads the frontmatter for agent command + commands whose\noutput gets interpolated into the prompt each iteration. Instructs\nClaude to complete one Task per loop, verify expected output at each\nstep, and stop if anything deviates from the plan.\n\nCo-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>",
+          "author": "Niels Ørbæk Chemnitz"
+        },
+        {
+          "hash": "3c489a18afbf26d9ab5ff49db2476a6644c6c1fd",
+          "shortHash": "3c489a1",
+          "date": "2026-04-23T15:03:12+02:00",
+          "isoDate": "2026-04-23",
+          "subject": "Add implementation roadmap and Plan 1 (core renderer + templates)",
+          "body": "Roadmap decomposes the webservice into six subsystems that each\nproduce working, testable software on their own. Plan 1 covers the\nfoundation: a pure-TS render(deck, theme, templates) library, 13\nbuilt-in SlideTypes ported from generate.py, and the ANTAL-Theta\ndefault theme extracted from styles.css. Later plans get written\nonce each previous subsystem lands.\n\nCo-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>",
+          "author": "Niels Ørbæk Chemnitz"
+        },
+        {
+          "hash": "a50d5bf1cc4ed945ec56b04f6b13a369b8c0f980",
+          "shortHash": "a50d5bf",
+          "date": "2026-04-23T14:47:53+02:00",
+          "isoDate": "2026-04-23",
+          "subject": "Drop MinIO and agent budget from v1 per user preference",
+          "body": "Local filesystem for assets (mounted data volume) keeps v1 ops simple\nfor a 7-user internal tool. Object storage moved to deferred v2+ for\nwhen asset volume or multi-instance deploy justifies it. Rate\nlimiting removed — seven trusted users, cost logged for visibility\nbut no hard budget.\n\nCo-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>",
+          "author": "Niels Ørbæk Chemnitz"
+        },
+        {
+          "hash": "3843e7109a7213e928b2ead6991e55baeeb716b3",
+          "shortHash": "3843e71",
+          "date": "2026-04-23T14:45:28+02:00",
+          "isoDate": "2026-04-23",
+          "subject": "Add initial design spec for slidt slide webservice",
+          "body": "Captures decisions from brainstorming: TS full-stack (SvelteKit +\nPostgres), declarative slide-type templates (Handlebars + scoped CSS,\nno code execution), form-driven editor with side-panel agent, Claude\nagent with theme/content/new-template tools, email/password auth for\n7 seeded users. Migration path from the existing ANTAL-Theta slides\npipeline included.\n\nCo-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>",
+          "author": "Niels Ørbæk Chemnitz"
+        }
+      ]
+    }
+  ]
+}

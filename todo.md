@@ -22,6 +22,8 @@ Status keys: `[ ]` open · `[~]` in progress · `[x]` done · `[?]` needs design
 
 ## Done (recent)
 
+- [x] (6) Agent panel surfaces "WORKING · &lt;tool_name&gt;…" while a tool call is in flight
+- [x] Changelog at /docs/changelog — auto-generated from git log at build time, grouped by day, features as headline entries with fixes collapsed
 - [x] API: `GET /api/issues` (admin) + `GET/PATCH/DELETE /api/issues/:id` so future agent reports can be triaged without psql
 - [x] API: `GET /api/decks/:id/slide-types` returns global + deck-scoped types in one shot (id and name)
 - [x] Agent panel: model badge in the header showing host (LOCAL/API) + model name; click to open settings

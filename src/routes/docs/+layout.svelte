@@ -11,6 +11,7 @@
     { href: '/docs/themes',    label: 'Themes' },
     { href: '/docs/cli',       label: 'CLI' },
     { href: '/docs/api',       label: 'API' },
+    { href: '/docs/changelog', label: 'Changelog' },
   ];
 
   function isActive(href: string) {

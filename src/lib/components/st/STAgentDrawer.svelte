@@ -45,6 +45,10 @@
   let messages = $state<Message[]>([]);
   let input = $state('');
   let sending = $state(false);
+  // Tracks the currently executing tool call, set on `tool_start` and cleared
+  // on `tool_done`, so the panel header can surface "WORKING · inspect_slide_type"
+  // instead of a generic spinner during multi-second calls.
+  let activeTool = $state<string | null>(null);
   let errorMsg = $state('');
   let composeEl = $state<HTMLTextAreaElement | undefined>(undefined);
   let transcriptEl = $state<HTMLDivElement | undefined>(undefined);
@@ -202,6 +206,7 @@
             updateAssistant(assistantIdx, (m) => appendText(m, event.delta as string));
             scrollToBottom();
           } else if (event.type === 'tool_start') {
+            activeTool = event.tool as string;
             updateAssistant(assistantIdx, (m) => pushTool(m, {
               name: event.tool as string,
               toolUseId: event.toolUseId as string,
@@ -209,6 +214,7 @@
             }));
             scrollToBottom();
           } else if (event.type === 'tool_done') {
+            if (activeTool === (event.tool as string)) activeTool = null;
             updateAssistant(assistantIdx, (m) => patchTool(m, event.toolUseId as string, {
               result: event.result as string,
               undoPatch: event.undoPatch,
@@ -239,6 +245,7 @@
       messages = messages.filter((_, i) => i !== assistantIdx);
     } finally {
       sending = false;
+      activeTool = null;
       scrollToBottom();
     }
   }
@@ -303,7 +310,9 @@
       <span class="tag">{t('agent.tag')}</span>
       <span class="dot" class:live={sending} aria-hidden="true"></span>
       <span class="status">
-        {sending ? t('agent.working') : t('agent.live')} · {turnCount} {turnCount === 1 ? t('agent.turn_singular') : t('agent.turn_plural')}
+        {sending ? t('agent.working') : t('agent.live')}
+        {#if sending && activeTool}<span class="active-tool"> · {activeTool}…</span>{/if}
+        · {turnCount} {turnCount === 1 ? t('agent.turn_singular') : t('agent.turn_plural')}
       </span>
       <a class="model-badge" href="/settings" title={t('agent.model_change')}>
         <span class="model-host">{modelInfo.host}</span>
@@ -458,6 +467,12 @@
   .dot.live { animation: pulse 1.4s ease-in-out infinite; }
   @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
   .status { font-size: 9px; letter-spacing: 0.2em; color: var(--st-ink-dim); }
+  .active-tool {
+    color: var(--st-cobalt);
+    font-family: var(--st-font-mono);
+    text-transform: none;
+    letter-spacing: 0.08em;
+  }
   .model-badge {
     display: inline-flex;
     align-items: baseline;

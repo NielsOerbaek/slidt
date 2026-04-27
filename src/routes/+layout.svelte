@@ -50,8 +50,10 @@
     background: var(--st-bg-deep);
     min-height: calc(100vh - 50px);
     padding: 32px;
+    display: flex;
   }
   .page-frame {
+    flex: 1;
     max-width: 1280px;
     margin: 0 auto;
     background: var(--st-bg);

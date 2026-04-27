@@ -1,12 +1,19 @@
 import type { Actions, PageServerLoad } from './$types.js';
 import { error, fail } from '@sveltejs/kit';
-import { db, slideTypes } from '$lib/server/db/index.ts';
-import { eq } from 'drizzle-orm';
+import { db, slideTypes, decks } from '$lib/server/db/index.ts';
+import { and, eq } from 'drizzle-orm';
 
 export const load: PageServerLoad = async ({ params }) => {
   const [st] = await db.select().from(slideTypes).where(eq(slideTypes.id, params.id)).limit(1);
   if (!st) throw error(404, 'Template not found');
-  return { slideType: st };
+
+  let deckTitle: string | null = null;
+  if (st.deckId) {
+    const [d] = await db.select({ title: decks.title }).from(decks).where(eq(decks.id, st.deckId)).limit(1);
+    deckTitle = d?.title ?? null;
+  }
+
+  return { slideType: st, deckTitle };
 };
 
 export const actions: Actions = {
@@ -37,5 +44,37 @@ export const actions: Actions = {
       .where(eq(slideTypes.id, params.id))
       .returning();
     return { slideType: updated };
+  },
+
+  promote: async ({ params, locals }) => {
+    if (!locals.user?.isAdmin) return fail(403, { error: 'Admins only' });
+
+    const [existing] = await db
+      .select()
+      .from(slideTypes)
+      .where(eq(slideTypes.id, params.id))
+      .limit(1);
+    if (!existing) return fail(404, { error: 'Template not found' });
+    if (existing.scope === 'global') return { slideType: existing };
+
+    // Promotion fails the unique (name, scope, deck_id) constraint if a global
+    // template with the same name already exists. Surface that explicitly.
+    const [conflict] = await db
+      .select({ id: slideTypes.id })
+      .from(slideTypes)
+      .where(and(eq(slideTypes.name, existing.name), eq(slideTypes.scope, 'global')))
+      .limit(1);
+    if (conflict) {
+      return fail(409, {
+        error: `A global template named "${existing.name}" already exists. Rename this one first.`,
+      });
+    }
+
+    const [updated] = await db
+      .update(slideTypes)
+      .set({ scope: 'global', deckId: null })
+      .where(eq(slideTypes.id, params.id))
+      .returning();
+    return { slideType: updated, promoted: true };
   },
 };

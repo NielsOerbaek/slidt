@@ -668,6 +668,9 @@
                 slideData={buildDummyData(type.fields)}
                 theme={data.theme}
               />
+              {#if type.scope === 'deck'}
+                <span class="tt-scope">DECK</span>
+              {/if}
             </div>
             <span class="tt-label">{type.label}</span>
             <span class="tt-name">{type.name}</span>
@@ -1115,8 +1118,21 @@
     overflow: hidden;
     flex-shrink: 0;
     border-bottom: 2px solid inherit;
+    position: relative;
   }
   .tt-preview :global(.preview-wrap) { border-radius: 0; min-height: 0; }
+  .tt-scope {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    padding: 3px 8px;
+    background: var(--st-cobalt);
+    color: var(--st-bg);
+    font-family: var(--st-font-mono);
+    font-size: 9px;
+    letter-spacing: 0.18em;
+    z-index: 1;
+  }
   .tt-label {
     font-family: var(--st-font-display);
     font-size: 15px;

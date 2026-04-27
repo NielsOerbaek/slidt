@@ -7,18 +7,28 @@
 
   let { data }: { data: PageData } = $props();
 
+  type Scope = 'all' | 'global' | 'deck';
   let query = $state('');
+  let scopeFilter = $state<Scope>('all');
 
   const filtered = $derived(
     data.slideTypes.filter((st) => {
+      if (scopeFilter !== 'all' && st.scope !== scopeFilter) return false;
       const q = query.trim().toLowerCase();
       if (!q) return true;
       return (
         st.label.toLowerCase().includes(q) ||
-        st.name.toLowerCase().includes(q)
+        st.name.toLowerCase().includes(q) ||
+        (st.deckTitle ?? '').toLowerCase().includes(q)
       );
     }),
   );
+
+  const counts = $derived({
+    all: data.slideTypes.length,
+    global: data.slideTypes.filter((s) => s.scope === 'global').length,
+    deck: data.slideTypes.filter((s) => s.scope === 'deck').length,
+  });
 
   function previewType(st: typeof data.slideTypes[number]): SlideType {
     return {
@@ -48,6 +58,32 @@
     placeholder={t('templates.search_placeholder')}
     bind:value={query}
   />
+  <div class="scope-filter" role="tablist" aria-label="Scope">
+    <button
+      type="button"
+      role="tab"
+      class="scope-chip"
+      class:active={scopeFilter === 'all'}
+      aria-selected={scopeFilter === 'all'}
+      onclick={() => (scopeFilter = 'all')}
+    >{t('templates.scope_all')} · {counts.all}</button>
+    <button
+      type="button"
+      role="tab"
+      class="scope-chip"
+      class:active={scopeFilter === 'global'}
+      aria-selected={scopeFilter === 'global'}
+      onclick={() => (scopeFilter = 'global')}
+    >{t('templates.scope_global')} · {counts.global}</button>
+    <button
+      type="button"
+      role="tab"
+      class="scope-chip"
+      class:active={scopeFilter === 'deck'}
+      aria-selected={scopeFilter === 'deck'}
+      onclick={() => (scopeFilter = 'deck')}
+    >{t('templates.scope_deck')} · {counts.deck}</button>
+  </div>
 </div>
 
 {#if filtered.length === 0}
@@ -70,6 +106,9 @@
           <div class="card-meta">
             <span class="card-name">{st.label}</span>
             <span class="card-code">{st.name}</span>
+            {#if st.scope === 'deck' && st.deckTitle}
+              <span class="card-deck">{t('templates.from_deck')} {st.deckTitle}</span>
+            {/if}
           </div>
         </a>
         <span class="scope-badge {st.scope}">{st.scope.toUpperCase()}</span>
@@ -113,6 +152,10 @@
   .search-row {
     padding: 20px 40px;
     border-bottom: var(--st-rule-thin);
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 16px;
+    align-items: center;
   }
   .search-input {
     width: 100%;
@@ -127,6 +170,24 @@
   .search-input:focus {
     outline: 2px solid var(--st-cobalt);
     outline-offset: -2px;
+  }
+  .scope-filter { display: flex; gap: 0; }
+  .scope-chip {
+    padding: 10px 14px;
+    border: 2px solid var(--st-ink);
+    background: var(--st-bg);
+    color: var(--st-ink);
+    font-family: var(--st-font-mono);
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    cursor: pointer;
+    border-radius: 0;
+  }
+  .scope-chip + .scope-chip { border-left: 0; }
+  .scope-chip.active {
+    background: var(--st-ink);
+    color: var(--st-bg);
   }
 
   .grid {
@@ -174,6 +235,14 @@
     letter-spacing: 0.16em;
     color: var(--st-ink-dim);
   }
+  .card-deck {
+    font-family: var(--st-font-mono);
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--st-cobalt);
+    margin-top: 4px;
+  }
 
   .scope-badge {
     position: absolute;
@@ -207,7 +276,12 @@
     .head-index { display: none; }
     .head-title { padding: 20px; }
     h1 { font-size: clamp(40px, 12vw, 76px); }
-    .search-row { padding: 14px 16px; }
+    .search-row {
+      padding: 14px 16px;
+      grid-template-columns: 1fr;
+      gap: 10px;
+    }
+    .scope-chip { padding: 8px 10px; flex: 1; }
     .grid {
       padding: 16px;
       grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));

@@ -2,13 +2,22 @@
   import { enhance } from '$app/forms';
   import type { PageData, ActionData } from './$types.js';
   import { t } from '$lib/i18n/index.ts';
+  import STUnsavedGuard from '$lib/components/st/STUnsavedGuard.svelte';
 
   let { data, form }: { data: PageData; form: ActionData } = $props();
   let showCreate = $state(false);
   let newToken = $state<string | null>(form?.token ?? null);
+
+  // Per-form dirty trackers — set on first input, reset on successful submit.
+  // (Password form is excluded: incomplete entries shouldn't trigger a prompt.)
+  let profileDirty = $state(false);
+  let prefsDirty = $state(false);
+  const dirty = $derived(profileDirty || prefsDirty);
 </script>
 
 <svelte:head><title>{t('settings.title')}</title></svelte:head>
+
+<STUnsavedGuard {dirty} />
 
 <!-- ── Page wrapper ───────────────────────────────────────── -->
 <div class="page-wrap">
@@ -30,7 +39,16 @@
     <div class="col-head">{t('settings.profile')}</div>
     <div class="col-body">
 
-      <form method="POST" action="?/updateProfile" use:enhance class="stack">
+      <form
+        method="POST"
+        action="?/updateProfile"
+        use:enhance={() => async ({ result, update }) => {
+          if (result.type === 'success') profileDirty = false;
+          await update();
+        }}
+        oninput={() => (profileDirty = true)}
+        class="stack"
+      >
         <label class="field-label" for="profile-name">{t('settings.display_name')}</label>
         <input id="profile-name" type="text" name="name" value={data.user.name} required />
         <div class="row-actions">
@@ -64,7 +82,17 @@
     <div class="col-head">{t('settings.preferences')}</div>
     <div class="col-body">
 
-      <form method="POST" action="?/updatePreferences" use:enhance class="stack">
+      <form
+        method="POST"
+        action="?/updatePreferences"
+        use:enhance={() => async ({ result, update }) => {
+          if (result.type === 'success') prefsDirty = false;
+          await update();
+        }}
+        oninput={() => (prefsDirty = true)}
+        onchange={() => (prefsDirty = true)}
+        class="stack"
+      >
         <div class="pref-row">
           <div class="pref-info">
             <span class="pref-name">{t('settings.vim_name')}</span>

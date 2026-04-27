@@ -30,6 +30,15 @@ export const messages = {
   'nav.more': { da: 'MERE', en: 'MORE' },
   'nav.menu_label': { da: 'Menu', en: 'Menu' },
 
+  // ── Unsaved-changes guard ────────────────────────────────────────────
+  'unsaved.title': { da: 'IKKE GEMT', en: 'UNSAVED' },
+  'unsaved.body': {
+    da: 'Du har ændringer som ikke er gemt. Forlader du siden nu går de tabt.',
+    en: 'You have unsaved changes. Leaving now will discard them.',
+  },
+  'unsaved.stay': { da: 'BLIV HER', en: 'STAY' },
+  'unsaved.leave': { da: 'FORLAD ALLIGEVEL', en: 'LEAVE ANYWAY' },
+
   // ── Login ────────────────────────────────────────────────────────────
   'login.tag': { da: '§ 01 — LOG IND', en: '§ 01 — SIGN IN' },
   'login.form_tag': { da: '§ GODKEND', en: '§ AUTHENTICATE' },

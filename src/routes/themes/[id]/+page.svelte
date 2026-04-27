@@ -7,14 +7,25 @@
   import { content as contentType } from '../../../slide-types/content.ts';
 
   import STBtn from '$lib/components/st/STBtn.svelte';
+  import STUnsavedGuard from '$lib/components/st/STUnsavedGuard.svelte';
   import { t } from '$lib/i18n/index.ts';
 
   let { data, form }: { data: PageData; form: ActionData } = $props();
 
+  let savedTokensJson = $state(JSON.stringify(data.theme.tokens));
+  let savedName = $state(data.theme.name);
+  let savedSystemPrompt = $state(data.theme.systemPrompt ?? '');
+
   let tokens = $state<Record<string, string>>({ ...data.theme.tokens });
-  let name = $state(data.theme.name);
-  let systemPrompt = $state(data.theme.systemPrompt ?? '');
+  let name = $state(savedName);
+  let systemPrompt = $state(savedSystemPrompt);
   let saved = $state(false);
+
+  const dirty = $derived(
+    JSON.stringify(tokens) !== savedTokensJson ||
+    name !== savedName ||
+    systemPrompt !== savedSystemPrompt,
+  );
 
   // Build a renderer Theme from current tokens
   let previewTheme = $derived<Theme>({ name, tokens });
@@ -30,6 +41,8 @@
 
 <svelte:head><title>{data.theme.name} — Themes — slidt</title></svelte:head>
 
+<STUnsavedGuard {dirty} />
+
 <div class="page">
   <div class="breadcrumb"><a href="/themes">{t('theme_edit.crumb')}</a> / {data.theme.name}</div>
 
@@ -41,7 +54,13 @@
         formData.set('tokens', JSON.stringify(tokens));
         formData.set('systemPrompt', systemPrompt);
         return async ({ result, update }) => {
-          if (result.type === 'success') { saved = true; setTimeout(() => saved = false, 2000); }
+          if (result.type === 'success') {
+            saved = true;
+            savedTokensJson = JSON.stringify(tokens);
+            savedName = name;
+            savedSystemPrompt = systemPrompt;
+            setTimeout(() => (saved = false), 2000);
+          }
           await update();
         };
       }}

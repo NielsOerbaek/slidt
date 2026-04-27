@@ -7,17 +7,31 @@
   import type { SlideType, Theme } from '../../../renderer/types.ts';
 
   import STBtn from '$lib/components/st/STBtn.svelte';
+  import STUnsavedGuard from '$lib/components/st/STUnsavedGuard.svelte';
   import { t } from '$lib/i18n/index.ts';
 
   let { data, form }: { data: PageData; form: ActionData } = $props();
 
-  let label = $state(data.slideType.label);
-  let fieldsJson = $state(JSON.stringify(data.slideType.fields, null, 2));
-  let htmlTemplate = $state(data.slideType.htmlTemplate);
-  let css = $state(data.slideType.css);
+  // Persisted snapshot — refreshed on save so the dirty check resets.
+  let savedLabel = $state(data.slideType.label);
+  let savedFieldsJson = $state(JSON.stringify(data.slideType.fields, null, 2));
+  let savedHtml = $state(data.slideType.htmlTemplate);
+  let savedCss = $state(data.slideType.css);
+
+  let label = $state(savedLabel);
+  let fieldsJson = $state(savedFieldsJson);
+  let htmlTemplate = $state(savedHtml);
+  let css = $state(savedCss);
   let saved = $state(false);
   let promoted = $state(false);
   let fieldsError = $state('');
+
+  const dirty = $derived(
+    label !== savedLabel ||
+    fieldsJson !== savedFieldsJson ||
+    htmlTemplate !== savedHtml ||
+    css !== savedCss,
+  );
 
   // Placeholder theme for preview — full token set matching the seeded theme
   const previewTheme: Theme = {
@@ -64,6 +78,8 @@
 </script>
 
 <svelte:head><title>{data.slideType.label} — Templates — slidt</title></svelte:head>
+
+<STUnsavedGuard {dirty} />
 
 <div class="page">
   <div class="breadcrumb"><a href="/templates">{t('template_edit.crumb')}</a> / {data.slideType.name}</div>
@@ -113,7 +129,14 @@
         formData.set('htmlTemplate', htmlTemplate);
         formData.set('css', css);
         return async ({ result, update }) => {
-          if (result.type === 'success') { saved = true; setTimeout(() => saved = false, 2000); }
+          if (result.type === 'success') {
+            saved = true;
+            savedLabel = label;
+            savedFieldsJson = fieldsJson;
+            savedHtml = htmlTemplate;
+            savedCss = css;
+            setTimeout(() => (saved = false), 2000);
+          }
           await update();
         };
       }}

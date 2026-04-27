@@ -228,6 +228,47 @@
     });
   }
 
+  // ── Slide-list hover preview ───────────────────────────────────────
+  let hoveredSlideId = $state<string | null>(null);
+  let hoverTop = $state(0);
+  let hoverLeft = $state(0);
+  let hoverEnterTimer: ReturnType<typeof setTimeout> | null = null;
+
+  function onSlideRowEnter(e: MouseEvent, slideId: string) {
+    if (hoverEnterTimer) clearTimeout(hoverEnterTimer);
+    if (draggedId) return; // don't preview while dragging
+    const target = e.currentTarget as HTMLElement;
+    hoverEnterTimer = setTimeout(() => {
+      const rect = target.getBoundingClientRect();
+      const previewWidth = 360;
+      const previewHeight = previewWidth * (1080 / 1920); // ≈ 202px
+      hoverLeft = rect.right + 8;
+      // Anchor centered vertically on the row, but clamp to viewport.
+      let top = rect.top + rect.height / 2 - previewHeight / 2;
+      if (top < 8) top = 8;
+      if (top + previewHeight > window.innerHeight - 8) {
+        top = window.innerHeight - previewHeight - 8;
+      }
+      hoverTop = top;
+      hoveredSlideId = slideId;
+    }, 220);
+  }
+  function onSlideRowLeave() {
+    if (hoverEnterTimer) clearTimeout(hoverEnterTimer);
+    hoverEnterTimer = null;
+    hoveredSlideId = null;
+  }
+
+  const hoveredSlide = $derived(
+    hoveredSlideId ? data.slides.find((s) => s.id === hoveredSlideId) ?? null : null,
+  );
+  const hoveredType = $derived(
+    hoveredSlide ? data.slideTypes.find((t) => t.id === hoveredSlide.typeId) ?? null : null,
+  );
+  const hoveredData = $derived(
+    hoveredSlideId ? slideDataMap[hoveredSlideId] ?? {} : {},
+  );
+
   let draggedId = $state<string | null>(null);
   let dropTargetId = $state<string | null>(null);
   let dropPosition = $state<'before' | 'after'>('before');
@@ -556,6 +597,22 @@
   </div>
 {/if}
 
+{#if hoveredSlide && hoveredType && data.theme}
+  <div
+    class="slide-hover-preview"
+    style:top="{hoverTop}px"
+    style:left="{hoverLeft}px"
+    transition:fade={{ duration: 100 }}
+  >
+    <SlidePreview
+      slideType={hoveredType}
+      slideData={hoveredData}
+      theme={data.theme}
+      label="Slide hover preview"
+    />
+  </div>
+{/if}
+
 <div class="editor">
   <!-- Breadcrumb / actions row -->
   <div class="breadcrumb">
@@ -619,6 +676,8 @@
             ondragleave={() => onDragLeave(slide.id)}
             ondragend={onDragEnd}
             ondrop={(e) => onDrop(e, slide.id)}
+            onmouseenter={(e) => onSlideRowEnter(e, slide.id)}
+            onmouseleave={onSlideRowLeave}
           >
             <span class="srow-n">{String(i + 1).padStart(2, '0')}</span>
             <span class="srow-body">
@@ -876,6 +935,19 @@
     text-transform: uppercase;
     z-index: 1100;
     box-shadow: 0 8px 24px rgba(8, 8, 7, 0.25);
+  }
+  .slide-hover-preview {
+    position: fixed;
+    width: 360px;
+    background: var(--st-bg);
+    border: var(--st-rule-medium);
+    box-shadow: 0 16px 40px rgba(8, 8, 7, 0.18), 0 2px 6px rgba(8, 8, 7, 0.08);
+    z-index: 1050;
+    pointer-events: none;
+  }
+  .slide-hover-preview :global(.preview-wrap) { border-radius: 0; min-height: 0; }
+  @media (max-width: 768px) {
+    .slide-hover-preview { display: none; }
   }
   .editor {
     display: flex;

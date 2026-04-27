@@ -91,6 +91,7 @@ export const load: PageServerLoad = async ({ params, locals }) => {
     canEdit: access === 'owner' || access === 'editor',
     collaborators,
     vim: locals.user?.preferences?.vim ?? false,
+    aiModel: (locals.user?.preferences?.aiModel ?? 'claude') as string,
   };
 };
 

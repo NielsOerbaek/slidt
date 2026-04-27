@@ -149,7 +149,9 @@
               </option>
             </optgroup>
           </select>
-          <span class="pref-meter">{t('settings.agent_model_meter')}</span>
+          {#if !data.user.preferences?.aiModel || data.user.preferences.aiModel === 'claude'}
+            <span class="pref-meter">{t('settings.agent_model_meter')}</span>
+          {/if}
         </div>
 
         <div class="row-actions">

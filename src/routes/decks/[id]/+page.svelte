@@ -796,7 +796,7 @@
         </div>
       </div>
 
-      <STAgentDrawer deckId={data.deck.id} themeId={data.deck.themeId} bind:open={agentOpen} />
+      <STAgentDrawer deckId={data.deck.id} themeId={data.deck.themeId} aiModel={data.aiModel} bind:open={agentOpen} />
     </section>
   </div>
 

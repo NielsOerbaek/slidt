@@ -22,6 +22,11 @@ Status keys: `[ ]` open · `[~]` in progress · `[x]` done · `[?]` needs design
 
 ## Done (recent)
 
+- [x] API: `GET /api/issues` (admin) + `GET/PATCH/DELETE /api/issues/:id` so future agent reports can be triaged without psql
+- [x] API: `GET /api/decks/:id/slide-types` returns global + deck-scoped types in one shot (id and name)
+- [x] Agent panel: model badge in the header showing host (LOCAL/API) + model name; click to open settings
+- [x] Settings: API metered note only shown when API model is selected
+- [x] Nav: clicking the username (BRUGER/…) navigates to /settings
 - [x] (1) Settings prefs auto-save on change (toggle/select); explicit save still works as fallback
 - [x] (3) Editor action bar: `PRESENT | EXPORT | SHARE | more ▾ | AGENT`; theme picker + delete deck moved into "more"
 - [x] (5) AI model selector grouped into Local (Ollama) / API; metered note added

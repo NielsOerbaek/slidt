@@ -5,11 +5,19 @@
   import STTurn from './STTurn.svelte';
   import { t } from '$lib/i18n/index.ts';
 
-  let { deckId, themeId = null, open = $bindable(false) }: {
+  let { deckId, themeId = null, aiModel = 'claude', open = $bindable(false) }: {
     deckId: string;
     themeId?: string | null;
+    aiModel?: string;
     open?: boolean;
   } = $props();
+
+  const modelInfo = $derived.by(() => {
+    if (aiModel.startsWith('ollama:')) {
+      return { label: aiModel.slice(7) || 'Ollama', host: 'LOCAL' as const };
+    }
+    return { label: 'Claude Sonnet 4.6', host: 'API' as const };
+  });
 
   // ── Message model ────────────────────────────────────────────────────
   // Assistant turns interleave text deltas and tool calls in the order they
@@ -297,6 +305,10 @@
       <span class="status">
         {sending ? t('agent.working') : t('agent.live')} · {turnCount} {turnCount === 1 ? t('agent.turn_singular') : t('agent.turn_plural')}
       </span>
+      <a class="model-badge" href="/settings" title={t('agent.model_change')}>
+        <span class="model-host">{modelInfo.host}</span>
+        <span class="model-name">{modelInfo.label}</span>
+      </a>
       <span class="spacer"></span>
       <button class="panel-close" onclick={toggle} type="button" aria-label={t('agent.close')}>×</button>
     </div>
@@ -446,6 +458,26 @@
   .dot.live { animation: pulse 1.4s ease-in-out infinite; }
   @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
   .status { font-size: 9px; letter-spacing: 0.2em; color: var(--st-ink-dim); }
+  .model-badge {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 6px;
+    padding: 3px 8px;
+    border: 1.5px solid var(--st-ink);
+    text-decoration: none;
+    color: var(--st-ink);
+    font-size: 9px;
+    letter-spacing: 0.18em;
+  }
+  .model-badge:hover { background: var(--st-bg-deep); }
+  .model-host { color: var(--st-cobalt); font-weight: 500; }
+  .model-name {
+    text-transform: none;
+    letter-spacing: 0;
+    font-family: var(--st-font-display);
+    font-size: 11px;
+    color: var(--st-ink);
+  }
   .spacer { flex: 1; }
   .panel-close {
     background: transparent;

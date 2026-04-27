@@ -86,10 +86,10 @@
   </div>
 
   <div class="cell right">
-    <span class="user">
+    <a class="user" href="/settings" title={t('nav.settings')}>
       <span class="user-prefix">{t('nav.user_prefix')}</span>
       <span class="user-name">{(user.name ?? '').toUpperCase()}</span>
-    </span>
+    </a>
     <form method="POST" action="/logout" class="logout-form">
       <button type="submit" class="logout">{t('nav.logout')}</button>
     </form>
@@ -215,7 +215,10 @@
     font-family: var(--st-font-mono);
     font-size: 11px;
     letter-spacing: 0.18em;
+    color: var(--st-ink);
+    text-decoration: none;
   }
+  .user:hover { background: var(--st-bg-deep); }
   .user-prefix { color: var(--st-ink-dim); }
   .user-name { margin-left: 4px; }
 

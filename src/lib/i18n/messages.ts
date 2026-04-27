@@ -159,6 +159,7 @@ export const messages = {
   'agent.thinking_summary': { da: 'TÆNKER', en: 'THINKING' },
   'agent.undoable_header': { da: '↩ {n} FORTRYDELIGE', en: '↩ {n} UNDOABLE' },
   'agent.close': { da: 'Luk agent', en: 'Close agent' },
+  'agent.model_change': { da: 'Skift model i indstillinger', en: 'Change model in settings' },
 
   // Type picker
   'editor.picker_head': { da: 'NY SLIDE · VÆLG TYPE', en: 'NEW SLIDE · CHOOSE TYPE' },

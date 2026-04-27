@@ -13,7 +13,7 @@
   import { slideSnippet } from '$lib/utils/slide-snippet.ts';
   import { t } from '$lib/i18n/index.ts';
   import { goto } from '$app/navigation';
-  import { fade, scale } from 'svelte/transition';
+  import { fade, scale, slide } from 'svelte/transition';
   import { cubicOut } from 'svelte/easing';
 
   let { data, form }: { data: PageData; form: ActionData } = $props();
@@ -33,6 +33,7 @@
   let lastSavedAt = $state<number>(Date.now());
   let agentOpen = $state(false);
   let mobilePane = $state<'list' | 'edit' | 'preview' | 'agent'>('list');
+  let moreMenuOpen = $state(false);
   let shareUrl = $state('');
   let shareError = $state('');
 
@@ -589,7 +590,12 @@
 </script>
 
 <svelte:head><title>{data.deck.title} — slidt</title></svelte:head>
-<svelte:window onkeydown={handleKeydown} />
+<svelte:window
+  onkeydown={handleKeydown}
+  onclick={(e) => {
+    if (moreMenuOpen && !(e.target as Element).closest?.('.more-wrap')) moreMenuOpen = false;
+  }}
+/>
 
 {#if undoToast}
   <div class="undo-toast" transition:fade={{ duration: 120 }}>
@@ -632,9 +638,38 @@
       <button class="action" onclick={exportPdf} disabled={exporting}>
         {exporting ? t('editor.action_export_busy') : t('editor.action_export')}
       </button>
-      <button class="action" type="button" onclick={() => showThemePicker = true}>{t('editor.theme_button')}{data.theme ? ` · ${data.theme.name}` : ''}</button>
       <button class="action" type="button" onclick={openShareDialog}>{t('editor.action_share')}</button>
-      <button class="action danger" type="button" onclick={deleteDeck}>{t('editor.action_delete')}</button>
+
+      <div class="more-wrap">
+        <button
+          class="action more-btn"
+          type="button"
+          aria-expanded={moreMenuOpen}
+          aria-haspopup="true"
+          onclick={(e) => { e.stopPropagation(); moreMenuOpen = !moreMenuOpen; }}
+        >
+          {t('editor.action_more')}
+          <span class="more-arrow" class:open={moreMenuOpen}>▾</span>
+        </button>
+        {#if moreMenuOpen}
+          <div class="more-menu" transition:slide={{ duration: 140, easing: cubicOut }}>
+            <button
+              class="more-item"
+              type="button"
+              onclick={() => { showThemePicker = true; moreMenuOpen = false; }}
+            >
+              <span>{t('editor.theme_button')}</span>
+              {#if data.theme}<span class="more-meta">{data.theme.name}</span>{/if}
+            </button>
+            <button
+              class="more-item danger"
+              type="button"
+              onclick={() => { moreMenuOpen = false; deleteDeck(); }}
+            >{t('editor.action_delete')}</button>
+          </div>
+        {/if}
+      </div>
+
       <button
         class="action accent"
         type="button"
@@ -1019,6 +1054,54 @@
   .action.accent:hover { background: #0e34b8; }
   .action.danger { color: var(--st-ink-dim); }
   .action.danger:hover { background: var(--st-ink); color: var(--st-bg); }
+
+  .more-wrap { position: relative; display: flex; }
+  .more-btn { display: flex; align-items: center; gap: 8px; }
+  .more-arrow {
+    transition: transform 120ms;
+    font-size: 9px;
+  }
+  .more-arrow.open { transform: rotate(-180deg); }
+  .more-menu {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    min-width: 220px;
+    background: var(--st-bg);
+    border: var(--st-rule-thick);
+    border-top: var(--st-rule-thin);
+    z-index: 30;
+    box-shadow: 0 12px 32px rgba(8, 8, 7, 0.18);
+  }
+  .more-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    padding: 12px 16px;
+    background: transparent;
+    border: 0;
+    border-bottom: var(--st-rule-thin);
+    font-family: var(--st-font-mono);
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--st-ink);
+    cursor: pointer;
+    text-align: left;
+  }
+  .more-item:last-child { border-bottom: 0; }
+  .more-item:hover { background: var(--st-bg-deep); }
+  .more-item.danger { color: var(--st-ink-dim); }
+  .more-item.danger:hover { background: var(--st-ink); color: var(--st-bg); }
+  .more-meta {
+    font-family: var(--st-font-display);
+    font-size: 13px;
+    letter-spacing: 0;
+    text-transform: none;
+    color: var(--st-ink-dim);
+  }
 
   /* ── Body ─────────────────────────────────────────────── */
   .body {

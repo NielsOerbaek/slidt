@@ -127,6 +127,7 @@ export const messages = {
   'editor.redo_label': { da: 'GENTAGET', en: 'REDONE' },
   'editor.undo_failed': { da: 'Kunne ikke fortryde', en: 'Undo failed' },
   'editor.action_delete_slide': { da: 'Slet slide', en: 'Delete slide' },
+  'editor.action_more': { da: 'MERE', en: 'MORE' },
   'editor.action_add_slide': { da: 'Tilføj slide', en: 'Add slide' },
   'editor.action_reorder': { da: 'Omarranger slides', en: 'Reorder slides' },
   'editor.action_apply_theme': { da: 'Skift tema', en: 'Apply theme' },
@@ -254,6 +255,12 @@ export const messages = {
   'settings.agent_model_desc': { da: 'LLM til agent-sessioner', en: 'LLM for agent sessions' },
   'settings.agent_model_unavailable': { da: 'Ollama utilgængeligt', en: 'Ollama unavailable' },
   'settings.agent_model_claude': { da: 'Claude (Sonnet 4.6)', en: 'Claude (Sonnet 4.6)' },
+  'settings.agent_model_local': { da: 'Lokal (Ollama) — gratis', en: 'Local (Ollama) — free' },
+  'settings.agent_model_api': { da: 'API — koster pr. prompt', en: 'API — metered' },
+  'settings.agent_model_meter': {
+    da: 'API-modeller er hostet hos udbyderen og afregnes pr. forbrug.',
+    en: 'API models are hosted by the provider and billed per use.',
+  },
   'settings.key_set_as': { da: 'Sæt som:', en: 'Set as:' },
 
   'settings.api_keys': { da: 'API-NØGLER', en: 'API KEYS' },

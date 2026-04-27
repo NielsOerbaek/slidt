@@ -11,6 +11,42 @@ import type { Field } from '../../../renderer/types.ts';
  * treats `data` as an object. Try a single JSON.parse pass when we see a
  * string; otherwise return the value as-is.
  */
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/**
+ * Resolve a slide-type reference that the agent may have given as either the
+ * UUID id or the human-readable name slug (e.g. "steps-linear-accent"). When
+ * looking up by name we restrict to global + this deck so we don't leak other
+ * decks' types. Returns the matching row or null.
+ */
+async function findSlideType(
+  ref: string,
+  deckId: string,
+): Promise<typeof slideTypes.$inferSelect | null> {
+  if (UUID_RE.test(ref)) {
+    const [byId] = await db
+      .select()
+      .from(slideTypes)
+      .where(eq(slideTypes.id, ref))
+      .limit(1);
+    return byId ?? null;
+  }
+  const [byName] = await db
+    .select()
+    .from(slideTypes)
+    .where(
+      and(
+        eq(slideTypes.name, ref),
+        or(
+          eq(slideTypes.scope, 'global'),
+          and(eq(slideTypes.scope, 'deck'), eq(slideTypes.deckId, deckId)),
+        ),
+      ),
+    )
+    .limit(1);
+  return byName ?? null;
+}
+
 function coerceObject(value: unknown): Record<string, unknown> | undefined {
   if (value === undefined || value === null) return undefined;
   if (typeof value === 'string') {
@@ -81,7 +117,7 @@ export const AGENT_TOOLS: ToolDefinition[] = [
     input_schema: {
       type: 'object',
       properties: {
-        typeId: { type: 'string', description: 'SlideType ID (UUID)' },
+        typeId: { type: 'string', description: 'SlideType identifier — either the UUID id or the slug name (e.g. "title" or "steps-linear-accent").' },
         data: { type: 'object', description: 'Initial field data (optional)' },
       },
       required: ['typeId'],
@@ -151,7 +187,7 @@ export const AGENT_TOOLS: ToolDefinition[] = [
     input_schema: {
       type: 'object',
       properties: {
-        id: { type: 'string', description: 'SlideType ID (UUID)' },
+        id: { type: 'string', description: 'SlideType identifier — either the UUID id or the slug name (e.g. "title").' },
         label: { type: 'string', description: 'New human-readable label (optional)' },
         fields: { type: 'array', description: 'Replacement field schema array (optional)', items: { type: 'object' } },
         htmlTemplate: { type: 'string', description: 'Replacement Handlebars template (optional)' },
@@ -212,7 +248,7 @@ export const AGENT_TOOLS: ToolDefinition[] = [
     input_schema: {
       type: 'object',
       properties: {
-        id: { type: 'string', description: 'SlideType ID (UUID)' },
+        id: { type: 'string', description: 'SlideType identifier — either the UUID id or the slug name (e.g. "title").' },
         slideId: {
           type: 'string',
           description: 'Optional Slide ID — when given, the screenshot uses that slide\'s real data instead of dummy data. The slide must belong to this deck.',
@@ -303,16 +339,12 @@ export async function executeTool(
     }
 
     case 'add_slide': {
-      const typeId = input.typeId as string;
+      const typeRef = input.typeId as string;
       const data = coerceObject(input.data) ?? {};
       const [deck] = await db.select().from(decks).where(eq(decks.id, deckId)).limit(1);
       if (!deck) return { result: 'error: deck not found' };
-      const [type] = await db
-        .select()
-        .from(slideTypes)
-        .where(eq(slideTypes.id, typeId))
-        .limit(1);
-      if (!type) return { result: `error: slide type ${typeId} not found` };
+      const type = await findSlideType(typeRef, deckId);
+      if (!type) return { result: `error: slide type ${typeRef} not found` };
       try {
         validate(data, type.fields as Field[]);
       } catch (err) {
@@ -324,7 +356,7 @@ export async function executeTool(
       const orderIndex = deck.slideOrder.length;
       const [slide] = await db
         .insert(slides)
-        .values({ deckId, typeId, data, orderIndex })
+        .values({ deckId, typeId: type.id, data, orderIndex })
         .returning();
       await db
         .update(decks)
@@ -441,13 +473,9 @@ export async function executeTool(
     }
 
     case 'patch_slide_type': {
-      const id = input.id as string;
-      const [st] = await db
-        .select()
-        .from(slideTypes)
-        .where(eq(slideTypes.id, id))
-        .limit(1);
-      if (!st) return { result: `error: slide type ${id} not found` };
+      const ref = input.id as string;
+      const st = await findSlideType(ref, deckId);
+      if (!st) return { result: `error: slide type ${ref} not found` };
       if (st.scope !== 'deck' || st.deckId !== deckId) {
         return { result: 'error: only deck-scoped slide types belonging to this deck can be patched' };
       }
@@ -471,35 +499,31 @@ export async function executeTool(
         htmlTemplate: st.htmlTemplate,
         css: st.css,
       };
-      await db.update(slideTypes).set(updates).where(eq(slideTypes.id, id));
+      await db.update(slideTypes).set(updates).where(eq(slideTypes.id, st.id));
       return {
         result: 'ok',
-        undoPatch: { type: 'patch_slide_type', id, before },
+        undoPatch: { type: 'patch_slide_type', id: st.id, before },
       };
     }
 
     case 'delete_slide_type': {
-      const id = input.id as string;
-      const [st] = await db
-        .select()
-        .from(slideTypes)
-        .where(eq(slideTypes.id, id))
-        .limit(1);
-      if (!st) return { result: `error: slide type ${id} not found` };
+      const ref = input.id as string;
+      const st = await findSlideType(ref, deckId);
+      if (!st) return { result: `error: slide type ${ref} not found` };
       if (st.scope !== 'deck' || st.deckId !== deckId) {
         return { result: 'error: only deck-scoped slide types belonging to this deck can be deleted' };
       }
       const inUse = await db
         .select({ id: slides.id })
         .from(slides)
-        .where(and(eq(slides.deckId, deckId), eq(slides.typeId, id)))
+        .where(and(eq(slides.deckId, deckId), eq(slides.typeId, st.id)))
         .limit(1);
       if (inUse.length > 0) {
         return {
           result: `error: slide type still in use by at least one slide (${inUse[0]!.id}); delete those slides first`,
         };
       }
-      await db.delete(slideTypes).where(eq(slideTypes.id, id));
+      await db.delete(slideTypes).where(eq(slideTypes.id, st.id));
       return {
         result: 'ok',
         undoPatch: {
@@ -514,11 +538,13 @@ export async function executeTool(
     }
 
     case 'inspect_slide_type': {
-      const id = input.id as string;
+      const ref = input.id as string;
       const slideId = typeof input.slideId === 'string' && input.slideId ? input.slideId : null;
+      const st = await findSlideType(ref, deckId);
+      if (!st) return { result: `error: slide type ${ref} not found` };
       try {
         const { screenshotSlideType } = await import('$lib/server/screenshot.ts');
-        const png = await screenshotSlideType(id, deckId, slideId ? { slideId } : {});
+        const png = await screenshotSlideType(st.id, deckId, slideId ? { slideId } : {});
         const base64 = png.toString('base64');
         const dataNote = slideId ? `slide=${slideId}` : 'dummy data';
         return {

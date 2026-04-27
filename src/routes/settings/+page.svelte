@@ -90,7 +90,16 @@
           await update();
         }}
         oninput={() => (prefsDirty = true)}
-        onchange={() => (prefsDirty = true)}
+        onchange={(e) => {
+          prefsDirty = true;
+          // Auto-save toggle/select changes — these are atomic and there's no
+          // reason to make the user hunt for a Save button after every flip.
+          // The Save button still exists below as a fallback / a11y entry.
+          const t = e.target as HTMLElement;
+          if (t.matches('input[type="checkbox"], select')) {
+            (e.currentTarget as HTMLFormElement).requestSubmit();
+          }
+        }}
         class="stack"
       >
         <div class="pref-row">
@@ -125,15 +134,22 @@
             {/if}
           </div>
           <select name="aiModel">
-            <option value="claude" selected={!data.user.preferences?.aiModel || data.user.preferences.aiModel === 'claude'}>
-              {t('settings.agent_model_claude')}
-            </option>
-            {#each data.ollamaModels as model}
-              <option value="ollama:{model}" selected={data.user.preferences?.aiModel === `ollama:${model}`}>
-                {model}
+            {#if data.ollamaModels.length > 0}
+              <optgroup label={t('settings.agent_model_local')}>
+                {#each data.ollamaModels as model}
+                  <option value="ollama:{model}" selected={data.user.preferences?.aiModel === `ollama:${model}`}>
+                    {model}
+                  </option>
+                {/each}
+              </optgroup>
+            {/if}
+            <optgroup label={t('settings.agent_model_api')}>
+              <option value="claude" selected={!data.user.preferences?.aiModel || data.user.preferences.aiModel === 'claude'}>
+                {t('settings.agent_model_claude')}
               </option>
-            {/each}
+            </optgroup>
           </select>
+          <span class="pref-meter">{t('settings.agent_model_meter')}</span>
         </div>
 
         <div class="row-actions">
@@ -351,6 +367,15 @@
     font-size: 10px;
     letter-spacing: 0.1em;
     color: var(--st-ink-dim);
+  }
+  .pref-meter {
+    display: block;
+    font-family: var(--st-font-mono);
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    color: var(--st-ink-dim);
+    margin-top: 6px;
+    text-align: right;
   }
   select {
     font-family: var(--st-font-mono);

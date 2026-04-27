@@ -57,9 +57,10 @@
 
 {:else if field.type === 'list' && field.items}
   {@const items = Array.isArray(value) ? (value as unknown[]) : []}
+  {@const itemIsGroup = field.items.type === 'group'}
   <div class="list-field">
     {#each items as item, i}
-      <div class="list-row">
+      <div class="list-row" class:group-row={itemIsGroup}>
         <svelte:self
           field={field.items!}
           value={item}
@@ -139,7 +140,7 @@
   }
   .list-field { display: flex; flex-direction: column; gap: 8px; }
   .list-row { display: flex; gap: 8px; align-items: flex-start; }
-  .list-row > :global(*:first-child) { flex: 1; }
+  .list-row > :global(*:first-child) { flex: 1; min-width: 0; }
   .remove-btn {
     flex-shrink: 0;
     background: var(--st-bg);
@@ -153,6 +154,18 @@
     font-size: 14px;
   }
   .remove-btn:hover { color: var(--st-bg); background: var(--st-ink); }
+  /* Group items put the × inside the group box (top-right) so the row uses the
+     full width for the form. */
+  .list-row.group-row { display: block; position: relative; }
+  .list-row.group-row .remove-btn {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    z-index: 1;
+    padding: 2px 8px;
+    font-size: 12px;
+  }
+  .list-row.group-row :global(.group-field) { padding-right: 40px; }
   .add-item-btn {
     background: transparent;
     border: 2px dashed var(--st-ink-dim);

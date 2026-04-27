@@ -795,13 +795,13 @@
   /* ── Body ─────────────────────────────────────────────── */
   .body {
     display: grid;
-    grid-template-columns: 240px minmax(380px, 520px) 1fr;
+    grid-template-columns: 240px minmax(340px, 420px) 1fr;
     flex: 1;
     overflow: hidden;
     min-height: 0;
   }
   @media (min-width: 1440px) {
-    .body { grid-template-columns: 260px minmax(440px, 620px) 1fr; }
+    .body { grid-template-columns: 260px minmax(380px, 480px) 1fr; }
   }
 
   /* ── Slide list ───────────────────────────────────────── */

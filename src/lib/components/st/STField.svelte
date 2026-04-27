@@ -32,12 +32,12 @@
   } = $props();
 </script>
 
-<label class="st-field" class:has-num={Boolean(n)}>
-  {#if n}
-    <div class="num">{n}</div>
-  {/if}
+<label class="st-field">
   <div class="body">
-    <div class="label">{label}</div>
+    <div class="label">
+      {#if n}<span class="num">{n}</span>{/if}
+      <span>{label}</span>
+    </div>
     <div class="value-wrap" class:big class:mono>
       {#if children}
         {@render children()}
@@ -67,29 +67,24 @@
 
 <style>
   .st-field {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 12px;
+    display: block;
     margin-bottom: 20px;
     cursor: text;
   }
-  .st-field.has-num {
-    grid-template-columns: 32px 1fr;
-  }
-  .num {
-    font-family: var(--st-font-mono);
-    font-size: 10px;
-    letter-spacing: 0.22em;
-    color: var(--st-ink-dim);
-    padding-top: 6px;
-  }
   .label {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
     font-family: var(--st-font-mono);
     font-size: 10px;
     letter-spacing: 0.25em;
     color: var(--st-ink-dim);
-    margin-bottom: 4px;
+    margin-bottom: 6px;
     text-transform: uppercase;
+  }
+  .num {
+    color: var(--st-cobalt);
+    letter-spacing: 0.22em;
   }
   .value-wrap {
     border-bottom: var(--st-rule-thick);

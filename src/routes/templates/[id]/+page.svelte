@@ -147,6 +147,9 @@
   }
   .breadcrumb a { color: var(--st-cobalt); text-decoration: none; }
   .layout { display: grid; grid-template-columns: 1fr 380px; gap: 32px; }
+  @media (min-width: 1200px) {
+    .layout { grid-template-columns: 1fr 760px; }
+  }
   .form-toolbar { display: flex; gap: 12px; align-items: center; margin-bottom: 24px; }
   .label-input {
     flex: 1;

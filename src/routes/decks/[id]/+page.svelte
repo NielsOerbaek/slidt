@@ -82,6 +82,19 @@
     autosave(selectedSlideId, newData);
   }
 
+  // Edits that originate from the contenteditable preview iframe. The iframe
+  // already shows the new value, so we just update local state + autosave;
+  // SlidePreview will re-render after the debounce, putting the new value
+  // through fmt() the same way the form-driven path does.
+  function handleInlineEdit(field: string, value: string) {
+    if (!selectedSlideId) return;
+    const current = slideDataMap[selectedSlideId] ?? {};
+    if (current[field] === value) return;
+    const next = { ...current, [field]: value };
+    slideDataMap[selectedSlideId] = next;
+    autosave(selectedSlideId, next);
+  }
+
   async function deleteSlide(slideId: string) {
     await fetch(`/api/decks/${data.deck.id}/slides/${slideId}`, { method: 'DELETE' });
     if (selectedSlideId === slideId) {
@@ -498,6 +511,8 @@
             slideType={selectedType}
             slideData={selectedData}
             theme={data.theme}
+            editable={data.canEdit}
+            onedit={handleInlineEdit}
           />
         </div>
         <div class="thumbs">

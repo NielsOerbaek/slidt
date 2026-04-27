@@ -77,4 +77,10 @@ export interface RenderOptions {
   skipAppendixList?: boolean;
   /** Skip field validation (useful for preview with empty/partial data). Default false. */
   skipValidation?: boolean;
+  /**
+   * Wrap top-level scalar fields in editor markers and inject a contenteditable
+   * script so the renderer's iframe can be edited inline. Editor preview only —
+   * never enable for export, share, or screenshot rendering.
+   */
+  editable?: boolean;
 }

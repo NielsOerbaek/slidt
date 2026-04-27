@@ -2,23 +2,41 @@
   import type { SlideType, Theme } from '../../renderer/types.ts';
   import { render } from '../../renderer/index.ts';
 
-  let { slideType, slideData, theme, label = 'Slide preview' }: {
+  let { slideType, slideData, theme, label = 'Slide preview', editable = false, onedit }: {
     slideType: SlideType | null;
     slideData: Record<string, unknown>;
     theme: Theme | null;
     label?: string;
+    editable?: boolean;
+    onedit?: (field: string, value: string) => void;
   } = $props();
 
   let previewHtml = $state('');
   let container: HTMLDivElement | undefined = $state();
+  let iframe: HTMLIFrameElement | undefined = $state();
   let scale = $state(0.25);
   let renderTimer: ReturnType<typeof setTimeout> | null = null;
+
+  $effect(() => {
+    if (!editable) return;
+    function handler(e: MessageEvent) {
+      // Only honor messages from our own iframe.
+      if (iframe && e.source !== iframe.contentWindow) return;
+      const data = e.data as { type?: string; field?: string; value?: string } | null;
+      if (!data || data.type !== 'slidt:edit') return;
+      if (typeof data.field !== 'string' || typeof data.value !== 'string') return;
+      onedit?.(data.field, data.value);
+    }
+    window.addEventListener('message', handler);
+    return () => window.removeEventListener('message', handler);
+  });
 
   $effect(() => {
     // Capture reactive dependencies
     const st = slideType;
     const sd = { ...slideData };
     const th = theme;
+    const isEditable = editable;
 
     if (!st || !th) { previewHtml = ''; return; }
 
@@ -30,7 +48,11 @@
           lang: 'da',
           slides: [{ typeName: st.name, data: sd }],
         };
-        const html = await render(deck, th, [st], { skipAppendixList: true, skipValidation: true });
+        const html = await render(deck, th, [st], {
+          skipAppendixList: true,
+          skipValidation: true,
+          editable: isEditable,
+        });
         // Inject font-face rules (iframe has allow-same-origin so it can load from /fonts/)
         previewHtml = html.replace('<style>', `<style>
 @font-face{font-family:'Neureal';font-weight:400;font-style:normal;src:url('/fonts/Neureal-Regular.woff2') format('woff2')}
@@ -66,9 +88,10 @@
 <div class="preview-wrap" bind:this={container}>
   {#if previewHtml}
     <iframe
+      bind:this={iframe}
       srcdoc={previewHtml}
       title={label}
-      sandbox="allow-same-origin"
+      sandbox={editable ? 'allow-same-origin allow-scripts' : 'allow-same-origin'}
       style="
         position: absolute;
         top: 0;

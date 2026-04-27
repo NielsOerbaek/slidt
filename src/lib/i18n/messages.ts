@@ -122,6 +122,15 @@ export const messages = {
   'editor.form_empty_no_slides': { da: 'TILFØJ EN SLIDE FOR AT STARTE.', en: 'ADD A SLIDE TO START.' },
   'editor.form_empty_select': { da: 'VÆLG EN SLIDE FOR AT REDIGERE.', en: 'SELECT A SLIDE TO EDIT.' },
 
+  // Undo
+  'editor.undo_label': { da: 'FORTRYDT', en: 'UNDONE' },
+  'editor.redo_label': { da: 'GENTAGET', en: 'REDONE' },
+  'editor.undo_failed': { da: 'Kunne ikke fortryde', en: 'Undo failed' },
+  'editor.action_delete_slide': { da: 'Slet slide', en: 'Delete slide' },
+  'editor.action_add_slide': { da: 'Tilføj slide', en: 'Add slide' },
+  'editor.action_reorder': { da: 'Omarranger slides', en: 'Reorder slides' },
+  'editor.action_apply_theme': { da: 'Skift tema', en: 'Apply theme' },
+
   // Preview
   'editor.preview_meta': { da: 'FORHÅNDSVISNING · 1920×1080', en: 'PREVIEW · 1920×1080' },
   'editor.preview_slide_of': { da: 'SLIDE {n} / {total}', en: 'SLIDE {n} / {total}' },

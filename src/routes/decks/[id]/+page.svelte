@@ -127,13 +127,105 @@
     return obj;
   }
 
-  async function deleteSlide(slideId: string) {
+  // ── Undo / redo ─────────────────────────────────────────────────────
+  // Each user action that mutates the deck pushes an entry. Inverses are
+  // expressed as fresh API calls so they run against current backend state.
+  // Field-level edits (form/inline) are not stacked — the browser handles
+  // input-level undo natively while the user is still in the field.
+  interface UndoEntry { label: string; undo: () => Promise<void>; redo: () => Promise<void> }
+  let undoStack = $state<UndoEntry[]>([]);
+  let redoStack = $state<UndoEntry[]>([]);
+  let undoToast = $state<string | null>(null);
+  let undoBusy = $state(false);
+  let undoToastTimer: ReturnType<typeof setTimeout> | null = null;
+
+  function pushUndo(entry: UndoEntry) {
+    undoStack = [...undoStack.slice(-49), entry];
+    redoStack = [];
+  }
+  function flashUndoToast(msg: string) {
+    undoToast = msg;
+    if (undoToastTimer) clearTimeout(undoToastTimer);
+    undoToastTimer = setTimeout(() => { undoToast = null; }, 1800);
+  }
+  async function runUndo() {
+    if (undoBusy || undoStack.length === 0) return;
+    const entry = undoStack[undoStack.length - 1]!;
+    undoBusy = true;
+    try {
+      await entry.undo();
+      undoStack = undoStack.slice(0, -1);
+      redoStack = [...redoStack, entry];
+      flashUndoToast(`${t('editor.undo_label')}: ${entry.label}`);
+    } catch (err) {
+      console.error('undo failed', err);
+      flashUndoToast(t('editor.undo_failed'));
+    } finally {
+      undoBusy = false;
+    }
+  }
+  async function runRedo() {
+    if (undoBusy || redoStack.length === 0) return;
+    const entry = redoStack[redoStack.length - 1]!;
+    undoBusy = true;
+    try {
+      await entry.redo();
+      redoStack = redoStack.slice(0, -1);
+      undoStack = [...undoStack, entry];
+      flashUndoToast(`${t('editor.redo_label')}: ${entry.label}`);
+    } catch (err) {
+      console.error('redo failed', err);
+      flashUndoToast(t('editor.undo_failed'));
+    } finally {
+      undoBusy = false;
+    }
+  }
+
+  async function deleteSlide(slideId: string, opts: { skipUndo?: boolean } = {}) {
+    const slide = data.slides.find((s) => s.id === slideId);
+    const prevIdx = data.deck.slideOrder.indexOf(slideId);
+    const prevData = slide ? slideDataMap[slide.id] ?? (slide.data as Record<string, unknown>) : null;
+    const prevTypeId = slide?.typeId ?? null;
+
     await fetch(`/api/decks/${data.deck.id}/slides/${slideId}`, { method: 'DELETE' });
     if (selectedSlideId === slideId) {
       const remaining = data.slides.filter((s) => s.id !== slideId);
       selectedSlideId = remaining[0]?.id ?? null;
     }
     await invalidateAll();
+
+    if (opts.skipUndo || !prevTypeId || !prevData) return;
+    let restoredId: string | null = null;
+    pushUndo({
+      label: t('editor.action_delete_slide'),
+      undo: async () => {
+        const res = await fetch(`/api/decks/${data.deck.id}/slides`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ typeId: prevTypeId, data: prevData }),
+        });
+        if (!res.ok) throw new Error('Re-create failed');
+        const { slide: newSlide } = await res.json();
+        restoredId = newSlide.id;
+        // Server appends to slideOrder — move the new slide back to its old index.
+        const order = [...data.deck.slideOrder.filter((id) => id !== newSlide.id), newSlide.id]
+          .filter((id) => id !== newSlide.id);
+        const cleanIdx = Math.max(0, Math.min(prevIdx, order.length));
+        order.splice(cleanIdx, 0, newSlide.id);
+        await fetch(`/api/decks/${data.deck.id}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ slideOrder: order }),
+        });
+        slideDataMap[newSlide.id] = prevData;
+        await invalidateAll();
+        selectedSlideId = newSlide.id;
+      },
+      redo: async () => {
+        if (!restoredId) return;
+        await deleteSlide(restoredId, { skipUndo: true });
+      },
+    });
   }
 
   let draggedId = $state<string | null>(null);
@@ -180,6 +272,20 @@
     dropTargetId = null;
   }
 
+  async function applySlideOrder(order: string[]) {
+    localOrder = order;
+    try {
+      await fetch(`/api/decks/${data.deck.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ slideOrder: order }),
+      });
+      await invalidateAll();
+    } finally {
+      localOrder = null;
+    }
+  }
+
   async function onDrop(e: DragEvent, targetId: string) {
     e.preventDefault();
     if (!draggedId || draggedId === targetId) {
@@ -202,23 +308,16 @@
     if (insertAfter) to += 1;
     order.splice(to, 0, movedId);
 
-    // Apply the new order locally first so the slide visibly moves now.
-    localOrder = order;
-
-    try {
-      await fetch(`/api/decks/${data.deck.id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ slideOrder: order }),
-      });
-      await invalidateAll();
-    } finally {
-      // Clear the override after the server-fetched data reflects the new order.
-      localOrder = null;
-    }
+    const previousOrder = [...baseOrder];
+    await applySlideOrder(order);
+    pushUndo({
+      label: t('editor.action_reorder'),
+      undo: async () => { await applySlideOrder(previousOrder); },
+      redo: async () => { await applySlideOrder(order); },
+    });
   }
 
-  async function addSlide(typeId: string) {
+  async function addSlide(typeId: string, opts: { skipUndo?: boolean } = {}) {
     const type = data.slideTypes.find((t) => t.id === typeId);
     const defaults = type ? buildDefaultData(type.fields) : {};
     const res = await fetch(`/api/decks/${data.deck.id}/slides`, {
@@ -226,13 +325,23 @@
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ typeId, data: defaults }),
     });
-    if (res.ok) {
-      const { slide } = await res.json();
-      slideDataMap[slide.id] = defaults;
-      showTypePicker = false;
-      await invalidateAll();
-      selectedSlideId = slide.id;
-    }
+    if (!res.ok) return;
+    const { slide } = await res.json();
+    slideDataMap[slide.id] = defaults;
+    showTypePicker = false;
+    await invalidateAll();
+    selectedSlideId = slide.id;
+
+    if (opts.skipUndo) return;
+    pushUndo({
+      label: t('editor.action_add_slide'),
+      undo: async () => {
+        await deleteSlide(slide.id, { skipUndo: true });
+      },
+      redo: async () => {
+        await addSlide(typeId, { skipUndo: true });
+      },
+    });
   }
 
   let shareCopied = $state(false);
@@ -275,14 +384,24 @@
     shareCopied = false;
   }
 
-  async function applyTheme(themeId: string) {
-    showThemePicker = false;
+  async function setDeckTheme(themeId: string | null) {
     await fetch(`/api/decks/${data.deck.id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ themeId }),
     });
     await invalidateAll();
+  }
+  async function applyTheme(themeId: string) {
+    showThemePicker = false;
+    const previousThemeId = data.deck.themeId ?? null;
+    if (previousThemeId === themeId) return;
+    await setDeckTheme(themeId);
+    pushUndo({
+      label: t('editor.action_apply_theme'),
+      undo: async () => { await setDeckTheme(previousThemeId); },
+      redo: async () => { await setDeckTheme(themeId); },
+    });
   }
 
   async function deleteDeck() {
@@ -322,6 +441,22 @@
 
   function handleKeydown(e: KeyboardEvent) {
     const target = e.target as HTMLElement;
+
+    // Cmd/Ctrl + Z and Cmd/Ctrl + Shift + Z: deck-level undo/redo. Inside a
+    // text input we let the browser handle native input undo instead so the
+    // user doesn't lose finer-grained typing history.
+    const editing = target?.matches('input, textarea, [contenteditable]');
+    const mod = e.metaKey || e.ctrlKey;
+    if (mod && (e.key === 'z' || e.key === 'Z') && !editing) {
+      e.preventDefault();
+      if (e.shiftKey) runRedo(); else runUndo();
+      return;
+    }
+    if (mod && e.key === 'y' && !editing) {
+      e.preventDefault();
+      runRedo();
+      return;
+    }
 
     // Escape: blur active input → back to normal mode
     if (e.key === 'Escape' && target?.matches('input, textarea, [contenteditable]')) {
@@ -414,6 +549,12 @@
 
 <svelte:head><title>{data.deck.title} — slidt</title></svelte:head>
 <svelte:window onkeydown={handleKeydown} />
+
+{#if undoToast}
+  <div class="undo-toast" transition:fade={{ duration: 120 }}>
+    {undoToast}
+  </div>
+{/if}
 
 <div class="editor">
   <!-- Breadcrumb / actions row -->
@@ -721,6 +862,21 @@
 {/if}
 
 <style>
+  .undo-toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--st-ink);
+    color: var(--st-bg);
+    padding: 12px 18px;
+    font-family: var(--st-font-mono);
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    z-index: 1100;
+    box-shadow: 0 8px 24px rgba(8, 8, 7, 0.25);
+  }
   .editor {
     display: flex;
     flex-direction: column;

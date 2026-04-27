@@ -194,13 +194,8 @@
 
 <style>
   /* ── Page wrapper ─────────────────────────────────────────── */
-  .page-wrap {
-    max-width: 1100px;
-    margin: 0 auto;
-    border-left: var(--st-rule-thick);
-    border-right: var(--st-rule-thick);
-    min-height: 100vh;
-  }
+  /* Outer max-width / side borders come from the global frame in +layout.svelte */
+  .page-wrap { min-height: 100vh; }
 
   /* ── Header ───────────────────────────────────────────────── */
   .head-band {
@@ -458,7 +453,6 @@
 
   /* ── Mobile ───────────────────────────────────────────────── */
   @media (max-width: 768px) {
-    .page-wrap { border-left: none; border-right: none; }
     .head-band { grid-template-columns: 1fr; }
     .head-index { display: none; }
     .head-title { padding: 20px; }

@@ -158,6 +158,8 @@ export const messages = {
   'templates.title': { da: 'Skabeloner — slidt', en: 'Templates — slidt' },
   'templates.headline': { da: 'Slide-typer.', en: 'Slide types.' },
   'templates.items_label': { da: 'SKABELONER —', en: 'TEMPLATES —' },
+  'templates.search_placeholder': { da: 'Søg skabeloner…', en: 'Search templates…' },
+  'templates.empty_search': { da: 'Ingen skabeloner matcher søgningen.', en: 'No templates match your search.' },
 
   'theme_edit.crumb': { da: 'Temaer', en: 'Themes' },
   'theme_edit.save': { da: 'GEM', en: 'SAVE' },

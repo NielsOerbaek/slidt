@@ -9,7 +9,7 @@
   import STFace from '$lib/components/st/STFace.svelte';
   import STAgentDrawer from '$lib/components/st/STAgentDrawer.svelte';
   import { debounce } from '$lib/utils/debounce.ts';
-  import { buildDefaultData } from '$lib/utils/field-defaults.ts';
+  import { buildDefaultData, buildDummyData } from '$lib/utils/field-defaults.ts';
   import { slideSnippet } from '$lib/utils/slide-snippet.ts';
   import { t } from '$lib/i18n/index.ts';
   import { goto } from '$app/navigation';
@@ -614,7 +614,7 @@
             <div class="tt-preview">
               <SlidePreview
                 slideType={type}
-                slideData={buildDefaultData(type.fields)}
+                slideData={buildDummyData(type.fields)}
                 theme={data.theme}
               />
             </div>

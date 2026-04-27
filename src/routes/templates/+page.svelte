@@ -1,7 +1,34 @@
 <script lang="ts">
   import type { PageData } from './$types.js';
   import { t } from '$lib/i18n/index.ts';
+  import SlidePreview from '$lib/components/SlidePreview.svelte';
+  import { buildDummyData } from '$lib/utils/field-defaults.ts';
+  import type { SlideType } from '../../renderer/types.ts';
+
   let { data }: { data: PageData } = $props();
+
+  let query = $state('');
+
+  const filtered = $derived(
+    data.slideTypes.filter((st) => {
+      const q = query.trim().toLowerCase();
+      if (!q) return true;
+      return (
+        st.label.toLowerCase().includes(q) ||
+        st.name.toLowerCase().includes(q)
+      );
+    }),
+  );
+
+  function previewType(st: typeof data.slideTypes[number]): SlideType {
+    return {
+      name: st.name,
+      label: st.label,
+      fields: st.fields,
+      htmlTemplate: st.htmlTemplate,
+      css: st.css,
+    };
+  }
 </script>
 
 <svelte:head><title>{t('templates.title')}</title></svelte:head>
@@ -14,17 +41,42 @@
   </div>
 </div>
 
-<ul class="list">
-  {#each data.slideTypes as st (st.id)}
-    <li class="row">
-      <a href="/templates/{st.id}" class="row-link">
-        <span class="name">{st.label}</span>
-        <span class="code">{st.name}</span>
-      </a>
-      <span class="scope-badge {st.scope}">{st.scope.toUpperCase()}</span>
-    </li>
-  {/each}
-</ul>
+<div class="search-row">
+  <input
+    type="search"
+    class="search-input"
+    placeholder={t('templates.search_placeholder')}
+    bind:value={query}
+  />
+</div>
+
+{#if filtered.length === 0}
+  <p class="empty">{t('templates.empty_search')}</p>
+{:else}
+  <ul class="grid">
+    {#each filtered as st (st.id)}
+      <li class="card">
+        <a href="/templates/{st.id}" class="card-link">
+          <div class="card-preview">
+            {#if data.previewTheme}
+              <SlidePreview
+                slideType={previewType(st)}
+                slideData={buildDummyData(st.fields)}
+                theme={data.previewTheme}
+                label={st.label}
+              />
+            {/if}
+          </div>
+          <div class="card-meta">
+            <span class="card-name">{st.label}</span>
+            <span class="card-code">{st.name}</span>
+          </div>
+        </a>
+        <span class="scope-badge {st.scope}">{st.scope.toUpperCase()}</span>
+      </li>
+    {/each}
+  </ul>
+{/if}
 
 <style>
   .head-band {
@@ -58,58 +110,110 @@
     margin: 0;
   }
 
-  .list { list-style: none; padding: 0; margin: 0; }
-  .row {
-    display: grid;
-    grid-template-columns: 80px 1fr auto;
+  .search-row {
+    padding: 20px 40px;
     border-bottom: var(--st-rule-thin);
+  }
+  .search-input {
+    width: 100%;
+    padding: 12px 14px;
+    border: var(--st-rule-medium);
     background: var(--st-bg);
+    color: var(--st-ink);
+    font-family: var(--st-font-mono);
+    font-size: 13px;
+    letter-spacing: 0.08em;
   }
-  .row::before {
-    content: '';
-    border-right: var(--st-rule-thick);
+  .search-input:focus {
+    outline: 2px solid var(--st-cobalt);
+    outline-offset: -2px;
   }
-  .row-link {
-    padding: 20px;
+
+  .grid {
+    list-style: none;
+    margin: 0;
+    padding: 24px 40px 40px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 24px;
+  }
+  .card {
+    position: relative;
+    border: var(--st-rule-medium);
+    background: var(--st-bg);
+    display: flex;
+    flex-direction: column;
+  }
+  .card-link {
+    display: flex;
+    flex-direction: column;
     text-decoration: none;
     color: inherit;
+  }
+  .card-link:hover { background: var(--st-bg-deep); }
+  .card-preview {
+    aspect-ratio: 16 / 9;
+    border-bottom: var(--st-rule-thin);
+    overflow: hidden;
+    background: var(--st-bg-deep);
+  }
+  .card-meta {
+    padding: 14px 16px;
     display: flex;
     flex-direction: column;
     gap: 4px;
-    border-right: var(--st-rule-thin);
   }
-  .row-link:hover { background: var(--st-bg-deep); }
-  .name {
+  .card-name {
     font-family: var(--st-font-display);
-    font-size: 24px;
+    font-size: 20px;
     letter-spacing: -0.02em;
   }
-  .code {
+  .card-code {
     font-family: var(--st-font-mono);
     font-size: 11px;
     letter-spacing: 0.16em;
     color: var(--st-ink-dim);
   }
+
   .scope-badge {
-    align-self: center;
-    margin-right: 22px;
+    position: absolute;
+    top: 10px;
+    right: 10px;
     font-family: var(--st-font-mono);
-    font-size: 10px;
+    font-size: 9px;
     letter-spacing: 0.18em;
-    padding: 4px 10px;
+    padding: 3px 8px;
     border: 2px solid var(--st-ink);
+    background: var(--st-bg);
+    color: var(--st-ink);
   }
-  .scope-badge.global { background: var(--st-bg); color: var(--st-ink); }
-  .scope-badge.deck { background: var(--st-cobalt); color: var(--st-bg); border-color: var(--st-cobalt); }
+  .scope-badge.deck {
+    background: var(--st-cobalt);
+    color: var(--st-bg);
+    border-color: var(--st-cobalt);
+  }
+
+  .empty {
+    padding: 40px;
+    font-family: var(--st-font-mono);
+    font-size: 12px;
+    letter-spacing: 0.12em;
+    color: var(--st-ink-dim);
+    text-align: center;
+  }
 
   @media (max-width: 768px) {
     .head-band { grid-template-columns: 1fr; }
     .head-index { display: none; }
     .head-title { padding: 20px; }
     h1 { font-size: clamp(40px, 12vw, 76px); }
-    .row { grid-template-columns: 1fr auto; }
-    .row::before { display: none; }
-    .row-link { padding: 14px 16px; }
-    .scope-badge { margin-right: 12px; }
+    .search-row { padding: 14px 16px; }
+    .grid {
+      padding: 16px;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 14px;
+    }
+    .card-meta { padding: 10px 12px; }
+    .card-name { font-size: 17px; }
   }
 </style>

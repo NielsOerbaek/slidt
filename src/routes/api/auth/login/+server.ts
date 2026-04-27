@@ -1,7 +1,7 @@
 import { json } from '@sveltejs/kit';
 import type { RequestEvent } from '@sveltejs/kit';
 import { db, users } from '$lib/server/db/index.ts';
-import { verifyPassword, createSession } from '$lib/server/auth.ts';
+import { verifyPassword, createSession, SESSION_DURATION_SECONDS } from '$lib/server/auth.ts';
 import { eq } from 'drizzle-orm';
 
 export async function POST(event: RequestEvent) {
@@ -35,7 +35,7 @@ export async function POST(event: RequestEvent) {
     httpOnly: true,
     sameSite: 'lax',
     secure: process.env.NODE_ENV === 'production',
-    maxAge: 30 * 24 * 60 * 60,
+    maxAge: SESSION_DURATION_SECONDS,
   });
 
   return json({ user: { id: user.id, email: user.email, name: user.name } });

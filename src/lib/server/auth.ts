@@ -1,6 +1,6 @@
 import { hash, verify } from '@node-rs/argon2';
 import { db, sessions, users, apiKeys } from './db/index.ts';
-import { eq } from 'drizzle-orm';
+import { and, eq, gt } from 'drizzle-orm';
 import type { UserPreferences } from './db/schema.ts';
 
 // ── Password hashing ──────────────────────────────────────────────
@@ -22,7 +22,8 @@ export async function verifyPassword(
 
 // ── Session management ────────────────────────────────────────────
 
-const SESSION_DURATION_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
+export const SESSION_DURATION_SECONDS = 60 * 24 * 60 * 60; // 60 days
+const SESSION_DURATION_MS = SESSION_DURATION_SECONDS * 1000;
 
 export async function createSession(userId: string): Promise<string> {
   const id = crypto.randomUUID();
@@ -45,7 +46,7 @@ export async function resolveSession(
     })
     .from(sessions)
     .innerJoin(users, eq(sessions.userId, users.id))
-    .where(eq(sessions.id, token))
+    .where(and(eq(sessions.id, token), gt(sessions.expiresAt, now)))
     .limit(1);
 
   if (!rows[0]) return null;

@@ -1,7 +1,7 @@
 import type { Actions, PageServerLoad } from './$types.js';
 import { redirect, fail } from '@sveltejs/kit';
 import { db, users } from '$lib/server/db/index.ts';
-import { verifyPassword, createSession } from '$lib/server/auth.ts';
+import { verifyPassword, createSession, SESSION_DURATION_SECONDS } from '$lib/server/auth.ts';
 import { eq } from 'drizzle-orm';
 import { normalizeEmail } from '$lib/utils/auth-utils.ts';
 
@@ -36,7 +36,7 @@ export const actions: Actions = {
       httpOnly: true,
       sameSite: 'lax',
       secure: process.env.NODE_ENV === 'production',
-      maxAge: 30 * 24 * 60 * 60,
+      maxAge: SESSION_DURATION_SECONDS,
     });
 
     throw redirect(302, '/decks');

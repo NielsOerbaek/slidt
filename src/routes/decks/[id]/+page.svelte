@@ -89,10 +89,42 @@
   function handleInlineEdit(field: string, value: string) {
     if (!selectedSlideId) return;
     const current = slideDataMap[selectedSlideId] ?? {};
-    if (current[field] === value) return;
-    const next = { ...current, [field]: value };
-    slideDataMap[selectedSlideId] = next;
-    autosave(selectedSlideId, next);
+    const parts = field.split('.');
+    if (readDeep(current, parts) === value) return;
+    const next = setDeep(current, parts, value);
+    if (next === current) return;
+    slideDataMap[selectedSlideId] = next as Record<string, unknown>;
+    autosave(selectedSlideId, next as Record<string, unknown>);
+  }
+
+  function readDeep(obj: unknown, path: string[]): unknown {
+    let cur: unknown = obj;
+    for (const p of path) {
+      if (cur == null) return undefined;
+      cur = Array.isArray(cur) ? cur[Number(p)] : (cur as Record<string, unknown>)[p];
+    }
+    return cur;
+  }
+
+  // Immutable deep set — clones each container along the path so Svelte sees a
+  // new reference. Returns the input unchanged if the path can't be walked.
+  function setDeep(obj: unknown, path: string[], value: unknown): unknown {
+    if (path.length === 0) return value;
+    const [head, ...rest] = path;
+    if (obj == null) return obj;
+    if (Array.isArray(obj)) {
+      const idx = Number(head);
+      if (!Number.isInteger(idx) || idx < 0 || idx >= obj.length) return obj;
+      const next = obj.slice();
+      next[idx] = setDeep(obj[idx], rest, value);
+      return next;
+    }
+    if (typeof obj === 'object') {
+      const o = obj as Record<string, unknown>;
+      if (!(head! in o)) return obj;
+      return { ...o, [head!]: setDeep(o[head!], rest, value) };
+    }
+    return obj;
   }
 
   async function deleteSlide(slideId: string) {

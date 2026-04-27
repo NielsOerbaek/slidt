@@ -1,17 +1,25 @@
 /**
- * Wrap top-level `{{fmt fieldName}}` references in an htmlTemplate with a
- * `<span data-slidt-field="…">` marker so the in-page editor can attach
+ * Wrap `{{fmt …}}` references in an htmlTemplate with a `<span
+ * data-slidt-field="…">` marker so the in-page editor can attach
  * contenteditable handlers and map DOM edits back to the underlying field.
  *
- * Only references that resolve against the slide's root data context get
- * wrapped — anything inside a `{{#each}}` block (where `this` rebinds to a
- * list item) is skipped, since list items have no field-name we can map back
- * to without tracking the path. `{{#if}}` / `{{#unless}}` blocks don't change
- * context, so fields inside them are still editable.
+ * Path resolution:
+ * - Outside any `{{#each}}` block, the path is the literal reference,
+ *   including dotted access (e.g. `sideA.label`).
+ * - Inside one level of `{{#each list}}`, the path becomes
+ *   `<list>.{{@index}}.<ref>` (or `<list>.{{@index}}` for `{{fmt this}}`).
+ *   Handlebars renders `{{@index}}` per iteration so each list item gets a
+ *   unique data-slidt-field on the rendered DOM.
+ * - Two or more nested `{{#each}}` blocks are not handled: list items inside
+ *   inner each lack a stable path without `{{@../index}}` plumbing, so we
+ *   just leave them un-tagged.
+ *
+ * `{{#if}}` / `{{#unless}}` blocks don't change context, so wrapping inside
+ * them is fine.
  */
 export function makeEditable(template: string): string {
   let out = '';
-  let inEach = 0;
+  const eachStack: string[] = [];
   let i = 0;
 
   while (i < template.length) {
@@ -29,26 +37,45 @@ export function makeEditable(template: string): string {
     const tag = template.slice(open, close + 2);
     const inner = template.slice(open + 2, close).trim();
 
-    if (inner.startsWith('#each')) {
-      inEach++;
+    const eachOpen = /^#each\s+([A-Za-z_$][\w$.]*)$/.exec(inner);
+    if (eachOpen) {
+      eachStack.push(eachOpen[1]!);
       out += tag;
     } else if (inner.startsWith('/each')) {
-      inEach = Math.max(0, inEach - 1);
+      eachStack.pop();
       out += tag;
-    } else if (inEach === 0) {
-      const m = /^fmt\s+([A-Za-z_$][\w$]*)$/.exec(inner);
-      if (m && m[1] !== 'this') {
-        out += `<span data-slidt-field="${m[1]}">${tag}</span>`;
+    } else {
+      const fmtMatch = /^fmt\s+(this|[A-Za-z_$][\w$.]*)$/.exec(inner);
+      if (fmtMatch) {
+        const ref = fmtMatch[1]!;
+        const path = pathFor(eachStack, ref);
+        if (path) {
+          out += `<span data-slidt-field="${path}">${tag}</span>`;
+        } else {
+          out += tag;
+        }
       } else {
         out += tag;
       }
-    } else {
-      out += tag;
     }
     i = close + 2;
   }
 
   return out;
+}
+
+function pathFor(eachStack: string[], ref: string): string | null {
+  if (eachStack.length === 0) {
+    if (ref === 'this') return null;
+    return ref;
+  }
+  if (eachStack.length === 1) {
+    const list = eachStack[0]!;
+    if (ref === 'this') return `${list}.{{@index}}`;
+    return `${list}.{{@index}}.${ref}`;
+  }
+  // 2+ nested #each — would need {{@../index}} chaining; leave un-tagged.
+  return null;
 }
 
 export const EDITOR_SCRIPT = `

@@ -1,6 +1,8 @@
 <script lang="ts">
   import STFace from './STFace.svelte';
   import { t } from '$lib/i18n/index.ts';
+  import { slide, fade } from 'svelte/transition';
+  import { cubicOut } from 'svelte/easing';
 
   type Tab = 'decks' | 'themes' | 'templates' | 'docs' | 'admin' | 'settings';
 
@@ -60,7 +62,7 @@
         <span class="more-arrow" class:open={moreOpen}>▾</span>
       </button>
       {#if moreOpen}
-        <div class="more-dropdown">
+        <div class="more-dropdown" transition:slide={{ duration: 160, easing: cubicOut }}>
           <a class="drop-item" class:active={active === 'docs'} href="/docs" onclick={closeMore}>
             <span class="drop-num">05</span>
             <span>{t('nav.docs')}</span>
@@ -108,7 +110,7 @@
 
 <!-- Mobile menu overlay -->
 {#if menuOpen}
-  <div class="mob-menu">
+  <div class="mob-menu" transition:fade={{ duration: 120 }}>
     {#each items as item, i (item.id)}
       <a class="mob-link" class:active={active === item.id} href="/{item.id}" onclick={closeMenu}>
         <span class="mob-num">0{i + 2}</span>

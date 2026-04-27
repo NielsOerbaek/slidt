@@ -3,7 +3,27 @@
   import type { Snippet } from 'svelte';
   import type { LayoutData } from './$types.js';
   import { page } from '$app/state';
+  import { onNavigate } from '$app/navigation';
   import STNav from '$lib/components/st/STNav.svelte';
+
+  // View Transitions API: morph shared elements (e.g. deck-card → editor
+  // breadcrumb tagged with the same view-transition-name) on navigation.
+  // Browsers without support skip the wrapper and navigate normally.
+  onNavigate((nav) => {
+    if (typeof document === 'undefined') return;
+    const startVT = (
+      document as Document & {
+        startViewTransition?: (cb: () => Promise<void>) => unknown;
+      }
+    ).startViewTransition;
+    if (!startVT) return;
+    return new Promise<void>((resolve) => {
+      startVT.call(document, async () => {
+        resolve();
+        await nav.complete;
+      });
+    });
+  });
 
   let { data, children }: { data: LayoutData; children: Snippet } = $props();
 

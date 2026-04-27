@@ -91,7 +91,7 @@
       </div>
 
       {#each data.decks as deck, i (deck.id)}
-        <a class="row" href="/decks/{deck.id}">
+        <a class="row" href="/decks/{deck.id}" style:view-transition-name="deck-{deck.id}">
           <div class="cell n">{String(i + 1).padStart(2, '0')}</div>
           <div class="cell title">
             {#if i === 0}<span class="dot" aria-hidden="true"></span>{/if}
@@ -124,7 +124,7 @@
           <div class="th arrow"></div>
         </div>
         {#each data.sharedDecks as deck, i (deck.id)}
-          <a class="row" href="/decks/{deck.id}">
+          <a class="row" href="/decks/{deck.id}" style:view-transition-name="deck-{deck.id}">
             <div class="cell n">{String(i + 1).padStart(2, '0')}</div>
             <div class="cell title">
               <span class="t">{deck.title}</span>

@@ -13,6 +13,8 @@
   import { slideSnippet } from '$lib/utils/slide-snippet.ts';
   import { t } from '$lib/i18n/index.ts';
   import { goto } from '$app/navigation';
+  import { fade, scale } from 'svelte/transition';
+  import { cubicOut } from 'svelte/easing';
 
   let { data, form }: { data: PageData; form: ActionData } = $props();
 
@@ -377,7 +379,7 @@
       <span class="dim">/</span>
       <span class="dim">{String(data.deck.slideOrder.length).padStart(2, '0')}</span>
       <span class="dim">›</span>
-      <span class="title">{data.deck.title}</span>
+      <span class="title" style:view-transition-name="deck-{data.deck.id}">{data.deck.title}</span>
       <span class="pill" class:pill-error={saveError} class:pill-saving={saving}>
         {saveLabel}
       </span>
@@ -597,12 +599,14 @@
     aria-modal="true"
     onclick={() => showTypePicker = false}
     onkeydown={(e) => e.key === 'Escape' && (showTypePicker = false)}
+    transition:fade={{ duration: 120 }}
   >
     <div
       class="picker"
       role="document"
       onclick={(e) => e.stopPropagation()}
       onkeydown={(e) => e.stopPropagation()}
+      transition:scale={{ duration: 180, start: 0.96, easing: cubicOut }}
     >
       <div class="picker-head">
         <span>{t('editor.picker_head')}</span>
@@ -635,12 +639,14 @@
     aria-modal="true"
     onclick={() => showThemePicker = false}
     onkeydown={(e) => e.key === 'Escape' && (showThemePicker = false)}
+    transition:fade={{ duration: 120 }}
   >
     <div
       class="picker"
       role="document"
       onclick={(e) => e.stopPropagation()}
       onkeydown={(e) => e.stopPropagation()}
+      transition:scale={{ duration: 180, start: 0.96, easing: cubicOut }}
     >
       <div class="picker-head">
         <span>{t('editor.theme_picker_head')}</span>

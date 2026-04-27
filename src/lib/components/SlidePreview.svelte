@@ -17,19 +17,41 @@
   let scale = $state(0.25);
   let renderTimer: ReturnType<typeof setTimeout> | null = null;
 
-  $effect(() => {
-    if (!editable) return;
-    function handler(e: MessageEvent) {
-      // Only honor messages from our own iframe.
-      if (iframe && e.source !== iframe.contentWindow) return;
-      const data = e.data as { type?: string; field?: string; value?: string } | null;
-      if (!data || data.type !== 'slidt:edit') return;
-      if (typeof data.field !== 'string' || typeof data.value !== 'string') return;
-      onedit?.(data.field, data.value);
-    }
-    window.addEventListener('message', handler);
-    return () => window.removeEventListener('message', handler);
-  });
+  // Attach contenteditable + listeners to data-slidt-field nodes inside the
+  // iframe directly from the parent. This relies on the iframe having
+  // allow-same-origin — and it lets us avoid `allow-scripts`, which combined
+  // with allow-same-origin would otherwise let the iframe escape the sandbox.
+  function attachEditors() {
+    if (!editable || !iframe) return;
+    const doc = iframe.contentDocument;
+    if (!doc) return;
+    const nodes = doc.querySelectorAll<HTMLElement>('[data-slidt-field]');
+    nodes.forEach((el) => {
+      if (el.dataset.slidtAttached) return;
+      el.dataset.slidtAttached = '1';
+      el.contentEditable = 'true';
+      el.spellcheck = true;
+      el.addEventListener('keydown', (e) => {
+        if ((e as KeyboardEvent).key === 'Enter' && !(e as KeyboardEvent).shiftKey) {
+          e.preventDefault();
+          el.blur();
+        }
+        if ((e as KeyboardEvent).key === 'Escape') {
+          e.preventDefault();
+          el.blur();
+        }
+      });
+      el.addEventListener('blur', () => {
+        const field = el.dataset.slidtField;
+        if (typeof field !== 'string') return;
+        onedit?.(field, el.innerText);
+      });
+    });
+  }
+
+  function onIframeLoad() {
+    attachEditors();
+  }
 
   $effect(() => {
     // Capture reactive dependencies
@@ -91,7 +113,8 @@
       bind:this={iframe}
       srcdoc={previewHtml}
       title={label}
-      sandbox={editable ? 'allow-same-origin allow-scripts' : 'allow-same-origin'}
+      sandbox="allow-same-origin"
+      onload={onIframeLoad}
       style="
         position: absolute;
         top: 0;

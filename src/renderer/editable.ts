@@ -78,38 +78,14 @@ function pathFor(eachStack: string[], ref: string): string | null {
   return null;
 }
 
-export const EDITOR_SCRIPT = `
+// Styles injected into the rendered iframe so editable elements show their
+// hover/focus affordances. The contenteditable + event wiring is attached from
+// the parent window via iframe.contentDocument — no scripts run inside the
+// iframe, which lets us keep the sandbox at allow-same-origin only.
+export const EDITOR_STYLES = `
 <style>
 [data-slidt-field] { transition: outline-color 100ms; }
 [data-slidt-field]:hover { outline: 2px dashed rgba(20, 64, 212, 0.45); outline-offset: 4px; cursor: text; }
 [data-slidt-field]:focus { outline: 2px solid rgba(20, 64, 212, 0.9); outline-offset: 4px; cursor: text; }
 [data-slidt-field][contenteditable]:empty::before { content: attr(data-slidt-field); color: rgba(0,0,0,0.25); font-style: italic; }
-</style>
-<script>
-(function () {
-  function send(field, value) {
-    parent.postMessage({ type: 'slidt:edit', field: field, value: value }, '*');
-  }
-  function attach(el) {
-    el.contentEditable = 'true';
-    el.spellcheck = true;
-    el.addEventListener('keydown', function (e) {
-      if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); el.blur(); }
-      if (e.key === 'Escape') { e.preventDefault(); el.blur(); }
-    });
-    el.addEventListener('blur', function () {
-      send(el.dataset.slidtField, el.innerText);
-    });
-  }
-  function init() {
-    var nodes = document.querySelectorAll('[data-slidt-field]');
-    for (var i = 0; i < nodes.length; i++) attach(nodes[i]);
-  }
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', init);
-  } else {
-    init();
-  }
-})();
-</script>
-`;
+</style>`;

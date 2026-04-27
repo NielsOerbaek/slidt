@@ -7,7 +7,7 @@ import { wrapSlide } from './slide-wrap.ts';
 import { pageShell } from './page-shell.ts';
 import { baseStyles, cornerStyles } from './base-styles.ts';
 import { symbolDefs } from './symbols.ts';
-import { makeEditable, EDITOR_SCRIPT } from './editable.ts';
+import { makeEditable, EDITOR_STYLES } from './editable.ts';
 
 export * from './types.ts';
 
@@ -61,7 +61,7 @@ export async function render(
   const bodyParts: string[] = [];
   if (hasCorner) bodyParts.push(symbolDefs());
   bodyParts.push(slideHtml.join('\n\n'));
-  if (options.editable) bodyParts.push(EDITOR_SCRIPT);
+  if (options.editable) bodyParts.push(EDITOR_STYLES);
 
   return pageShell({
     lang: deck.lang,

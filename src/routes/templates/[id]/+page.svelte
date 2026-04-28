@@ -229,6 +229,10 @@
     flex-direction: column;
     min-height: calc(100vh - 49px);
     background: var(--st-bg);
+    /* Relative so the absolute-positioned agent drawer attaches inside the
+       editor surface (below the nav) instead of overlaying the whole viewport
+       and hiding its close × behind the global navigation. */
+    position: relative;
   }
 
   /* Full-width top bar: breadcrumb + label + slug on the left,

@@ -8,12 +8,8 @@ Status keys: `[ ]` open · `[~]` in progress · `[x]` done · `[?]` needs design
 
 ## Up next
 
-- [ ] **Template agent issues** — needs investigation:
-  - Cannot close the overlay (likely z-index / pointer-events conflict with the template editor's full-bleed form wrapper).
-  - Agent history disappears after refresh: drawer never fetches DB-stored message history on mount; UI starts empty even though server has the context. Fix: a `GET /api/decks/[id]/agent/history` endpoint and call on drawer open.
-  - Should not save by default — agent edits should land in a "draft" channel until the user accepts them.
-  - Undo wanted in the agent flow too — every agent tool call already returns `undoPatch`; surface a per-turn undo stack.
-  - "Said it looked fine after emptying the slide": LLM behavior; consider a post-patch guardrail that warns when required fields go empty.
+- [ ] **Agent shouldn't save by default.** Agent edits should land in a "staged / pending" channel until the user explicitly Accepts. Big change — needs design before build (probably a `pendingPatches` collection on the agent endpoint, accept/reject UI per turn).
+- [ ] **"Said it looked fine after emptying the slide"** guardrail: post-patch validator warns the agent if required fields went empty / dropped from non-empty to empty.
 
 ## Design first, then build
 
@@ -21,6 +17,8 @@ Status keys: `[ ]` open · `[~]` in progress · `[x]` done · `[?]` needs design
 
 ## Done (recent)
 
+- [x] Agent drawer: close × now clickable on the template editor (drawer was overlapping the global nav)
+- [x] Agent drawer: hydrates message history from DB on open — survives page refresh
 - [x] (2) Persistent edit history v1 — slide_edits table, /api/decks/:id/history list, /history/:editId/revert; History drawer behind editor "more" menu, grouped by day with Revert per row
 - [x] (8) Agent panel on the template editor (deck-scoped templates only — opens the existing drawer pointed at the parent deck)
 - [x] (4) Slide list thumbnail mode (toggle in editor "more" menu, persisted in localStorage, IntersectionObserver-based lazy rendering)

@@ -43,6 +43,7 @@
   }
 
   let messages = $state<Message[]>([]);
+  let historyLoaded = $state(false);
   let input = $state('');
   let sending = $state(false);
   // Tracks the currently executing tool call, set on `tool_start` and cleared
@@ -84,6 +85,113 @@
       setTimeout(() => composeEl?.focus(), 50);
       scrollToBottom();
     }
+  }
+
+  // ── History rehydration ─────────────────────────────────────────────
+  // The runner persists every turn to agent_messages; the drawer fetches
+  // that on first open so the UI matches what the agent already "remembers"
+  // server-side. We project the stored Anthropic content blocks back into
+  // the drawer's TextPart / ToolPart model.
+  $effect(() => {
+    if (!open || historyLoaded) return;
+    historyLoaded = true;
+    void loadHistory();
+  });
+
+  async function loadHistory() {
+    try {
+      const res = await fetch(`/api/decks/${deckId}/agent`);
+      if (!res.ok) return;
+      const { messages: rows } = (await res.json()) as { messages: HistoryRow[] };
+      messages = projectHistory(rows);
+      scrollToBottom();
+    } catch (err) {
+      console.error('agent history load failed', err);
+    }
+  }
+
+  interface HistoryRow {
+    id: string;
+    role: 'user' | 'assistant';
+    content: string;
+    rawContent: unknown[] | null;
+    createdAt: string;
+  }
+
+  function projectHistory(rows: HistoryRow[]): Message[] {
+    const out: Message[] = [];
+    for (const row of rows) {
+      if (row.role === 'user' && (!row.rawContent || row.rawContent.length === 0)) {
+        out.push({ role: 'user', parts: [{ kind: 'text', text: row.content }] });
+        continue;
+      }
+      if (row.rawContent && Array.isArray(row.rawContent)) {
+        // Each entry is a stored {role, content} pair from the agent loop;
+        // a single DB assistant row can fan out to multiple turns when the
+        // model called tools and got results back.
+        for (const entry of row.rawContent as Array<{ role: string; content: unknown }>) {
+          const projected = projectEntry(entry, out);
+          if (projected) out.push(projected);
+        }
+      }
+    }
+    return out;
+  }
+
+  function projectEntry(
+    entry: { role: string; content: unknown },
+    prior: Message[],
+  ): Message | null {
+    const blocks = Array.isArray(entry.content)
+      ? entry.content as Array<Record<string, unknown>>
+      : null;
+    if (!blocks) {
+      // Plain string content
+      const text = typeof entry.content === 'string' ? entry.content : '';
+      return text ? { role: entry.role as 'user' | 'assistant', parts: [{ kind: 'text', text }] } : null;
+    }
+
+    if (entry.role === 'user') {
+      // User-role content blocks during the loop are tool_results; attach
+      // them to the prior assistant message's matching tool part.
+      for (const b of blocks) {
+        if (b.type === 'tool_result' && typeof b.tool_use_id === 'string') {
+          const last = [...prior].reverse().find((m) => m.role === 'assistant');
+          if (!last) continue;
+          const tool = last.parts.find(
+            (p): p is ToolPart => p.kind === 'tool' && p.toolUseId === b.tool_use_id,
+          );
+          if (tool) {
+            const c = b.content;
+            if (typeof c === 'string') tool.result = c;
+            else if (Array.isArray(c)) {
+              tool.result = c
+                .map((cc) => (cc && typeof cc === 'object' && 'text' in cc ? String((cc as { text: unknown }).text) : ''))
+                .filter(Boolean)
+                .join('\n');
+            }
+          }
+        } else if (b.type === 'text' && typeof b.text === 'string') {
+          // Plain user text wrapped in a content block — surface it as a user message.
+          return { role: 'user', parts: [{ kind: 'text', text: b.text }] };
+        }
+      }
+      return null;
+    }
+
+    // Assistant: walk blocks in order, building parts.
+    const parts: Part[] = [];
+    for (const b of blocks) {
+      if (b.type === 'text' && typeof b.text === 'string') {
+        parts.push({ kind: 'text', text: b.text });
+      } else if (b.type === 'thinking' && typeof b.thinking === 'string') {
+        parts.push({ kind: 'thinking', text: b.thinking });
+      } else if (b.type === 'tool_use' && typeof b.id === 'string' && typeof b.name === 'string') {
+        parts.push({ kind: 'tool', toolUseId: b.id, name: b.name, input: b.input });
+      }
+    }
+    if (parts.length === 0) return null;
+    return { role: 'assistant', parts };
   }
 
   async function scrollToBottom() {

@@ -196,6 +196,7 @@ export const messages = {
   },
   'template_edit.promoted': { da: '✓ PROMOVERET', en: '✓ PROMOTED' },
   'template_edit.promote_admin_only': { da: 'Kræver admin-rettigheder', en: 'Admins only' },
+  'template_edit.agent_open': { da: 'Tilkald agent til at hjælpe med skabelonen', en: 'Open the agent to help tweak this template' },
   'template_edit.promote_admin_only_intro': {
     da: 'Denne skabelon er kun bundet til ét dæk. Promover for at gøre den global.',
     en: 'This template is bound to a single deck. Promote to make it global.',

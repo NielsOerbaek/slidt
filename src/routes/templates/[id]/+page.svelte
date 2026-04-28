@@ -8,6 +8,8 @@
 
   import STBtn from '$lib/components/st/STBtn.svelte';
   import STUnsavedGuard from '$lib/components/st/STUnsavedGuard.svelte';
+  import STAgentDrawer from '$lib/components/st/STAgentDrawer.svelte';
+  import STFace from '$lib/components/st/STFace.svelte';
   import { t } from '$lib/i18n/index.ts';
 
   let { data, form }: { data: PageData; form: ActionData } = $props();
@@ -25,6 +27,12 @@
   let saved = $state(false);
   let promoted = $state(false);
   let fieldsError = $state('');
+  let agentOpen = $state(false);
+
+  const aiModel = $derived(data.user?.preferences?.aiModel ?? 'claude');
+  const agentEnabled = $derived(
+    data.slideType.scope === 'deck' && typeof data.slideType.deckId === 'string',
+  );
 
   const dirty = $derived(
     label !== savedLabel ||
@@ -115,6 +123,18 @@
         <span class="scope-deck">{t('template_edit.from_deck')}: <strong>{data.deckTitle}</strong></span>
       {/if}
       <STBtn type="submit" variant="accent">{saved ? t('theme_edit.saved') : t('theme_edit.save')}</STBtn>
+      {#if agentEnabled}
+        <button
+          type="button"
+          class="agent-toggle"
+          onclick={(e) => { e.preventDefault(); agentOpen = !agentOpen; }}
+          aria-pressed={agentOpen}
+          title={t('template_edit.agent_open')}
+        >
+          <STFace size={14} color="var(--st-bg)" mood={agentOpen ? 'happy' : 'idle'} />
+          <span>{agentOpen ? t('editor.agent_on') : t('editor.agent_off')}</span>
+        </button>
+      {/if}
     </div>
   </div>
 
@@ -194,6 +214,14 @@
     </div>
   </div>
 </form>
+
+{#if agentEnabled && data.slideType.deckId}
+  <STAgentDrawer
+    deckId={data.slideType.deckId}
+    aiModel={aiModel}
+    bind:open={agentOpen}
+  />
+{/if}
 
 <style>
   .page {
@@ -278,6 +306,25 @@
     color: var(--st-ink-dim);
   }
   .scope-deck strong { color: var(--st-ink); font-weight: 500; }
+
+  .agent-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 14px;
+    border: 2px solid var(--st-cobalt);
+    background: var(--st-cobalt);
+    color: var(--st-bg);
+    font-family: var(--st-font-mono);
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    cursor: pointer;
+  }
+  .agent-toggle[aria-pressed="true"] {
+    background: var(--st-ink);
+    border-color: var(--st-ink);
+  }
+  .agent-toggle:hover { background: #0e34b8; }
 
   .promote-bar {
     display: flex;

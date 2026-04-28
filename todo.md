@@ -12,7 +12,7 @@ Status keys: `[ ]` open · `[~]` in progress · `[x]` done · `[?]` needs design
 
 ## Up next
 
-- [ ] (8) Add agent panel to the template editor view, so you can get help tweaking a single template. This might need new tools or new guidance?
+(empty — next is the design conversation for (2))
 
 ## Design first, then build
 
@@ -24,6 +24,7 @@ Status keys: `[ ]` open · `[~]` in progress · `[x]` done · `[?]` needs design
 
 ## Done (recent)
 
+- [x] (8) Agent panel on the template editor (deck-scoped templates only — opens the existing drawer pointed at the parent deck)
 - [x] (4) Slide list thumbnail mode (toggle in editor "more" menu, persisted in localStorage, IntersectionObserver-based lazy rendering)
 - [x] Template editor full-bleed + name/slug top bar above both columns
 - [x] (6) Agent panel surfaces "WORKING · &lt;tool_name&gt;…" while a tool call is in flight

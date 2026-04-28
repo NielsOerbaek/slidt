@@ -34,6 +34,52 @@
   let agentOpen = $state(false);
   let mobilePane = $state<'list' | 'edit' | 'preview' | 'agent'>('list');
   let moreMenuOpen = $state(false);
+
+  // Slide-list display mode: text rows ("compact") vs 16:9 previews ("thumbnails").
+  // Persisted per-device in localStorage so it survives page reloads without a
+  // server round-trip; can be promoted to user prefs later if cross-device sync
+  // matters. SSR sees compact (no localStorage); $effect rehydrates on mount.
+  let slideListMode = $state<'compact' | 'thumbnails'>('compact');
+  $effect(() => {
+    if (typeof localStorage === 'undefined') return;
+    const stored = localStorage.getItem('slidt:slideListMode');
+    if (stored === 'thumbnails' || stored === 'compact') slideListMode = stored;
+  });
+  function toggleSlideListMode() {
+    slideListMode = slideListMode === 'compact' ? 'thumbnails' : 'compact';
+    if (typeof localStorage !== 'undefined') {
+      localStorage.setItem('slidt:slideListMode', slideListMode);
+    }
+  }
+
+  // Lazy-render thumbnails: only mount a SlidePreview iframe once the row has
+  // scrolled into (or near) the viewport. Once rendered, keep it — toggling it
+  // off would thrash on scroll. Tracked as a Set keyed by slide id.
+  let seenForThumbnails = $state<Set<string>>(new Set());
+  let listObserver: IntersectionObserver | null = null;
+  function observeSlideRow(node: HTMLElement) {
+    if (typeof IntersectionObserver === 'undefined') return;
+    if (!listObserver) {
+      listObserver = new IntersectionObserver((entries) => {
+        let dirty = false;
+        for (const e of entries) {
+          if (!e.isIntersecting) continue;
+          const id = (e.target as HTMLElement).dataset.slideId;
+          if (id && !seenForThumbnails.has(id)) {
+            seenForThumbnails.add(id);
+            dirty = true;
+          }
+        }
+        if (dirty) seenForThumbnails = new Set(seenForThumbnails);
+      }, { rootMargin: '300px', threshold: 0.01 });
+    }
+    listObserver.observe(node);
+    return {
+      destroy() {
+        listObserver?.unobserve(node);
+      },
+    };
+  }
   let shareUrl = $state('');
   let shareError = $state('');
 
@@ -662,6 +708,16 @@
               {#if data.theme}<span class="more-meta">{data.theme.name}</span>{/if}
             </button>
             <button
+              class="more-item"
+              type="button"
+              onclick={() => { toggleSlideListMode(); moreMenuOpen = false; }}
+            >
+              <span>{t('editor.action_slide_list_mode')}</span>
+              <span class="more-meta">
+                {slideListMode === 'thumbnails' ? t('editor.slide_list_thumbnails') : t('editor.slide_list_compact')}
+              </span>
+            </button>
+            <button
               class="more-item danger"
               type="button"
               onclick={() => { moreMenuOpen = false; deleteDeck(); }}
@@ -698,11 +754,14 @@
           <div
             class="srow"
             class:active
+            class:thumb={slideListMode === 'thumbnails'}
             class:dragging={draggedId === slide.id}
             class:drop-before={dropTargetId === slide.id && dropPosition === 'before'}
             class:drop-after={dropTargetId === slide.id && dropPosition === 'after'}
             role="button"
             tabindex="0"
+            data-slide-id={slide.id}
+            use:observeSlideRow
             onclick={() => { selectedSlideId = slide.id; mobilePane = 'edit'; }}
             onkeydown={(e) => e.key === 'Enter' && (selectedSlideId = slide.id, mobilePane = 'edit')}
             draggable="true"
@@ -715,12 +774,25 @@
             onmouseleave={onSlideRowLeave}
           >
             <span class="srow-n">{String(i + 1).padStart(2, '0')}</span>
-            <span class="srow-body">
-              <span class="srow-title">{snippet ?? type?.label ?? t('editor.slide_unknown')}</span>
-              {#if snippet && type}
-                <span class="srow-type">{type.label.toUpperCase()}</span>
-              {/if}
-            </span>
+            {#if slideListMode === 'thumbnails'}
+              <div class="srow-thumb">
+                {#if seenForThumbnails.has(slide.id) && type && data.theme}
+                  <SlidePreview
+                    slideType={type}
+                    slideData={slideDataMap[slide.id] ?? {}}
+                    theme={data.theme}
+                    label={`Slide ${i + 1} thumbnail`}
+                  />
+                {/if}
+              </div>
+            {:else}
+              <span class="srow-body">
+                <span class="srow-title">{snippet ?? type?.label ?? t('editor.slide_unknown')}</span>
+                {#if snippet && type}
+                  <span class="srow-type">{type.label.toUpperCase()}</span>
+                {/if}
+              </span>
+            {/if}
             <button
               class="srow-del"
               type="button"
@@ -1144,6 +1216,12 @@
     cursor: pointer;
     user-select: none;
   }
+  .srow.thumb {
+    grid-template-columns: 36px 1fr 28px;
+    padding: 8px 6px;
+    column-gap: 6px;
+    align-items: stretch;
+  }
   .srow:hover:not(.active) { background: var(--st-bg-deep); }
   .srow.active {
     background: var(--st-cobalt);
@@ -1184,6 +1262,22 @@
     color: var(--st-ink-dim);
   }
   .srow.active .srow-type { color: rgba(250,250,247,0.7); }
+
+  .srow-thumb {
+    aspect-ratio: 16 / 9;
+    width: 100%;
+    background: var(--st-bg-deep);
+    border: var(--st-rule-thin);
+    overflow: hidden;
+    display: flex;
+    align-items: stretch;
+  }
+  .srow-thumb :global(.preview-wrap) {
+    border-radius: 0;
+    min-height: 0;
+    flex: 1;
+  }
+  .srow.thumb .srow-grip { display: none; }
   .srow-del {
     padding: 14px 10px;
     font-size: 16px;

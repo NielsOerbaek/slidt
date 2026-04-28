@@ -6,11 +6,13 @@ Status keys: `[ ]` open · `[~]` in progress · `[x]` done · `[?]` needs design
 
 (nothing right now — see "Up next")
 
+## In flight
+
+(nothing right now — see "Up next")
+
 ## Up next
 
-- [ ] **(6) Agent panel: show "working…" while a tool call is running.** Show the tool name (e.g. "inspect_slide_type…") so silent multi-second pauses feel alive.
-- [ ] **(4) Slide list: option to show 16:9 thumbnails instead of text rows.** Toggle goes in the new "more" menu (depends on (3)). Lazy-render with IntersectionObserver so a 50-slide deck doesn't spawn 50 iframes upfront.
-- [ ] (8) Add agent panel to the template editor view, so you can get help tweaking a single agent. This might need new tools or new guidance?
+- [ ] (8) Add agent panel to the template editor view, so you can get help tweaking a single template. This might need new tools or new guidance?
 
 ## Design first, then build
 
@@ -22,6 +24,8 @@ Status keys: `[ ]` open · `[~]` in progress · `[x]` done · `[?]` needs design
 
 ## Done (recent)
 
+- [x] (4) Slide list thumbnail mode (toggle in editor "more" menu, persisted in localStorage, IntersectionObserver-based lazy rendering)
+- [x] Template editor full-bleed + name/slug top bar above both columns
 - [x] (6) Agent panel surfaces "WORKING · &lt;tool_name&gt;…" while a tool call is in flight
 - [x] Changelog at /docs/changelog — auto-generated from git log at build time, grouped by day, features as headline entries with fixes collapsed
 - [x] API: `GET /api/issues` (admin) + `GET/PATCH/DELETE /api/issues/:id` so future agent reports can be triaged without psql

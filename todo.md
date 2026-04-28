@@ -6,24 +6,22 @@ Status keys: `[ ]` open · `[~]` in progress · `[x]` done · `[?]` needs design
 
 (nothing right now — see "Up next")
 
-## In flight
-
-(nothing right now — see "Up next")
-
 ## Up next
 
-- [ ] Template agent needs fixing. I cannot close the overlay. Agent history disappears after refresh. Asked for a simple change, agent did something when made the slide empty, previewed the slide and said that it looked fine. And it should not save by default. I also want undo here.
+- [ ] **Template agent issues** — needs investigation:
+  - Cannot close the overlay (likely z-index / pointer-events conflict with the template editor's full-bleed form wrapper).
+  - Agent history disappears after refresh: drawer never fetches DB-stored message history on mount; UI starts empty even though server has the context. Fix: a `GET /api/decks/[id]/agent/history` endpoint and call on drawer open.
+  - Should not save by default — agent edits should land in a "draft" channel until the user accepts them.
+  - Undo wanted in the agent flow too — every agent tool call already returns `undoPatch`; surface a per-turn undo stack.
+  - "Said it looked fine after emptying the slide": LLM behavior; consider a post-patch guardrail that warns when required fields go empty.
 
 ## Design first, then build
 
-- [?] **(2) Persistent edit history + time-travel + branch-from-point-in-time.** Sketched approach (needs sign-off):
-  - Schema: `slide_edits { id, deckId, slideId, userId, at, kind, before jsonb, after jsonb }`. Every autosave + delete + add + reorder writes a row.
-  - Coalesce same-field consecutive edits within ~5s into one row to keep volume sane; prune rows older than 90 days unless tagged.
-  - Changelog UI behind "more" menu (or own page): timeline grouped by session, click to preview, "branch from here" → new deck, "revert to here" → rewrite current.
-  - Hydrate the in-memory undo stack from recent edits on deck load so Cmd-Z works across sessions.
+(nothing here right now — (2) edit-history v1 shipped without branching/cross-session undo)
 
 ## Done (recent)
 
+- [x] (2) Persistent edit history v1 — slide_edits table, /api/decks/:id/history list, /history/:editId/revert; History drawer behind editor "more" menu, grouped by day with Revert per row
 - [x] (8) Agent panel on the template editor (deck-scoped templates only — opens the existing drawer pointed at the parent deck)
 - [x] (4) Slide list thumbnail mode (toggle in editor "more" menu, persisted in localStorage, IntersectionObserver-based lazy rendering)
 - [x] Template editor full-bleed + name/slug top bar above both columns

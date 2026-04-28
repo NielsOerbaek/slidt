@@ -3,6 +3,7 @@ import type { RequestEvent } from '@sveltejs/kit';
 import { db, decks, slides } from '$lib/server/db/index.ts';
 import { eq, and, sql } from 'drizzle-orm';
 import { requireDeckRole } from '$lib/server/deck-access.ts';
+import { recordEdit, fieldCoalesceKey, changedTopLevelFields } from '$lib/server/edit-history.ts';
 
 async function loadSlide(event: RequestEvent, minRole: 'viewer' | 'editor' = 'viewer') {
   await requireDeckRole(event.params.id!, event.locals.user?.id, minRole);
@@ -33,11 +34,39 @@ export async function PATCH(event: RequestEvent) {
     .where(eq(slides.id, slide.id))
     .returning();
   await db.update(decks).set({ updatedAt: new Date() }).where(eq(decks.id, slide.deckId));
+
+  if (updates.data !== undefined && updated) {
+    const before = slide.data as Record<string, unknown>;
+    const after = updated.data as Record<string, unknown>;
+    const changed = changedTopLevelFields(before, after);
+    if (changed.length > 0) {
+      const summary = changed.length === 1
+        ? `Edit ${changed[0]}`
+        : `Edit ${changed.slice(0, 3).join(', ')}${changed.length > 3 ? '…' : ''}`;
+      const coalesceKey = changed.length === 1
+        ? fieldCoalesceKey(slide.id, changed[0])
+        : null;
+      await recordEdit({
+        deckId: slide.deckId,
+        slideId: slide.id,
+        userId: event.locals.user?.id,
+        kind: 'edit_field',
+        before: { data: before },
+        after: { data: after },
+        coalesceKey,
+        summary,
+      });
+    }
+  }
+
   return json(updated);
 }
 
 export async function DELETE(event: RequestEvent) {
   const slide = await loadSlide(event, 'editor');
+  const [deck] = await db.select().from(decks).where(eq(decks.id, slide.deckId)).limit(1);
+  const position = deck?.slideOrder.indexOf(slide.id) ?? -1;
+
   await db.delete(slides).where(eq(slides.id, slide.id));
   await db
     .update(decks)
@@ -46,5 +75,19 @@ export async function DELETE(event: RequestEvent) {
       updatedAt: new Date(),
     })
     .where(eq(decks.id, slide.deckId));
+
+  await recordEdit({
+    deckId: slide.deckId,
+    slideId: null,
+    userId: event.locals.user?.id,
+    kind: 'delete_slide',
+    before: {
+      slide: { id: slide.id, typeId: slide.typeId, data: slide.data, orderIndex: slide.orderIndex },
+      position,
+    },
+    after: null,
+    summary: `Delete slide ${position >= 0 ? String(position + 1).padStart(2, '0') : '??'}`,
+  });
+
   return json({ ok: true });
 }

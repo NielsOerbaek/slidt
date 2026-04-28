@@ -117,6 +117,43 @@ export const issues = pgTable('issues', {
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 });
 
+export type EditKind =
+  | 'edit_field'
+  | 'add_slide'
+  | 'delete_slide'
+  | 'reorder'
+  | 'apply_theme'
+  | 'edit_title';
+
+/**
+ * Append-only log of every user-visible mutation on a deck. Powers the
+ * /history view and revert. `before`/`after` shape varies by `kind`:
+ *
+ *   edit_field     before: { data }                  after: { data }
+ *   add_slide      before: null                      after: { slide, position }
+ *   delete_slide   before: { slide, position }       after: null
+ *   reorder        before: { slideOrder }            after: { slideOrder }
+ *   apply_theme    before: { themeId }               after: { themeId }
+ *   edit_title     before: { title }                 after: { title }
+ *
+ * `coalesceKey` exists for edit_field — same (slideId, fieldPath) within ~5s
+ * gets folded into the previous row by updating `at` + `after`.
+ */
+export const slideEdits = pgTable('slide_edits', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  deckId: uuid('deck_id').notNull().references(() => decks.id, { onDelete: 'cascade' }),
+  slideId: uuid('slide_id').references(() => slides.id, { onDelete: 'set null' }),
+  userId: uuid('user_id').references(() => users.id, { onDelete: 'set null' }),
+  at: timestamp('at', { withTimezone: true }).notNull().defaultNow(),
+  kind: text('kind').notNull().$type<EditKind>(),
+  before: jsonb('before').$type<unknown>(),
+  after: jsonb('after').$type<unknown>(),
+  coalesceKey: text('coalesce_key'),
+  summary: text('summary').notNull(),
+}, (t) => [
+  index('slide_edits_deck_at_idx').on(t.deckId, t.at),
+]);
+
 export const deckCollaborators = pgTable('deck_collaborators', {
   id: uuid('id').primaryKey().defaultRandom(),
   deckId: uuid('deck_id').notNull().references(() => decks.id, { onDelete: 'cascade' }),

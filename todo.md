@@ -12,7 +12,7 @@ Status keys: `[ ]` open · `[~]` in progress · `[x]` done · `[?]` needs design
 
 ## Up next
 
-(empty — next is the design conversation for (2))
+- [ ] Template agent needs fixing. I cannot close the overlay. Agent history disappears after refresh. Asked for a simple change, agent did something when made the slide empty, previewed the slide and said that it looked fine. And it should not save by default. I also want undo here.
 
 ## Design first, then build
 

@@ -8,6 +8,7 @@
   import STBtn from '$lib/components/st/STBtn.svelte';
   import STFace from '$lib/components/st/STFace.svelte';
   import STAgentDrawer from '$lib/components/st/STAgentDrawer.svelte';
+  import STHistoryDrawer from '$lib/components/st/STHistoryDrawer.svelte';
   import { debounce } from '$lib/utils/debounce.ts';
   import { buildDefaultData, buildDummyData } from '$lib/utils/field-defaults.ts';
   import { slideSnippet } from '$lib/utils/slide-snippet.ts';
@@ -34,6 +35,7 @@
   let agentOpen = $state(false);
   let mobilePane = $state<'list' | 'edit' | 'preview' | 'agent'>('list');
   let moreMenuOpen = $state(false);
+  let historyOpen = $state(false);
 
   // Slide-list display mode: text rows ("compact") vs 16:9 previews ("thumbnails").
   // Persisted per-device in localStorage so it survives page reloads without a
@@ -718,6 +720,13 @@
               </span>
             </button>
             <button
+              class="more-item"
+              type="button"
+              onclick={() => { historyOpen = true; moreMenuOpen = false; }}
+            >
+              <span>{t('editor.action_history')}</span>
+            </button>
+            <button
               class="more-item danger"
               type="button"
               onclick={() => { moreMenuOpen = false; deleteDeck(); }}
@@ -869,6 +878,7 @@
       </div>
 
       <STAgentDrawer deckId={data.deck.id} themeId={data.deck.themeId} aiModel={data.aiModel} bind:open={agentOpen} />
+      <STHistoryDrawer deckId={data.deck.id} bind:open={historyOpen} />
     </section>
   </div>
 

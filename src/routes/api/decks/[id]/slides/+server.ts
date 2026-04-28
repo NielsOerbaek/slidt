@@ -3,6 +3,7 @@ import type { RequestEvent } from '@sveltejs/kit';
 import { db, decks, slides } from '$lib/server/db/index.ts';
 import { eq, asc, sql } from 'drizzle-orm';
 import { requireDeckRole } from '$lib/server/deck-access.ts';
+import { recordEdit } from '$lib/server/edit-history.ts';
 
 export async function GET(event: RequestEvent) {
   await requireDeckRole(event.params.id!, event.locals.user?.id, 'viewer');
@@ -34,5 +35,19 @@ export async function POST(event: RequestEvent) {
     })
     .where(eq(decks.id, deck.id))
     .returning();
+
+  await recordEdit({
+    deckId: deck.id,
+    slideId: slide!.id,
+    userId: event.locals.user?.id,
+    kind: 'add_slide',
+    before: null,
+    after: {
+      slide: { id: slide!.id, typeId: slide!.typeId, data: slide!.data, orderIndex },
+      position: orderIndex,
+    },
+    summary: `Add slide ${String(orderIndex + 1).padStart(2, '0')}`,
+  });
+
   return json({ slide, deck: updatedDeck }, { status: 201 });
 }

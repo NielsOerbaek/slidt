@@ -22,15 +22,19 @@ export const load: PageServerLoad = async () => {
     .from(slideTypes)
     .leftJoin(decks, eq(slideTypes.deckId, decks.id));
 
-  const [preset] = await db
-    .select()
-    .from(themes)
-    .where(eq(themes.isPreset, true))
-    .limit(1);
+  const allThemeRows = await db.select().from(themes);
 
-  const previewTheme: Theme | null = preset
-    ? { name: preset.name, tokens: preset.tokens }
+  const themeList: Array<Theme & { id: number }> = allThemeRows.map((t) => ({
+    id: t.id,
+    name: t.name,
+    tokens: t.tokens as Theme['tokens'],
+  }));
+
+  const defaultTheme = allThemeRows.find((t) => t.isPreset) ?? allThemeRows[0];
+
+  const previewTheme: Theme | null = defaultTheme
+    ? { name: defaultTheme.name, tokens: defaultTheme.tokens as Theme['tokens'] }
     : null;
 
-  return { slideTypes: rows, previewTheme };
+  return { slideTypes: rows, themes: themeList, previewTheme };
 };

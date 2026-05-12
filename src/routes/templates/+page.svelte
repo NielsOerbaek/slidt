@@ -3,13 +3,20 @@
   import { t } from '$lib/i18n/index.ts';
   import SlidePreview from '$lib/components/SlidePreview.svelte';
   import { buildDummyData } from '$lib/utils/field-defaults.ts';
-  import type { SlideType } from '../../renderer/types.ts';
+  import type { SlideType, Theme } from '../../renderer/types.ts';
 
   let { data }: { data: PageData } = $props();
 
   type Scope = 'all' | 'global' | 'deck';
   let query = $state('');
   let scopeFilter = $state<Scope>('all');
+  let selectedTheme = $state<Theme | null>(data.previewTheme);
+
+  function onThemeChange(event: Event) {
+    const select = event.currentTarget as HTMLSelectElement;
+    const found = data.themes.find((th) => String(th.id) === select.value);
+    selectedTheme = found ?? null;
+  }
 
   const filtered = $derived(
     data.slideTypes.filter((st) => {
@@ -58,31 +65,47 @@
     placeholder={t('templates.search_placeholder')}
     bind:value={query}
   />
-  <div class="scope-filter" role="tablist" aria-label="Scope">
-    <button
-      type="button"
-      role="tab"
-      class="scope-chip"
-      class:active={scopeFilter === 'all'}
-      aria-selected={scopeFilter === 'all'}
-      onclick={() => (scopeFilter = 'all')}
-    >{t('templates.scope_all')} · {counts.all}</button>
-    <button
-      type="button"
-      role="tab"
-      class="scope-chip"
-      class:active={scopeFilter === 'global'}
-      aria-selected={scopeFilter === 'global'}
-      onclick={() => (scopeFilter = 'global')}
-    >{t('templates.scope_global')} · {counts.global}</button>
-    <button
-      type="button"
-      role="tab"
-      class="scope-chip"
-      class:active={scopeFilter === 'deck'}
-      aria-selected={scopeFilter === 'deck'}
-      onclick={() => (scopeFilter = 'deck')}
-    >{t('templates.scope_deck')} · {counts.deck}</button>
+  <div class="toolbar-right">
+    <div class="scope-filter" role="tablist" aria-label="Scope">
+      <button
+        type="button"
+        role="tab"
+        class="scope-chip"
+        class:active={scopeFilter === 'all'}
+        aria-selected={scopeFilter === 'all'}
+        onclick={() => (scopeFilter = 'all')}
+      >{t('templates.scope_all')} · {counts.all}</button>
+      <button
+        type="button"
+        role="tab"
+        class="scope-chip"
+        class:active={scopeFilter === 'global'}
+        aria-selected={scopeFilter === 'global'}
+        onclick={() => (scopeFilter = 'global')}
+      >{t('templates.scope_global')} · {counts.global}</button>
+      <button
+        type="button"
+        role="tab"
+        class="scope-chip"
+        class:active={scopeFilter === 'deck'}
+        aria-selected={scopeFilter === 'deck'}
+        onclick={() => (scopeFilter = 'deck')}
+      >{t('templates.scope_deck')} · {counts.deck}</button>
+    </div>
+    {#if data.themes.length > 1}
+      <label class="theme-select-wrap">
+        <span class="theme-select-label">{t('templates.theme_select_label')}</span>
+        <select
+          class="theme-select"
+          onchange={onThemeChange}
+          value={data.themes.find((th) => th.name === selectedTheme?.name)?.id ?? ''}
+        >
+          {#each data.themes as th (th.id)}
+            <option value={th.id}>{th.name}</option>
+          {/each}
+        </select>
+      </label>
+    {/if}
   </div>
 </div>
 
@@ -94,11 +117,11 @@
       <li class="card">
         <a href="/templates/{st.id}" class="card-link">
           <div class="card-preview">
-            {#if data.previewTheme}
+            {#if selectedTheme}
               <SlidePreview
                 slideType={previewType(st)}
                 slideData={buildDummyData(st.fields)}
-                theme={data.previewTheme}
+                theme={selectedTheme}
                 label={st.label}
               />
             {/if}
@@ -171,6 +194,13 @@
     outline: 2px solid var(--st-cobalt);
     outline-offset: -2px;
   }
+  .toolbar-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
   .scope-filter { display: flex; gap: 0; }
   .scope-chip {
     padding: 10px 14px;
@@ -188,6 +218,35 @@
   .scope-chip.active {
     background: var(--st-ink);
     color: var(--st-bg);
+  }
+  .theme-select-wrap {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    white-space: nowrap;
+  }
+  .theme-select-label {
+    font-family: var(--st-font-mono);
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--st-ink-dim);
+  }
+  .theme-select {
+    padding: 10px 12px;
+    border: 2px solid var(--st-ink);
+    background: var(--st-bg);
+    color: var(--st-ink);
+    font-family: var(--st-font-mono);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    cursor: pointer;
+    appearance: auto;
+    border-radius: 0;
+  }
+  .theme-select:focus {
+    outline: 2px solid var(--st-cobalt);
+    outline-offset: -2px;
   }
 
   .grid {
@@ -281,7 +340,15 @@
       grid-template-columns: 1fr;
       gap: 10px;
     }
+    .toolbar-right {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 8px;
+    }
+    .scope-filter { width: 100%; }
     .scope-chip { padding: 8px 10px; flex: 1; }
+    .theme-select-wrap { width: 100%; }
+    .theme-select { width: 100%; }
     .grid {
       padding: 16px;
       grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));

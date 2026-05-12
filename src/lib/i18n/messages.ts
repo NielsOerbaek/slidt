@@ -201,6 +201,7 @@ export const messages = {
   'templates.scope_global': { da: 'Globale', en: 'Global' },
   'templates.scope_deck': { da: 'Dæk-skabeloner', en: 'Deck-scoped' },
   'templates.from_deck': { da: 'FRA', en: 'FROM' },
+  'templates.theme_select_label': { da: 'Forhåndsvisning med tema', en: 'Preview with theme' },
   'template_edit.scope_label': { da: 'OMFANG', en: 'SCOPE' },
   'template_edit.from_deck': { da: 'Tilhører dæk', en: 'Belongs to deck' },
   'template_edit.promote': { da: 'Promover til global', en: 'Promote to global' },

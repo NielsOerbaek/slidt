@@ -1,5 +1,6 @@
 <script lang="ts">
   import type { Snippet } from 'svelte';
+  import STFace from './STFace.svelte';
 
   let { num, role, thinking = false, children }: {
     num: string;
@@ -14,7 +15,13 @@
 <div class="st-turn">
   <div class="num">{num}</div>
   <div class="body">
-    <div class="role" class:agent={isAgent}>{role}{thinking ? ' · THINKING…' : ''}</div>
+    <div class="role" class:agent={isAgent}>
+      {#if isAgent}
+        <STFace size={9} color="var(--st-cobalt)" animated={thinking} />
+      {:else}
+        {role}
+      {/if}
+    </div>
     <div class="content" class:thinking>
       {@render children()}
     </div>

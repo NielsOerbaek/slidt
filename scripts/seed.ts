@@ -2,9 +2,10 @@ import { db, slideTypes, themes } from '../src/lib/server/db/index.ts';
 import { BUILT_IN_SLIDE_TYPES } from '../src/slide-types/index.ts';
 import { antalThetaDefault } from '../src/themes/antal-theta-default.ts';
 import { minimal } from '../src/themes/minimal.ts';
+import { osOgData } from '../src/themes/os-og-data.ts';
 import { eq, and } from 'drizzle-orm';
 
-const BUILT_IN_THEMES = [antalThetaDefault, minimal];
+const BUILT_IN_THEMES = [antalThetaDefault, minimal, osOgData];
 
 export async function runSeed(): Promise<void> {
   // Upsert each built-in slide type by name (global scope, no deckId)

@@ -34,6 +34,7 @@
   let exporting = $state(false);
   let lastSavedAt = $state<number>(Date.now());
   let agentOpen = $state(false);
+  let agentSending = $state(false);
   let mobilePane = $state<'list' | 'edit' | 'preview' | 'agent'>('list');
   let moreMenuOpen = $state(false);
   let historyOpen = $state(false);
@@ -753,7 +754,7 @@
         onclick={() => { agentOpen = !agentOpen; }}
         aria-pressed={agentOpen}
       >
-        <STFace size={14} color="var(--st-bg)" mood={agentOpen ? 'happy' : 'idle'} />
+        <STFace size={14} color="var(--st-bg)" mood={agentOpen ? 'happy' : 'idle'} animated={agentSending} />
         {agentOpen ? t('editor.agent_on') : t('editor.agent_off')}
       </button>
     </div>
@@ -889,7 +890,7 @@
         </div>
       </div>
 
-      <STAgentDrawer deckId={data.deck.id} themeId={data.deck.themeId} aiModel={data.aiModel} bind:open={agentOpen} />
+      <STAgentDrawer deckId={data.deck.id} themeId={data.deck.themeId} aiModel={data.aiModel} bind:open={agentOpen} bind:sending={agentSending} />
       <STHistoryDrawer deckId={data.deck.id} bind:open={historyOpen} />
     </section>
   </div>

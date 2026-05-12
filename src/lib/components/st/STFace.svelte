@@ -1,15 +1,41 @@
 <script lang="ts">
   type Mood = 'idle' | 'thinking' | 'happy' | 'sleep' | 'alert';
 
-  let { size = 18, mood = 'idle', color }: {
+  let { size = 18, mood = 'idle', color, animated = false }: {
     size?: number;
     mood?: Mood;
     color?: string;
+    animated?: boolean;
   } = $props();
 
-  const eye = { idle: '-', thinking: '-', happy: '^', sleep: 'z', alert: 'o' } as const;
-  const mouth = { idle: '_', thinking: '.', happy: '_', sleep: '_', alert: '_' } as const;
-  const text = $derived(`${eye[mood]}${mouth[mood]}${eye[mood]}`);
+  const FRAMES = ['-_-', 'o_-', 'o_o', 'O_o', 'o_O', 'O_o', 'o_O', 'o_o', '-_o', '-_-'];
+
+  const staticFace: Record<Mood, string> = {
+    idle:     '-_-',
+    thinking: '-.-',
+    happy:    '^_^',
+    sleep:    'z_z',
+    alert:    'o_o',
+  };
+
+  let frameIdx = $state(0);
+  let interval: ReturnType<typeof setInterval> | undefined;
+
+  $effect(() => {
+    if (animated) {
+      frameIdx = 0;
+      interval = setInterval(() => {
+        frameIdx = (frameIdx + 1) % FRAMES.length;
+      }, 220);
+    } else {
+      clearInterval(interval);
+      interval = undefined;
+      frameIdx = 0;
+    }
+    return () => clearInterval(interval);
+  });
+
+  const text = $derived(animated ? FRAMES[frameIdx] : staticFace[mood]);
 </script>
 
 <span

@@ -6,11 +6,12 @@
   import { t } from '$lib/i18n/index.ts';
   import { renderMarkdown } from '$lib/utils/markdown.ts';
 
-  let { deckId, themeId = null, aiModel = 'claude', open = $bindable(false) }: {
+  let { deckId, themeId = null, aiModel = 'claude', open = $bindable(false), sending = $bindable(false) }: {
     deckId: string;
     themeId?: string | null;
     aiModel?: string;
     open?: boolean;
+    sending?: boolean;
   } = $props();
 
   const modelInfo = $derived.by(() => {
@@ -46,7 +47,6 @@
   let messages = $state<Message[]>([]);
   let historyLoaded = $state(false);
   let input = $state('');
-  let sending = $state(false);
   // Tracks the currently executing tool call, set on `tool_start` and cleared
   // on `tool_done`, so the panel header can surface "WORKING · inspect_slide_type"
   // instead of a generic spinner during multi-second calls.
@@ -415,7 +415,7 @@
 <div class="drawer" class:open>
   {#if open}
     <div class="panel-head">
-      <STFace size={16} color="var(--st-cobalt)" />
+      <STFace size={16} color="var(--st-cobalt)" animated={sending} />
       <span class="tag">{t('agent.tag')}</span>
       <span class="dot" class:live={sending} aria-hidden="true"></span>
       <span class="status">

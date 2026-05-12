@@ -42,7 +42,7 @@ h2 { font-size: 80px; font-weight: 500; color: var(--sl-fg, #1a1a1a); margin-bot
 .step-dot { width: 16px; height: 16px; border-radius: 50%; background: var(--sl-fg, #1a1a1a); margin-bottom: 20px; flex-shrink: 0; }
 .connector { flex: 1; height: 2px; background: var(--sl-border, #e0e0db); margin-top: 7px; }
 .step-title { font-size: 26px; font-weight: 500; color: var(--sl-fg, #1a1a1a); margin-bottom: 8px; font-family: var(--sl-font, 'Neureal', 'Inter', sans-serif); }
-.step-caption { font-size: 20px; color: var(--sl-dim, #a0a09a); font-family: var(--sl-font, 'Neureal', 'Inter', sans-serif); line-height: 1.4; }
+.step-caption { font-size: 20px; color: var(--sl-dim, #a0a09a); font-family: var(--sl-body-font, var(--sl-font, 'Inter', sans-serif)); line-height: 1.4; }
 @media (max-width: 768px) {
   & { padding: 40px 24px; }
   .flow { flex-direction: column; align-items: flex-start; gap: 0; }

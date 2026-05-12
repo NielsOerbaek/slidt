@@ -5,6 +5,7 @@ import { stitchPdfs } from './pdf-utils.ts';
 import { db, decks, slides, slideTypes, themes, assets } from './db/index.ts';
 import { eq, inArray } from 'drizzle-orm';
 import type { Deck, SlideType, Theme, Slide } from '../../renderer/types.ts';
+import { extractGoogleFonts, buildGoogleFontsLink } from '../utils/google-fonts.ts';
 
 /**
  * Insert @font-face CSS at the top of the HTML `<style>` block.
@@ -75,7 +76,12 @@ async function loadDeckHtml(deckId: string): Promise<{ html: string; appendixAss
   // 7. Render HTML and inject fonts
   const html = await render(renderDeck, renderTheme, renderTypes);
   const fontCss = await buildFontCss();
-  return { html: injectFontCss(html, fontCss), appendixAssets };
+  let injected = injectFontCss(html, fontCss);
+  // Inject Google Fonts link for any custom font families in the theme
+  const gFonts = extractGoogleFonts(renderTheme.tokens);
+  const gLink = buildGoogleFontsLink(gFonts);
+  if (gLink) injected = injected.replace('</head>', `${gLink}\n</head>`);
+  return { html: injected, appendixAssets };
 }
 
 export async function renderDeckToHtml(deckId: string): Promise<string> {

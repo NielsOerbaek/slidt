@@ -49,7 +49,7 @@ h2 { font-size: 80px; font-weight: 500; color: var(--sl-fg, #1a1a1a); margin-bot
 .event:last-child .dot::after { display: none; }
 .content { padding: 0 0 40px 20px; }
 .ev-title { font-size: 28px; font-weight: 500; color: var(--sl-fg, #1a1a1a); margin-bottom: 6px; font-family: var(--sl-font, 'Neureal', 'Inter', sans-serif); }
-.ev-body { font-size: 22px; color: var(--sl-dim, #a0a09a); font-family: var(--sl-font, 'Neureal', 'Inter', sans-serif); line-height: 1.4; }
+.ev-body { font-size: 22px; color: var(--sl-dim, #a0a09a); font-family: var(--sl-body-font, var(--sl-font, 'Inter', sans-serif)); line-height: 1.4; }
 @media (max-width: 768px) {
   & { padding: 40px 24px; }
   .event { grid-template-columns: 64px 22px 1fr; }

@@ -15,5 +15,6 @@ export const minimal: Theme = {
     '--sl-dark-dim': '#888888',
     '--sl-accent': '#1a1a1a',
     '--sl-font': "'Inter', sans-serif",
+    '--sl-body-font': "'Inter', sans-serif",
   },
 };

@@ -16,6 +16,7 @@
   import { goto } from '$app/navigation';
   import { fade, scale, slide } from 'svelte/transition';
   import { cubicOut } from 'svelte/easing';
+  import { groupByCategory } from '../../../slide-types/categories.ts';
 
   let { data, form }: { data: PageData; form: ActionData } = $props();
 
@@ -98,6 +99,11 @@
       }
     }
   });
+
+  let pickerTypes = $derived(
+    data.slideTypes.filter((t) => t.scope === 'global' || t.deckId === data.deck.id),
+  );
+  let pickerGroups = $derived(groupByCategory(pickerTypes));
 
   let selectedSlide = $derived(data.slides.find((s) => s.id === selectedSlideId) ?? null);
   let selectedType = $derived(
@@ -982,22 +988,29 @@
         <span>{t('editor.picker_head')}</span>
         <button onclick={() => showTypePicker = false} aria-label={t('editor.picker_close')}>×</button>
       </div>
-      <div class="type-grid">
-        {#each data.slideTypes.filter(t => t.scope === 'global' || t.deckId === data.deck.id) as type}
-          <button class="type-tile" onclick={() => addSlide(type.id)}>
-            <div class="tt-preview">
-              <SlidePreview
-                slideType={type}
-                slideData={buildDummyData(type.fields)}
-                theme={data.theme}
-              />
-              {#if type.scope === 'deck'}
-                <span class="tt-scope">DECK</span>
-              {/if}
+      <div class="type-picker-body">
+        {#each pickerGroups as group (group.category)}
+          <div class="type-group">
+            <div class="type-group-label">{group.label}</div>
+            <div class="type-grid">
+              {#each group.items as type (type.id)}
+                <button class="type-tile" onclick={() => addSlide(type.id)}>
+                  <div class="tt-preview">
+                    <SlidePreview
+                      slideType={type}
+                      slideData={buildDummyData(type.fields)}
+                      theme={data.theme}
+                    />
+                    {#if type.scope === 'deck'}
+                      <span class="tt-scope">DECK</span>
+                    {/if}
+                  </div>
+                  <span class="tt-label">{type.label}</span>
+                  <span class="tt-name">{type.name}</span>
+                </button>
+              {/each}
             </div>
-            <span class="tt-label">{type.label}</span>
-            <span class="tt-name">{type.name}</span>
-          </button>
+          </div>
         {/each}
       </div>
     </div>
@@ -1515,13 +1528,29 @@
     cursor: pointer;
     color: var(--st-ink-dim);
   }
+  .type-picker-body {
+    overflow-y: auto;
+    max-height: calc(80vh - 60px);
+  }
+  .type-group {
+    padding: 0;
+  }
+  .type-group-label {
+    padding: 10px 14px 6px;
+    font-family: var(--st-font-mono);
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--st-ink-dim);
+    border-bottom: 1px solid var(--st-ink-dim);
+    margin-bottom: 10px;
+  }
+  .type-group + .type-group { border-top: 1px solid var(--st-rule-color, #e0e0e0); }
   .type-grid {
-    padding: 14px;
+    padding: 0 14px 14px;
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 10px;
-    overflow-y: auto;
-    max-height: calc(80vh - 60px);
   }
   .type-tile {
     background: var(--st-bg);
@@ -1730,12 +1759,13 @@
 
     /* Type grid: 2 columns on mobile */
     .type-grid { grid-template-columns: repeat(2, 1fr); }
+    .type-picker-body { max-height: 70vh; }
   }
 
   @media (max-width: 480px) {
     .cell.actions { display: none; }
     .mob-tabs button { font-size: 9px; letter-spacing: 0.15em; padding: 10px 0; }
     .form { padding: 16px 14px 56px; }
-    .type-grid { grid-template-columns: 1fr; }
+    .type-grid { grid-template-columns: repeat(2, 1fr); }
   }
 </style>

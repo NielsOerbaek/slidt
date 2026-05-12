@@ -42,7 +42,7 @@ export const twoColumn: SlideType = {
 h2 { font-size: 80px; font-weight: 500; color: var(--sl-fg, #1a1a1a); margin-bottom: 56px; letter-spacing: -0.03em; font-family: var(--sl-font, 'Neureal', 'Inter', sans-serif); }
 .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 64px; }
 h4 { font-size: 28px; font-weight: 500; color: var(--sl-fg, #1a1a1a); margin-bottom: 20px; font-family: var(--sl-font, 'Neureal', 'Inter', sans-serif); padding-bottom: 16px; border-bottom: 2px solid var(--sl-border, #e0e0db); }
-p { font-size: 26px; font-weight: 400; color: var(--sl-dim, #a0a09a); line-height: 1.5; font-family: var(--sl-font, 'Neureal', 'Inter', sans-serif); }
+p { font-size: 26px; font-weight: 400; color: var(--sl-dim, #a0a09a); line-height: 1.5; font-family: var(--sl-body-font, var(--sl-font, 'Inter', sans-serif)); }
 @media (max-width: 768px) {
   & { padding: 40px 24px; }
   .cols { grid-template-columns: 1fr; gap: 32px; }

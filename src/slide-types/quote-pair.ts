@@ -44,7 +44,7 @@ export const quotePair: SlideType = {
 .card-light blockquote { color: var(--sl-fg, #1a1a1a); }
 .card-dark blockquote { color: var(--sl-dark-fg, #f5f5f3); }
 blockquote { font-size: 48px; font-weight: 500; line-height: 1.15; letter-spacing: -0.025em; margin: 0 0 28px; font-family: var(--sl-font, 'Neureal', 'Inter', sans-serif); }
-.attr { font-size: 22px; font-weight: 400; font-family: var(--sl-font, 'Neureal', 'Inter', sans-serif); }
+.attr { font-size: 22px; font-weight: 400; font-family: var(--sl-body-font, var(--sl-font, 'Inter', sans-serif)); }
 .card-light .attr { color: var(--sl-dim, #a0a09a); }
 .card-dark .attr { color: var(--sl-dark-dim, #888888); }
 @media (max-width: 768px) {

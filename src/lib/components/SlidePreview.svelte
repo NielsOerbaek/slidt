@@ -1,6 +1,7 @@
 <script lang="ts">
   import type { SlideType, Theme } from '../../renderer/types.ts';
   import { render } from '../../renderer/index.ts';
+  import { extractGoogleFonts, buildGoogleFontsLink } from '../utils/google-fonts.ts';
 
   let { slideType, slideData, theme, label = 'Slide preview', editable = false, onedit }: {
     slideType: SlideType | null;
@@ -76,7 +77,7 @@
           editable: isEditable,
         });
         // Inject font-face rules (iframe has allow-same-origin so it can load from /fonts/)
-        previewHtml = html.replace('<style>', `<style>
+        let rendered = html.replace('<style>', `<style>
 @font-face{font-family:'Neureal';font-weight:400;font-style:normal;src:url('/fonts/Neureal-Regular.woff2') format('woff2')}
 @font-face{font-family:'Neureal Mono';font-weight:400;font-style:normal;src:url('/fonts/NeurealMono-Regular.woff2') format('woff2')}
 @font-face{font-family:'Inter';font-weight:300;font-style:normal;src:url('/fonts/inter/inter-latin-300-normal.woff2') format('woff2')}
@@ -84,6 +85,13 @@
 @font-face{font-family:'Inter';font-weight:500;font-style:normal;src:url('/fonts/inter/inter-latin-500-normal.woff2') format('woff2')}
 @font-face{font-family:'Inter';font-weight:600;font-style:normal;src:url('/fonts/inter/inter-latin-600-normal.woff2') format('woff2')}
 `);
+        // Inject Google Fonts link for any custom fonts in the theme
+        if (th?.tokens) {
+          const gFonts = extractGoogleFonts(th.tokens);
+          const gLink = buildGoogleFontsLink(gFonts);
+          if (gLink) rendered = rendered.replace('</head>', `${gLink}\n</head>`);
+        }
+        previewHtml = rendered;
       } catch {
         previewHtml = '';
       }

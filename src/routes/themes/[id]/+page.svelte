@@ -22,6 +22,40 @@
   let systemPrompt = $state(savedSystemPrompt);
   let saved = $state(false);
 
+  // Font picker helpers
+  const FONT_STACKS: Record<string, string> = {
+    Neureal: "'Neureal', 'Inter', sans-serif",
+    Inter: "'Inter', sans-serif",
+  };
+  function parseFontPreset(val: string): { preset: string; customName: string } {
+    if (!val) return { preset: 'Neureal', customName: '' };
+    const first = val.split(',')[0].replace(/['"]/g, '').trim();
+    if (first === 'Neureal') return { preset: 'Neureal', customName: '' };
+    if (first === 'Inter') return { preset: 'Inter', customName: '' };
+    return { preset: 'custom', customName: first };
+  }
+  function buildFontStack(preset: string, customName: string): string {
+    if (preset in FONT_STACKS) return FONT_STACKS[preset];
+    const n = customName.trim() || 'Inter';
+    return `'${n}', sans-serif`;
+  }
+
+  let headerFont = $state(parseFontPreset(data.theme.tokens['--sl-font'] ?? ''));
+  let bodyFont = $state(parseFontPreset(
+    data.theme.tokens['--sl-body-font'] ?? data.theme.tokens['--sl-font'] ?? ''
+  ));
+
+  function applyHeaderFont() {
+    tokens = { ...tokens, '--sl-font': buildFontStack(headerFont.preset, headerFont.customName) };
+  }
+  function applyBodyFont() {
+    tokens = { ...tokens, '--sl-body-font': buildFontStack(bodyFont.preset, bodyFont.customName) };
+  }
+
+  /** Tokens shown in raw list — font tokens managed by the picker above. */
+  const FONT_TOKENS = new Set(['--sl-font', '--sl-body-font']);
+  let rawTokens = $derived(Object.entries(tokens).filter(([k]) => !FONT_TOKENS.has(k)));
+
   const dirty = $derived(
     JSON.stringify(tokens) !== savedTokensJson ||
     name !== savedName ||
@@ -86,8 +120,65 @@
         ></textarea>
       </div>
 
+      <!-- Font picker section -->
+      {#if '--sl-font' in tokens}
+        <div class="font-section">
+          <div class="section-label">{t('theme_edit.fonts_label')}</div>
+          <div class="font-row">
+            <span class="font-row-label">{t('theme_edit.header_font_label')}</span>
+            <select
+              class="font-select"
+              value={headerFont.preset}
+              onchange={(e) => {
+                headerFont = { ...headerFont, preset: (e.target as HTMLSelectElement).value };
+                applyHeaderFont();
+              }}
+            >
+              <option value="Neureal">{t('theme_edit.font_neureal')}</option>
+              <option value="Inter">{t('theme_edit.font_inter')}</option>
+              <option value="custom">{t('theme_edit.font_custom')}</option>
+            </select>
+            {#if headerFont.preset === 'custom'}
+              <input
+                type="text"
+                class="font-custom-input"
+                bind:value={headerFont.customName}
+                placeholder={t('theme_edit.font_custom_placeholder')}
+                oninput={applyHeaderFont}
+              />
+            {/if}
+          </div>
+          <div class="font-row">
+            <span class="font-row-label">{t('theme_edit.body_font_label')}</span>
+            <select
+              class="font-select"
+              value={bodyFont.preset}
+              onchange={(e) => {
+                bodyFont = { ...bodyFont, preset: (e.target as HTMLSelectElement).value };
+                applyBodyFont();
+              }}
+            >
+              <option value="Neureal">{t('theme_edit.font_neureal')}</option>
+              <option value="Inter">{t('theme_edit.font_inter')}</option>
+              <option value="custom">{t('theme_edit.font_custom')}</option>
+            </select>
+            {#if bodyFont.preset === 'custom'}
+              <input
+                type="text"
+                class="font-custom-input"
+                bind:value={bodyFont.customName}
+                placeholder={t('theme_edit.font_custom_placeholder')}
+                oninput={applyBodyFont}
+              />
+            {/if}
+          </div>
+        </div>
+      {/if}
+
+      <!-- Raw token list (excludes font tokens managed above) -->
+      <div class="section-label">{t('theme_edit.tokens_label')}</div>
       <div class="token-list">
-        {#each Object.entries(tokens) as [key, val]}
+        {#each rawTokens as [key, val] (key)}
           <div class="token-row">
             <code class="token-key">{key}</code>
             {#if isColorToken(val)}
@@ -197,6 +288,59 @@
     border-radius: 0;
   }
   .prompt-textarea:focus { outline: 2px solid var(--st-cobalt); outline-offset: -2px; }
+  .font-section {
+    margin-bottom: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .section-label {
+    font-family: var(--st-font-mono);
+    font-size: 10px;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--st-ink-dim);
+    margin-bottom: 6px;
+    margin-top: 4px;
+  }
+  .font-section .section-label { margin-top: 0; }
+  .font-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .font-row-label {
+    font-family: var(--st-font-mono);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    color: var(--st-ink);
+    min-width: 100px;
+    flex-shrink: 0;
+  }
+  .font-select {
+    padding: 6px 10px;
+    border: 2px solid var(--st-ink);
+    background: var(--st-bg);
+    color: var(--st-ink);
+    font-family: var(--st-font-mono);
+    font-size: 12px;
+    border-radius: 0;
+    cursor: pointer;
+  }
+  .font-select:focus { outline: 2px solid var(--st-cobalt); outline-offset: -2px; }
+  .font-custom-input {
+    flex: 1;
+    min-width: 140px;
+    padding: 6px 10px;
+    border: 2px solid var(--st-ink);
+    border-radius: 0;
+    background: var(--st-bg);
+    color: var(--st-ink);
+    font-family: var(--st-font-mono);
+    font-size: 12px;
+  }
+  .font-custom-input:focus { outline: 2px solid var(--st-cobalt); outline-offset: -2px; }
   .token-list { display: flex; flex-direction: column; gap: 8px; }
   .token-row { display: flex; align-items: center; gap: 10px; }
   .token-key {
@@ -273,5 +417,7 @@
     .token-text { min-width: 0; }
     .preview-header { gap: 8px; }
     .type-select-label { margin-left: 0; }
+    .font-row-label { min-width: 80px; }
+    .font-custom-input { min-width: 100px; }
   }
 </style>

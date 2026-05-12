@@ -40,8 +40,8 @@ h2 { font-size: 80px; font-weight: 500; color: var(--sl-fg, #1a1a1a); margin-bot
 .stat-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px; }
 .stat-card { background: var(--sl-surface, #ededed); border: 2px solid var(--sl-border, #e0e0db); padding: 48px 40px; }
 .value { font-size: 120px; font-weight: 600; color: var(--sl-fg, #1a1a1a); letter-spacing: -0.04em; line-height: 1; margin-bottom: 16px; font-family: var(--sl-font, 'Neureal', 'Inter', sans-serif); }
-.lbl { font-size: 28px; font-weight: 500; color: var(--sl-fg, #1a1a1a); margin-bottom: 10px; font-family: var(--sl-font, 'Neureal', 'Inter', sans-serif); }
-.desc { font-size: 22px; font-weight: 400; color: var(--sl-dim, #a0a09a); font-family: var(--sl-font, 'Neureal', 'Inter', sans-serif); line-height: 1.4; }
+.lbl { font-size: 28px; font-weight: 500; color: var(--sl-fg, #1a1a1a); margin-bottom: 10px; font-family: var(--sl-body-font, var(--sl-font, 'Inter', sans-serif)); }
+.desc { font-size: 22px; font-weight: 400; color: var(--sl-dim, #a0a09a); font-family: var(--sl-body-font, var(--sl-font, 'Inter', sans-serif)); line-height: 1.4; }
 @media (max-width: 768px) {
   & { padding: 40px 24px; }
   .stat-row { grid-template-columns: 1fr; gap: 16px; }

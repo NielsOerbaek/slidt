@@ -40,5 +40,6 @@ Tone and direction:
     '--sl-dark-dim': '#807B95',
     '--sl-accent': '#6E31FF',
     '--sl-font': "'Neureal', 'Inter', sans-serif",
+    '--sl-body-font': "'Inter', sans-serif",
   },
 };

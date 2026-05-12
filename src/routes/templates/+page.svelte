@@ -4,6 +4,7 @@
   import SlidePreview from '$lib/components/SlidePreview.svelte';
   import { buildDummyData } from '$lib/utils/field-defaults.ts';
   import type { SlideType, Theme } from '../../renderer/types.ts';
+  import { groupByCategory } from '../../slide-types/categories.ts';
 
   let { data }: { data: PageData } = $props();
 
@@ -30,6 +31,9 @@
       );
     }),
   );
+
+  const isSearching = $derived(query.trim().length > 0 || scopeFilter !== 'all');
+  const filteredGroups = $derived(isSearching ? null : groupByCategory(filtered));
 
   const counts = $derived({
     all: data.slideTypes.length,
@@ -109,33 +113,48 @@
   </div>
 </div>
 
+{#snippet typeCard(st: typeof filtered[number])}
+  <li class="card">
+    <a href="/templates/{st.id}" class="card-link">
+      <div class="card-preview">
+        {#if selectedTheme}
+          <SlidePreview
+            slideType={previewType(st)}
+            slideData={buildDummyData(st.fields)}
+            theme={selectedTheme}
+            label={st.label}
+          />
+        {/if}
+      </div>
+      <div class="card-meta">
+        <span class="card-name">{st.label}</span>
+        <span class="card-code">{st.name}</span>
+        {#if st.scope === 'deck' && st.deckTitle}
+          <span class="card-deck">{t('templates.from_deck')} {st.deckTitle}</span>
+        {/if}
+      </div>
+    </a>
+    <span class="scope-badge {st.scope}">{st.scope.toUpperCase()}</span>
+  </li>
+{/snippet}
+
 {#if filtered.length === 0}
   <p class="empty">{t('templates.empty_search')}</p>
+{:else if filteredGroups}
+  {#each filteredGroups as group (group.category)}
+    <div class="cat-section">
+      <div class="cat-label">{group.label}</div>
+      <ul class="grid">
+        {#each group.items as st (st.id)}
+          {@render typeCard(st)}
+        {/each}
+      </ul>
+    </div>
+  {/each}
 {:else}
   <ul class="grid">
     {#each filtered as st (st.id)}
-      <li class="card">
-        <a href="/templates/{st.id}" class="card-link">
-          <div class="card-preview">
-            {#if selectedTheme}
-              <SlidePreview
-                slideType={previewType(st)}
-                slideData={buildDummyData(st.fields)}
-                theme={selectedTheme}
-                label={st.label}
-              />
-            {/if}
-          </div>
-          <div class="card-meta">
-            <span class="card-name">{st.label}</span>
-            <span class="card-code">{st.name}</span>
-            {#if st.scope === 'deck' && st.deckTitle}
-              <span class="card-deck">{t('templates.from_deck')} {st.deckTitle}</span>
-            {/if}
-          </div>
-        </a>
-        <span class="scope-badge {st.scope}">{st.scope.toUpperCase()}</span>
-      </li>
+      {@render typeCard(st)}
     {/each}
   </ul>
 {/if}
@@ -321,6 +340,21 @@
     border-color: var(--st-cobalt);
   }
 
+  .cat-section {
+    border-bottom: var(--st-rule-thin);
+  }
+  .cat-label {
+    padding: 20px 40px 12px;
+    font-family: var(--st-font-mono);
+    font-size: 10px;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--st-ink-dim);
+  }
+  .cat-section .grid {
+    padding-top: 0;
+  }
+
   .empty {
     padding: 40px;
     font-family: var(--st-font-mono);
@@ -356,5 +390,6 @@
     }
     .card-meta { padding: 10px 12px; }
     .card-name { font-size: 17px; }
+    .cat-label { padding: 16px 16px 8px; }
   }
 </style>

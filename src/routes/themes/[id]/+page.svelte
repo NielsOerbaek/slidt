@@ -3,8 +3,9 @@
   import type { PageData, ActionData } from './$types.js';
   import SlidePreview from '$lib/components/SlidePreview.svelte';
   import { isColorToken } from '$lib/utils/token-utils.ts';
-  import type { Theme, SlideType } from '../../../renderer/types.ts';
-  import { content as contentType } from '../../../slide-types/content.ts';
+  import type { Theme } from '../../../renderer/types.ts';
+  import { BUILT_IN_SLIDE_TYPES } from '../../../slide-types/index.ts';
+  import { buildDummyData } from '$lib/utils/field-defaults.ts';
 
   import STBtn from '$lib/components/st/STBtn.svelte';
   import STUnsavedGuard from '$lib/components/st/STUnsavedGuard.svelte';
@@ -30,13 +31,12 @@
   // Build a renderer Theme from current tokens
   let previewTheme = $derived<Theme>({ name, tokens });
 
-  // Use the content slide type for live preview
-  const previewSlideType: SlideType = contentType;
-  const previewSlideData = {
-    title: 'Sample heading',
-    eyebrow: 'PREVIEW',
-    bullets: ['First bullet point', 'Second bullet point', 'Third bullet point'],
-  };
+  // Slide type selector for preview
+  let selectedSlideTypeName = $state(BUILT_IN_SLIDE_TYPES[0].name);
+  let selectedSlideType = $derived(
+    BUILT_IN_SLIDE_TYPES.find((t) => t.name === selectedSlideTypeName) ?? BUILT_IN_SLIDE_TYPES[0],
+  );
+  let previewData = $derived(buildDummyData(selectedSlideType.fields));
 </script>
 
 <svelte:head><title>{data.theme.name} — Themes — slidt</title></svelte:head>
@@ -116,8 +116,22 @@
     </form>
 
     <div class="preview-col">
-      <p class="preview-label">{t('theme_edit.preview_label')}</p>
-      <SlidePreview slideType={previewSlideType} slideData={previewSlideData} theme={previewTheme} />
+      <div class="preview-header">
+        <p class="preview-label">{t('theme_edit.preview_label')}</p>
+        <label class="type-select-label" for="previewTypeSelect">
+          {t('theme_edit.preview_type_label')}
+          <select
+            id="previewTypeSelect"
+            class="type-select"
+            bind:value={selectedSlideTypeName}
+          >
+            {#each BUILT_IN_SLIDE_TYPES as st}
+              <option value={st.name}>{st.label}</option>
+            {/each}
+          </select>
+        </label>
+      </div>
+      <SlidePreview slideType={selectedSlideType} slideData={previewData} theme={previewTheme} />
     </div>
   </div>
 </div>
@@ -214,13 +228,42 @@
   }
   .token-text:focus { outline: 2px solid var(--st-cobalt); outline-offset: -2px; }
   .preview-col { display: flex; flex-direction: column; gap: 10px; }
+  .preview-header {
+    display: flex;
+    align-items: baseline;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
   .preview-label {
     font-family: var(--st-font-mono);
     font-size: 10px;
     letter-spacing: 0.25em;
     color: var(--st-ink-dim);
     margin: 0;
+    flex-shrink: 0;
   }
+  .type-select-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-family: var(--st-font-mono);
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    color: var(--st-ink-dim);
+    margin-left: auto;
+  }
+  .type-select {
+    appearance: none;
+    background: var(--st-bg-deep);
+    color: var(--st-ink);
+    border: 1px solid var(--st-ink-dim);
+    border-radius: 0;
+    font-family: var(--st-font-mono);
+    font-size: 10px;
+    padding: 3px 6px;
+    cursor: pointer;
+  }
+  .type-select:focus { outline: 2px solid var(--st-cobalt); outline-offset: -2px; }
 
   @media (max-width: 768px) {
     .page { padding: 16px 20px; }
@@ -228,5 +271,7 @@
     .token-key { min-width: 0; width: 140px; font-size: 10px; }
     .token-row { flex-wrap: wrap; gap: 6px; }
     .token-text { min-width: 0; }
+    .preview-header { gap: 8px; }
+    .type-select-label { margin-left: 0; }
   }
 </style>

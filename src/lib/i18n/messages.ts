@@ -220,6 +220,7 @@ export const messages = {
   'theme_edit.save': { da: 'GEM', en: 'SAVE' },
   'theme_edit.saved': { da: '✓ GEMT', en: '✓ SAVED' },
   'theme_edit.preview_label': { da: 'LIVE FORHÅNDSVISNING', en: 'LIVE PREVIEW' },
+  'theme_edit.preview_type_label': { da: 'Eksempeltype', en: 'Preview type' },
   'theme_edit.system_prompt_label': { da: 'AGENT SYSTEMPROMPT', en: 'AGENT SYSTEM PROMPT' },
   'theme_edit.system_prompt_help': {
     da: 'Sætter tonen, stilretningen og indholdsreglerne agenten følger, når dette tema er aktivt. Kun ren tekst — ingen markup.',

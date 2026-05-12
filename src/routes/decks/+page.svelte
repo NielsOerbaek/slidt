@@ -1,5 +1,6 @@
 <script lang="ts">
   import { enhance } from '$app/forms';
+  import { goto } from '$app/navigation';
   import type { PageData, ActionData } from './$types.js';
   import { formatRelativeDate } from '$lib/utils/date-utils.ts';
   import STBtn from '$lib/components/st/STBtn.svelte';
@@ -49,8 +50,8 @@
       </div>
       <div class="head-stat">
         <div class="stat-label">{t('decks.last_week')}</div>
-        <div class="stat-num">{data.agentEditsLastWeek}</div>
-        <div class="stat-label">{t('decks.agent_edits')}</div>
+        <div class="stat-num">{data.editsLastWeek}</div>
+        <div class="stat-label">{t('decks.edits_last_week')}</div>
         <div class="stat-cta">
           <STBtn variant="accent" onclick={() => { creating = true; }}>{t('decks.new')}</STBtn>
         </div>
@@ -99,10 +100,10 @@
           </div>
           <div class="cell slides">{String(deck.slideOrder.length).padStart(2, '0')}</div>
           <div class="cell upd">{formatRelativeDate(deck.updatedAt).toUpperCase()}</div>
-          <div class="cell actions">
-            <span class="chip">{t('decks.action_open')}</span>
-            <span class="chip">{t('decks.action_pdf')}</span>
-            <form method="POST" action="?/duplicate" use:enhance onclick={(e) => e.stopPropagation()}>
+          <div class="cell actions" onclick={(e) => e.stopPropagation()} role="group">
+            <button type="button" class="chip" onclick={() => goto(`/decks/${deck.id}`)}>{t('decks.action_open')}</button>
+            <button type="button" class="chip" onclick={() => window.location.assign(`/api/decks/${deck.id}/export`)}>{t('decks.action_pdf')}</button>
+            <form method="POST" action="?/duplicate" use:enhance>
               <input type="hidden" name="id" value={deck.id} />
               <button type="submit" class="chip">{t('decks.action_dup')}</button>
             </form>

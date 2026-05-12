@@ -62,6 +62,7 @@ Themes are collections of CSS design tokens — colors, typography, borders — 
 - **Collaborators** — invite colleagues by email with editor or viewer access
 - **Deck duplication** — deep-copy with slides, theme, and deck-scoped templates
 - **API-first** — everything the UI does, the CLI does too (`pnpm slidt ...`)
+- **Agent skill** — install the slidt skill into any AI agent with one command: `pnpm slidt skill install`
 - **Theme system** — design-token palettes with per-theme agent system prompts
 - **PDF export** — Playwright-rendered at 1920×1080, pixel-perfect
 
@@ -118,7 +119,7 @@ Full documentation lives in [`docs/`](docs/README.md):
 | [Getting Started](docs/guide/getting-started.md) | First login, first deck, first agent prompt |
 | [Decks](docs/guide/decks.md) | Duplicate, share, collaborate, export |
 | [Agent](docs/guide/agent.md) | Chat, undo history, cross-session memory |
-| [CLI Setup](docs/cli/README.md) | `SLIDT_API_KEY`, all commands |
+| [CLI Setup](docs/cli/README.md) | `SLIDT_API_KEY`, all commands, `skill install` |
 | [Collaborator Roles](docs/reference/collaborators.md) | owner / editor / viewer matrix |
 | [SSE Events](docs/reference/sse-events.md) | Agent streaming event schema |
 
@@ -178,7 +179,7 @@ The JSON format:
 }
 ```
 
-Available `typeName` values (seeded on first start): `title`, `agenda`, `content`, `principles`, `values`, `reserve`, `purposes`, `section`, `ownership`, `friction`, `discussion`, `closing`, `appendix-list`.
+Available `typeName` values (seeded on first start): `cover`, `agenda`, `bullet-list`, `numbered-list`, `column-list`, `callout-content`, `card-grid`, `divider`, `team-cards`, `comparison`, `qa-list`, `closing`, `appendix-list`, `quote`, `stat-grid`, `timeline`, `two-column`, `three-column`, `dot-flow`, `quote-pair`.
 
 ### Updating
 

@@ -1,5 +1,5 @@
 import type { Actions, PageServerLoad } from './$types.js';
-import { db, decks, agentMessages, slides, slideTypes, deckCollaborators } from '$lib/server/db/index.ts';
+import { db, decks, slideEdits, slides, slideTypes, deckCollaborators } from '$lib/server/db/index.ts';
 import { eq, desc, and, gte, sql, inArray } from 'drizzle-orm';
 import { redirect, fail } from '@sveltejs/kit';
 
@@ -24,20 +24,21 @@ export const load: PageServerLoad = async ({ locals }) => {
     : [];
 
   const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-  const [editsRow] = await db
-    .select({ n: sql<number>`count(*)::int` })
-    .from(agentMessages)
-    .innerJoin(decks, eq(decks.id, agentMessages.deckId))
-    .where(and(
-      eq(decks.ownerId, locals.user!.id),
-      eq(agentMessages.role, 'assistant'),
-      gte(agentMessages.createdAt, sevenDaysAgo),
-    ));
+  const deckIds = ownedDecks.map(d => d.id);
+  const [editsRow] = deckIds.length > 0
+    ? await db
+        .select({ n: sql<number>`count(*)::int` })
+        .from(slideEdits)
+        .where(and(
+          inArray(slideEdits.deckId, deckIds),
+          gte(slideEdits.at, sevenDaysAgo),
+        ))
+    : [{ n: 0 }];
 
   return {
     decks: ownedDecks,
     sharedDecks,
-    agentEditsLastWeek: editsRow?.n ?? 0,
+    editsLastWeek: editsRow?.n ?? 0,
   };
 };
 

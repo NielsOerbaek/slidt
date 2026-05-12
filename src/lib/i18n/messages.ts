@@ -54,6 +54,7 @@ export const messages = {
   'decks.workspace': { da: 'DÆK — ARBEJDSRUM /', en: 'DECKS — WORKSPACE /' },
   'decks.last_week': { da: 'SIDSTE UGE', en: 'LAST WEEK' },
   'decks.agent_edits': { da: 'AGENT-ÆNDRINGER', en: 'AGENT EDITS' },
+  'decks.edits_last_week': { da: 'ÆNDRINGER', en: 'CHANGES' },
   'decks.new': { da: '+ NYT DÆK', en: '+ NEW DECK' },
   'decks.new_label': { da: 'NYT · TITEL', en: 'NEW · TITLE' },
   'decks.new_placeholder': { da: 'Nyt dæk', en: 'Untitled deck' },

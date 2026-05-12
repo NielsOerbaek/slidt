@@ -4,6 +4,7 @@
   import STFace from './STFace.svelte';
   import STTurn from './STTurn.svelte';
   import { t } from '$lib/i18n/index.ts';
+  import { renderMarkdown } from '$lib/utils/markdown.ts';
 
   let { deckId, themeId = null, aiModel = 'claude', open = $bindable(false) }: {
     deckId: string;
@@ -454,7 +455,7 @@
                         <span class="thinking-content">{part.text}</span>
                       </details>
                     {:else if part.kind === 'text' && part.text}
-                      <span class="content">{part.text}</span>
+                      <div class="content md">{@html renderMarkdown(part.text)}</div>
                     {:else if part.kind === 'tool'}
                       <div class="tool-line">
                         <span class="tool-marker">↳</span>
@@ -660,6 +661,19 @@
     white-space: pre-wrap;
     line-height: 1.55;
   }
+  .content.md {
+    white-space: normal;
+  }
+  .content.md :global(p) { margin: 0 0 0.6em; }
+  .content.md :global(p:last-child) { margin-bottom: 0; }
+  .content.md :global(strong) { font-weight: 600; }
+  .content.md :global(em) { font-style: italic; }
+  .content.md :global(code) { font-family: var(--st-font-mono); font-size: 0.88em; background: var(--st-bg); padding: 0.1em 0.3em; border-radius: 3px; }
+  .content.md :global(pre) { background: var(--st-bg); padding: 10px 12px; border-radius: 4px; overflow-x: auto; margin: 0.5em 0; }
+  .content.md :global(pre code) { background: none; padding: 0; font-size: 0.85em; }
+  .content.md :global(ul), .content.md :global(ol) { margin: 0.4em 0 0.6em 1.2em; padding: 0; }
+  .content.md :global(li) { margin-bottom: 0.2em; }
+  .content.md :global(h2), .content.md :global(h3), .content.md :global(h4) { font-weight: 600; margin: 0.8em 0 0.3em; }
   .tool-line {
     display: flex;
     gap: 10px;

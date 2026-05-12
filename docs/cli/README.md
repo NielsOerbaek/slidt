@@ -50,3 +50,4 @@ export SLIDT_URL=https://your-slidt-instance.example.com
 | [key](key.md) | API key management |
 | [export](export.md) | PDF export |
 | health | Check server status |
+| `skill install [--out <path>]` | Fetch and write the server's agent skill locally (no API key needed) |

@@ -125,6 +125,7 @@
     role: 'user' | 'assistant';
     content: string;
     rawContent: unknown[] | null;
+    toolCalls: Array<{ name: string; input?: unknown; result?: string; undoPatch?: unknown }> | null;
     createdAt: string;
   }
 
@@ -142,6 +143,24 @@
         for (const entry of row.rawContent as Array<{ role: string; content: unknown }>) {
           const projected = projectEntry(entry, out);
           if (projected) out.push(projected);
+        }
+        continue;
+      }
+      // Fallback for assistant rows without rawContent: reconstruct from toolCalls
+      // if present, otherwise show the saved content text.
+      if (row.role === 'assistant') {
+        if (row.toolCalls && row.toolCalls.length > 0) {
+          const parts: Part[] = row.toolCalls.map((tc) => ({
+            kind: 'tool' as const,
+            toolUseId: tc.name,
+            name: tc.name,
+            input: tc.input,
+            result: tc.result,
+            undoPatch: tc.undoPatch,
+          }));
+          out.push({ role: 'assistant', parts });
+        } else if (row.content && row.content !== '(tool calls only)') {
+          out.push({ role: 'assistant', parts: [{ kind: 'text', text: row.content }] });
         }
       }
     }

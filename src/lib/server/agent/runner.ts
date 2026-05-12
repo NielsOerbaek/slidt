@@ -17,7 +17,7 @@ Guidelines:
 
 Task approach — decide this before every request:
 - Simple tasks (one or two edits, a colour change, moving a slide): do them directly.
-- Larger tasks (building multiple slides, creating a custom slide type, restructuring the deck, fetching content from a URL, or anything you expect to require 4+ tool calls): write a short numbered plan as your FIRST response, before making any tool calls. Then execute the plan step by step. After each step, note it as done ("✓ Step 2 done"). Do not say the task is finished until every step is checked off. If new steps emerge mid-task, append them to the plan explicitly.
+- Larger tasks (building multiple slides, creating a custom slide type, restructuring the deck, fetching content from a URL, or anything you expect to require 4+ tool calls): write a short numbered plan at the top of your response, then immediately start making tool calls — do NOT end your response before the first tool call. Execute step by step, noting each done step ("✓ Step 2 done"). Do not say the task is finished until every step is checked off. If new steps emerge mid-task, append them to the plan. Exception: if you genuinely need information from the user before you can proceed (e.g. theme name and colours), ask your questions in that turn and wait — then write the plan and execute as soon as the user replies.
 
 Content field rules (CRITICAL):
 - NEVER put HTML markup in content fields. Write plain text only. The template handles all formatting.
@@ -43,8 +43,9 @@ Field-shape rules for add_slide / patch_slide data (READ CAREFULLY — these are
 - A 'group' field is an object with the sub-field names as keys, no wrapper.
 - Lists of strings inside groups follow the same flat-array rule.
 
-Theme creation (ALWAYS ask first):
-- Never call create_theme without first asking the user: (1) name + mood/style, (2) accent colour, (3) background preference, (4) heading font, (5) body font. Wait for answers before generating tokens.
+Theme creation:
+- If you don't yet have the user's answers to (1) name + mood/style, (2) accent colour, (3) background preference, (4) heading font, (5) body font — ask those questions and wait.
+- Once you have at least the first two answers, call create_theme immediately. Do not ask again if the user has already answered.
 - Derive a coherent 14-token palette from the answers. Dark themes: set --sl-bg and --sl-fg as inverses; --sl-dark-bg should be slightly lighter than --sl-bg.
 - --sl-accent-bg should be a very light tint of --sl-accent (blend toward --sl-bg, roughly 10–15% opacity).
 - For custom Google Fonts use the exact name as it appears on fonts.google.com, e.g. "'Playfair Display', serif".
@@ -144,11 +145,21 @@ export function runAgentStream(
         const rawSessionMessages: Anthropic.MessageParam[] = [];
         for (const msg of history) {
           if (msg.rawContent && Array.isArray(msg.rawContent) && msg.rawContent.length > 0) {
-            // Expand the full stored exchange back into the message sequence
-            for (const raw of msg.rawContent as Array<{ role: string; content: unknown }>) {
+            const raw = msg.rawContent as Array<{ role: string; content: unknown }>;
+            // Ollama stores role:'tool' (OpenAI format) — incompatible with Anthropic API.
+            // Fall back to the plain-text summary so we don't send invalid messages upstream.
+            const isOllamaFormat = raw.some((r) => r.role === 'tool');
+            if (isOllamaFormat) {
+              rawSessionMessages.push({ role: msg.role as 'user' | 'assistant', content: msg.content });
+              continue;
+            }
+            // Expand the full stored exchange, skipping any entries with null/undefined content
+            // (can occur on tool-only turns from older sessions).
+            for (const r of raw) {
+              if ((r.role !== 'user' && r.role !== 'assistant') || r.content == null) continue;
               rawSessionMessages.push({
-                role: raw.role as 'user' | 'assistant',
-                content: raw.content as Anthropic.MessageParam['content'],
+                role: r.role as 'user' | 'assistant',
+                content: r.content as Anthropic.MessageParam['content'],
               });
             }
           } else {

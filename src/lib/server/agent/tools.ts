@@ -170,13 +170,12 @@ export const AGENT_TOOLS: ToolDefinition[] = [
     name: 'create_theme',
     description:
       `Create a brand-new global theme with a complete --sl-* token set and optionally apply it to the current deck.
-IMPORTANT: Before calling this tool you MUST ask the user the following questions and wait for their answers:
+If you do not yet have answers to the questions below, ask them first and wait before calling this tool. If the user has already answered them, call this tool immediately without asking again:
 1. Name and overall mood/style (e.g. "minimal dark", "warm earthy", "bold corporate")
 2. Primary accent colour — exact hex preferred, or a description to derive one from
 3. Background preference — pure white, warm off-white, dark, or a specific hex
 4. Heading font — Neureal, Inter, or a custom Google Font name
-5. Body / paragraph font — Inter, same as heading, or a custom Google Font name
-Only call this tool after you have answers to at least the first two questions.`,
+5. Body / paragraph font — Inter, same as heading, or a custom Google Font name`,
     input_schema: {
       type: 'object',
       properties: {
@@ -546,6 +545,7 @@ export async function executeTool(
         .insert(themes)
         .values({ name, tokens: rawTokens as Record<string, string>, systemPrompt, scope: 'global' })
         .returning();
+      if (!newTheme) return { result: 'error: theme insert failed' };
       if (applyToDeck) {
         await db.update(decks).set({ themeId: newTheme.id }).where(eq(decks.id, deckId));
       }

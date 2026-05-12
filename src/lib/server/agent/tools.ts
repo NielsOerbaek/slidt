@@ -23,6 +23,7 @@ async function findSlideType(
   ref: string,
   deckId: string,
 ): Promise<typeof slideTypes.$inferSelect | null> {
+  if (!ref?.trim()) return null;
   if (UUID_RE.test(ref)) {
     const [byId] = await db
       .select()

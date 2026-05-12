@@ -172,7 +172,7 @@ export function runOllamaStream(
                 for (const tc of delta.tool_calls) {
                   if (!pendingToolCalls[tc.index]) {
                     pendingToolCalls[tc.index] = {
-                      id: tc.id ?? '',
+                      id: tc.id ?? crypto.randomUUID(),
                       type: 'function',
                       function: { name: tc.function?.name ?? '', arguments: '' },
                     };

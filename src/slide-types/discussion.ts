@@ -26,9 +26,9 @@ export const qaList: SlideType = {
   {{#each items}}<li data-q="{{fmt letter}}"><span>{{fmt text}}</span></li>{{/each}}
 </ol>`,
   css: `& { padding: 100px 140px; flex-direction: column; }
-.eyebrow { font-family: 'Inter', sans-serif; font-weight: 500; font-size: 22px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ood-deep-violet); margin-bottom: 24px; }
-h2 { font-size: 80px; color: var(--ood-deep-violet); margin-bottom: 48px; line-height: 1.02; }
+.eyebrow { font-family: var(--sl-body-font, var(--sl-font, 'Inter', sans-serif)); font-weight: 500; font-size: 22px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--sl-accent); margin-bottom: 24px; }
+h2 { font-size: 80px; color: var(--sl-accent); margin-bottom: 48px; line-height: 1.02; }
 .q-list { list-style: none; display: flex; flex-direction: column; gap: 28px; }
-.q-list li { display: grid; grid-template-columns: 90px 1fr; align-items: start; gap: 28px; font-family: 'Inter', sans-serif; font-weight: 300; font-size: 28px; line-height: 1.35; color: var(--ood-dark-matter); max-width: 1500px; }
-.q-list li::before { content: attr(data-q); font-family: 'Neureal', sans-serif; font-size: 60px; color: var(--ood-deep-violet); line-height: 1; }`,
+.q-list li { display: grid; grid-template-columns: 90px 1fr; align-items: start; gap: 28px; font-family: var(--sl-body-font, var(--sl-font, 'Inter', sans-serif)); font-weight: 300; font-size: 28px; line-height: 1.35; color: var(--sl-fg); max-width: 1500px; }
+.q-list li::before { content: attr(data-q); font-family: var(--sl-font, 'Neureal', sans-serif); font-size: 60px; color: var(--sl-accent); line-height: 1; }`,
 };

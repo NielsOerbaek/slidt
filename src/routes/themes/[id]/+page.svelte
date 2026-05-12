@@ -65,15 +65,7 @@
   // Build a renderer Theme from current tokens
   let previewTheme = $derived<Theme>({ name, tokens });
 
-  // Filter preview types to only those that use the theme's token system.
-  // OOD themes (with --ood-* tokens) can preview all slide types.
-  // Semantic (--sl-*) themes only show slide types that use --sl-* CSS tokens.
-  const hasOodTokens = Object.keys(data.theme.tokens).some((k) => k.startsWith('--ood-'));
-  const previewTypes = BUILT_IN_SLIDE_TYPES.filter(
-    (t) => hasOodTokens || t.css.includes('--sl-'),
-  );
-
-  const defaultPreviewType = previewTypes.find((t) => t.name === 'quote')?.name ?? previewTypes[0]?.name ?? BUILT_IN_SLIDE_TYPES[0].name;
+  const defaultPreviewType = BUILT_IN_SLIDE_TYPES.find((t) => t.name === 'cover')?.name ?? BUILT_IN_SLIDE_TYPES[0].name;
   let selectedSlideTypeName = $state(defaultPreviewType);
   let selectedSlideType = $derived(
     BUILT_IN_SLIDE_TYPES.find((t) => t.name === selectedSlideTypeName) ?? BUILT_IN_SLIDE_TYPES[0],
@@ -224,7 +216,7 @@
             class="type-select"
             bind:value={selectedSlideTypeName}
           >
-            {#each previewTypes as st}
+            {#each BUILT_IN_SLIDE_TYPES as st}
               <option value={st.name}>{st.label}</option>
             {/each}
           </select>

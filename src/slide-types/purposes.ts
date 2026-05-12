@@ -33,11 +33,11 @@ export const cardGrid: SlideType = {
   </div>
 </div>`,
   css: `.content { flex-direction: column; padding: 100px 140px; }
-.eyebrow { font-family: 'Inter', sans-serif; font-weight: 500; font-size: 22px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ood-deep-violet); margin-bottom: 28px; }
-h2 { font-size: 84px; line-height: 1.02; margin-bottom: 48px; max-width: 1500px; color: var(--ood-deep-violet); }
+.eyebrow { font-family: var(--sl-body-font, var(--sl-font, 'Inter', sans-serif)); font-weight: 500; font-size: 22px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--sl-accent); margin-bottom: 28px; }
+h2 { font-size: 84px; line-height: 1.02; margin-bottom: 48px; max-width: 1500px; color: var(--sl-accent); }
 .content-inner { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 32px; width: 100%; margin-top: 24px; }
-.p-card { padding: 44px 52px; border: 2px solid var(--ood-deep-violet-bright); border-radius: 8px; background: var(--ood-white); }
-.p-num { font-family: 'Neureal', sans-serif; font-size: 40px; color: var(--ood-deep-violet); margin-bottom: 14px; line-height: 1; }
-.p-title { font-family: 'Neureal', sans-serif; font-size: 38px; color: var(--ood-dark-matter); margin-bottom: 14px; line-height: 1.1; }
-.p-desc { font-size: 22px; color: var(--ood-dark-matter-light); line-height: 1.45; }`,
+.p-card { padding: 44px 52px; border: 2px solid var(--sl-accent-bg); border-radius: 8px; background: var(--sl-bg); }
+.p-num { font-family: var(--sl-font, 'Neureal', sans-serif); font-size: 40px; color: var(--sl-accent); margin-bottom: 14px; line-height: 1; }
+.p-title { font-family: var(--sl-font, 'Neureal', sans-serif); font-size: 38px; color: var(--sl-fg); margin-bottom: 14px; line-height: 1.1; }
+.p-desc { font-size: 22px; color: var(--sl-dim); line-height: 1.45; }`,
 };

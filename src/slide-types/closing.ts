@@ -10,6 +10,6 @@ export const closing: SlideType = {
   htmlTemplate: `<h1>{{fmt title}}</h1>
 <p>{{fmt subtitle}}</p>`,
   css: `& { flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 140px; }
-h1 { font-size: 140px; color: var(--ood-deep-violet); line-height: 1; margin-bottom: 36px; }
-p { font-size: 36px; color: var(--ood-dark-matter); }`,
+h1 { font-size: 140px; color: var(--sl-accent); line-height: 1; margin-bottom: 36px; }
+p { font-size: 36px; color: var(--sl-fg); }`,
 };

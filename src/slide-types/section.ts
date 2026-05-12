@@ -19,9 +19,9 @@ export const divider: SlideType = {
   </div>
 </div>`,
   css: `& { padding: 0; }
-.num-col { width: 40%; background: var(--ood-deep-violet-bright); display: flex; align-items: center; justify-content: center; position: relative; }
-.big-num { font-family: 'Neureal', sans-serif; font-size: 900px; line-height: 0.85; color: var(--ood-deep-violet); margin-top: -40px; }
-.title-col { width: 60%; background: var(--ood-big-cloud); display: flex; align-items: center; padding: 120px; }
-h2 { font-size: 96px; color: var(--ood-deep-violet); line-height: 1.02; }
-.subtitle { display: block; font-family: 'Inter', sans-serif; font-weight: 300; font-size: 32px; color: var(--ood-dark-matter); margin-top: 24px; }`,
+.num-col { width: 40%; background: var(--sl-accent-bg); display: flex; align-items: center; justify-content: center; position: relative; }
+.big-num { font-family: var(--sl-font, 'Neureal', sans-serif); font-size: 900px; line-height: 0.85; color: var(--sl-accent); margin-top: -40px; }
+.title-col { width: 60%; background: var(--sl-surface); display: flex; align-items: center; padding: 120px; }
+h2 { font-size: 96px; color: var(--sl-accent); line-height: 1.02; }
+.subtitle { display: block; font-family: var(--sl-body-font, var(--sl-font, 'Inter', sans-serif)); font-weight: 300; font-size: 32px; color: var(--sl-fg); margin-top: 24px; }`,
 };

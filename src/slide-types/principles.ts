@@ -28,10 +28,10 @@ export const numberedList: SlideType = {
   </ol>
 </div>`,
   css: `.content { flex-direction: column; padding: 100px 140px; }
-.eyebrow { font-family: 'Inter', sans-serif; font-weight: 500; font-size: 22px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ood-deep-violet); margin-bottom: 28px; }
-h2 { font-size: 84px; line-height: 1.02; margin-bottom: 48px; max-width: 1500px; color: var(--ood-deep-violet); }
+.eyebrow { font-family: var(--sl-body-font, var(--sl-font, 'Inter', sans-serif)); font-weight: 500; font-size: 22px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--sl-accent); margin-bottom: 28px; }
+h2 { font-size: 84px; line-height: 1.02; margin-bottom: 48px; max-width: 1500px; color: var(--sl-accent); }
 .principle-list { list-style: none; margin-left: 0; counter-reset: plist; display: flex; flex-direction: column; gap: 14px; }
 .principle-list li { counter-increment: plist; display: grid; grid-template-columns: 72px 1fr; align-items: baseline; font-size: 24px; line-height: 1.35; max-width: 1500px !important; }
-.principle-list li::before { content: counter(plist); font-family: 'Neureal', sans-serif; font-size: 48px; color: var(--ood-deep-violet); line-height: 1; }
-.principle-list .p-title { font-family: 'Inter', sans-serif; font-weight: 500; }`,
+.principle-list li::before { content: counter(plist); font-family: var(--sl-font, 'Neureal', sans-serif); font-size: 48px; color: var(--sl-accent); line-height: 1; }
+.principle-list .p-title { font-family: var(--sl-body-font, var(--sl-font, 'Inter', sans-serif)); font-weight: 500; }`,
 };

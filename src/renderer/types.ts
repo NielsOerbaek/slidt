@@ -42,7 +42,7 @@ export interface SlideType {
 
 export interface Theme {
   name: string;
-  /** CSS custom-property name to value, e.g. `{ "--ood-white": "#FFFFFF" }` */
+  /** CSS custom-property name to value, e.g. `{ "--sl-accent": "#6E31FF" }` */
   tokens: Record<string, string>;
   /**
    * Optional system prompt injected into the agent when this theme is active.

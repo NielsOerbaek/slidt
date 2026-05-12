@@ -15,10 +15,10 @@ export const cover: SlideType = {
   {{#if kicker}}<p class="kicker">{{fmt kicker}}</p>{{/if}}
 </div>`,
   css: `& { flex-direction: column; justify-content: center; padding: 120px; }
-.eyebrow { font-family: 'Neureal', sans-serif; font-size: 40px; color: var(--ood-dark-matter, #363442); margin-bottom: 32px; letter-spacing: 0.02em; }
-h1 { font-size: 120px; color: var(--ood-deep-violet, #6E31FF); line-height: 1.02; margin-bottom: 48px; }
-h1 .alt { color: var(--ood-dark-matter, #363442); display: block; }
-.kicker { font-family: 'Inter', sans-serif; font-weight: 300; font-size: 32px; line-height: 1.4; color: var(--ood-dark-matter, #363442); max-width: 720px; }
+.eyebrow { font-family: var(--sl-font, 'Neureal', sans-serif); font-size: 40px; color: var(--sl-fg); margin-bottom: 32px; letter-spacing: 0.02em; }
+h1 { font-size: 120px; color: var(--sl-accent); line-height: 1.02; margin-bottom: 48px; }
+h1 .alt { color: var(--sl-fg); display: block; }
+.kicker { font-family: var(--sl-body-font, var(--sl-font, 'Inter', sans-serif)); font-weight: 300; font-size: 32px; line-height: 1.4; color: var(--sl-fg); max-width: 720px; }
 @media (max-width: 768px) {
   & { padding: 60px 40px; }
   h1 { font-size: 64px; }

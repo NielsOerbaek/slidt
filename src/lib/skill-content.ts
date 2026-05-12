@@ -55,7 +55,7 @@ To create an API key: log in to slidt → Settings → API Keys → New Key (cop
 | **Deck** | A presentation: title, language, ordered slides, optional theme |
 | **Slide** | A slide instance: \`typeName\` + \`data\` (field values) |
 | **Slide type / Template** | HTML+CSS template + field schema. 20 built-in: \`cover\`, \`bullet-list\`, \`two-column\`, \`three-column\`, \`quote\`, \`stat-grid\`, \`timeline\`, \`dot-flow\`, \`quote-pair\`, \`card-grid\`, \`numbered-list\`, \`column-list\`, \`callout-content\`, \`divider\`, \`team-cards\`, \`comparison\`, \`qa-list\`, \`agenda\`, \`closing\`, \`appendix-list\` |
-| **Theme** | CSS custom property tokens (\`--sl-*\`, \`--ood-*\`). Built-in: \`antal-theta-default\`, \`minimal\` |
+| **Theme** | CSS custom property tokens (\`--sl-*\`). Built-in: \`antal-theta-default\`, \`minimal\`, \`os-og-data-default\` |
 | **Agent** | SSE streaming AI that edits the deck via tool calls |
 
 ---

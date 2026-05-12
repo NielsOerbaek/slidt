@@ -36,11 +36,11 @@ export const columnList: SlideType = {
   </div>
 </div>`,
   css: `.content { flex-direction: column; padding: 100px 140px; }
-.eyebrow { font-family: 'Inter', sans-serif; font-weight: 500; font-size: 22px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ood-deep-violet); margin-bottom: 28px; }
-h2 { font-size: 84px; line-height: 1.02; margin-bottom: 48px; max-width: 1500px; color: var(--ood-deep-violet); }
+.eyebrow { font-family: var(--sl-body-font, var(--sl-font, 'Inter', sans-serif)); font-weight: 500; font-size: 22px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--sl-accent); margin-bottom: 28px; }
+h2 { font-size: 84px; line-height: 1.02; margin-bottom: 48px; max-width: 1500px; color: var(--sl-accent); }
 .values-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 60px; margin-top: 20px; }
-.v-col h3 { font-family: 'Neureal', sans-serif; font-size: 34px; color: var(--ood-deep-violet); margin-bottom: 20px; line-height: 1.1; }
+.v-col h3 { font-family: var(--sl-font, 'Neureal', sans-serif); font-size: 34px; color: var(--sl-accent); margin-bottom: 20px; line-height: 1.1; }
 .values-grid ul { list-style: none; margin: 0; display: flex; flex-direction: column; gap: 10px; }
 .values-grid li { font-size: 22px; display: grid; grid-template-columns: 22px 1fr; column-gap: 14px; align-items: baseline; line-height: 1.4; max-width: 640px !important; padding: 0; }
-.values-grid li::before { content: ''; display: inline-block; width: 14px; height: 2px; background: var(--ood-deep-violet); transform: translateY(-6px); }`,
+.values-grid li::before { content: ''; display: inline-block; width: 14px; height: 2px; background: var(--sl-accent); transform: translateY(-6px); }`,
 };

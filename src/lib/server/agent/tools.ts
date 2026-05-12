@@ -160,7 +160,7 @@ export const AGENT_TOOLS: ToolDefinition[] = [
         tokens: {
           type: 'object',
           description:
-            'CSS custom-property name to value, e.g. {"--ood-accent": "#5B21B6"}',
+            'CSS custom-property name to value, e.g. {"--sl-accent": "#6E31FF"}',
         },
       },
       required: ['tokens'],
@@ -222,8 +222,19 @@ export const AGENT_TOOLS: ToolDefinition[] = [
   },
   {
     name: 'list_slide_types',
-    description: 'List all slide types available for this deck (global + deck-scoped).',
+    description: 'List all slide types available for this deck (global + deck-scoped). Returns id, name, label, scope, and a slim field summary (name + type only). Call get_slide_type for full field schemas including list item shapes.',
     input_schema: { type: 'object', properties: {}, required: [] },
+  },
+  {
+    name: 'get_slide_type',
+    description: 'Get full details for a single slide type, including complete field schemas with list item shapes. Use this before add_slide when you need to understand the exact structure of a complex list or group field.',
+    input_schema: {
+      type: 'object',
+      properties: {
+        id: { type: 'string', description: 'SlideType identifier — either the UUID id or the slug name (e.g. "steps-linear-accent").' },
+      },
+      required: ['id'],
+    },
   },
   {
     name: 'report_issue',
@@ -425,6 +436,16 @@ export async function executeTool(
       const order = input.order as string[];
       const [deck] = await db.select().from(decks).where(eq(decks.id, deckId)).limit(1);
       const previousOrder = deck?.slideOrder ?? [];
+      const currentSet = new Set(previousOrder);
+      const providedSet = new Set(order);
+      const missing = [...currentSet].filter((id) => !providedSet.has(id));
+      const extra = [...providedSet].filter((id) => !currentSet.has(id));
+      if (missing.length > 0 || extra.length > 0) {
+        const parts: string[] = [];
+        if (missing.length) parts.push(`missing: ${missing.join(', ')}`);
+        if (extra.length) parts.push(`unknown: ${extra.join(', ')}`);
+        return { result: `error: order must contain exactly all current slide IDs — ${parts.join('; ')}` };
+      }
       await db
         .update(decks)
         .set({ slideOrder: order, updatedAt: new Date() })
@@ -491,10 +512,10 @@ export async function executeTool(
           headers: { 'User-Agent': 'Mozilla/5.0 (compatible; slidt-agent/1.0)' },
           signal: AbortSignal.timeout(10_000),
         });
-        if (!res.ok) return { result: `error: HTTP ${res.status}` };
+        if (!res.ok) return { result: `error: HTTP ${res.status} — the server rejected the request. Try a different URL or use content the user can paste directly.` };
         const html = await res.text();
         // Strip tags, collapse whitespace, trim to 8k chars
-        const text = html
+        const raw = html
           .replace(/<script[\s\S]*?<\/script>/gi, '')
           .replace(/<style[\s\S]*?<\/style>/gi, '')
           .replace(/<[^>]+>/g, ' ')
@@ -503,8 +524,9 @@ export async function executeTool(
           .replace(/&lt;/g, '<')
           .replace(/&gt;/g, '>')
           .replace(/\s{2,}/g, ' ')
-          .trim()
-          .slice(0, 8000);
+          .trim();
+        const truncated = raw.length > 8000;
+        const text = raw.slice(0, 8000) + (truncated ? '\n\n[Content truncated at 8,000 chars. If you need more, ask the user to provide a more specific URL or section.]' : '');
         return { result: text };
       } catch (err) {
         return { result: `error: ${err instanceof Error ? err.message : String(err)}` };
@@ -605,7 +627,20 @@ export async function executeTool(
             and(eq(slideTypes.scope, 'deck'), eq(slideTypes.deckId, deckId)),
           ),
         );
-      return { result: JSON.stringify(rows, null, 2) };
+      const slim = rows.map(({ fields, ...rest }) => ({
+        ...rest,
+        fields: (fields as Array<{ name?: string; type?: string }>).map((f) => ({ name: f.name, type: f.type })),
+      }));
+      return { result: JSON.stringify(slim, null, 2) };
+    }
+
+    case 'get_slide_type': {
+      const ref = input.id as string;
+      const st = await findSlideType(ref, deckId);
+      if (!st) return { result: `error: slide type ${ref} not found` };
+      // Return full schema but omit htmlTemplate (large, rarely needed as text)
+      const { htmlTemplate: _, ...rest } = st;
+      return { result: JSON.stringify(rest, null, 2) };
     }
 
     case 'report_issue': {

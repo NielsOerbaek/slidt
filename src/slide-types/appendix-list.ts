@@ -35,11 +35,11 @@ export const appendixList: SlideType = {
   </ul>
 </div>`,
   css: `.content { flex-direction: column; padding: 100px 140px; }
-.eyebrow { font-family: 'Inter', sans-serif; font-weight: 500; font-size: 22px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ood-deep-violet); margin-bottom: 28px; }
-h2 { font-size: 84px; line-height: 1.02; margin-bottom: 48px; max-width: 1500px; color: var(--ood-deep-violet); }
+.eyebrow { font-family: var(--sl-body-font, var(--sl-font, 'Inter', sans-serif)); font-weight: 500; font-size: 22px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--sl-accent); margin-bottom: 28px; }
+h2 { font-size: 84px; line-height: 1.02; margin-bottom: 48px; max-width: 1500px; color: var(--sl-accent); }
 .app-list { list-style: none; margin: 24px 0 0; padding: 0; display: flex; flex-direction: column; gap: 44px; }
 .app-list li { display: grid; grid-template-columns: 140px 1fr; align-items: baseline; column-gap: 48px; }
-.app-mark { font-family: 'Neureal', sans-serif; font-size: 96px; color: var(--ood-deep-violet); line-height: 1; text-align: left; }
-.app-title { font-family: 'Neureal', sans-serif; font-size: 48px; color: var(--ood-dark-matter); line-height: 1.1; margin-bottom: 10px; }
-.app-sub { font-family: 'Inter', sans-serif; font-weight: 300; font-size: 24px; color: var(--ood-dark-matter-light); line-height: 1.4; max-width: 1200px; }`,
+.app-mark { font-family: var(--sl-font, 'Neureal', sans-serif); font-size: 96px; color: var(--sl-accent); line-height: 1; text-align: left; }
+.app-title { font-family: var(--sl-font, 'Neureal', sans-serif); font-size: 48px; color: var(--sl-fg); line-height: 1.1; margin-bottom: 10px; }
+.app-sub { font-family: var(--sl-body-font, var(--sl-font, 'Inter', sans-serif)); font-weight: 300; font-size: 24px; color: var(--sl-dim); line-height: 1.4; max-width: 1200px; }`,
 };

@@ -14,6 +14,7 @@ export const minimal: Theme = {
     '--sl-dark-fg': '#f5f5f3',
     '--sl-dark-dim': '#888888',
     '--sl-accent': '#1a1a1a',
+    '--sl-accent-bg': '#e8e8e6',
     '--sl-font': "'Inter', sans-serif",
     '--sl-body-font': "'Inter', sans-serif",
   },

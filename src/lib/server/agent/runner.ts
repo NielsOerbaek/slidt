@@ -15,6 +15,10 @@ Guidelines:
 - After using tools, briefly describe what you changed
 - Be concise — let the tools do the work
 
+Task approach — decide this before every request:
+- Simple tasks (one or two edits, a colour change, moving a slide): do them directly.
+- Larger tasks (building multiple slides, creating a custom slide type, restructuring the deck, fetching content from a URL, or anything you expect to require 4+ tool calls): write a short numbered plan as your FIRST response, before making any tool calls. Then execute the plan step by step. After each step, note it as done ("✓ Step 2 done"). Do not say the task is finished until every step is checked off. If new steps emerge mid-task, append them to the plan explicitly.
+
 Content field rules (CRITICAL):
 - NEVER put HTML markup in content fields. Write plain text only. The template handles all formatting.
 - Do not use <b>, <em>, <br>, <p>, <ul>, <li>, or any other HTML tags in data fields.
@@ -24,7 +28,7 @@ Template rules (IMPORTANT — violations cause "[object Object]" in output):
 - {{fmt value}} only works on STRING fields. Never pass an object or array to fmt.
 - For list fields (type: "list"), iterate with {{#each items}}...{{/each}} and access string properties inside: {{fmt this.propertyName}}
 - For group fields (type: "group"), access each sub-field directly: {{fmt field.subField}}
-- Always call list_slide_types before add_slide to check the exact field names and types
+- Call list_slide_types to see available types; call get_slide_type for full field schemas (including list item shapes) before add_slide with complex list fields
 
 Field-shape rules for add_slide / patch_slide data (READ CAREFULLY — these are the most common bugs):
 - Pass real JSON objects/arrays in 'data', NEVER a JSON-encoded string. data: { eyebrow: "X" }, NOT data: "{\\"eyebrow\\":\\"X\\"}".
@@ -38,6 +42,12 @@ Field-shape rules for add_slide / patch_slide data (READ CAREFULLY — these are
     RIGHT:  cards: [{ "title": "X", "body": "Y" }]
 - A 'group' field is an object with the sub-field names as keys, no wrapper.
 - Lists of strings inside groups follow the same flat-array rule.
+
+Theme creation (ALWAYS ask first):
+- Never call create_theme without first asking the user: (1) name + mood/style, (2) accent colour, (3) background preference, (4) heading font, (5) body font. Wait for answers before generating tokens.
+- Derive a coherent 14-token palette from the answers. Dark themes: set --sl-bg and --sl-fg as inverses; --sl-dark-bg should be slightly lighter than --sl-bg.
+- --sl-accent-bg should be a very light tint of --sl-accent (blend toward --sl-bg, roughly 10–15% opacity).
+- For custom Google Fonts use the exact name as it appears on fonts.google.com, e.g. "'Playfair Display', serif".
 
 Visual verification (USE THE INSPECT TOOL):
 - Immediately after create_slide_type or patch_slide_type, call inspect_slide_type with the new id (no slideId) to see the dummy-data render. Iterate until it looks right.
@@ -161,11 +171,21 @@ export function runAgentStream(
         while (iterCount < MAX_ITERATIONS) {
           iterCount++;
 
+          // Warn the agent a few turns before the hard limit so it can wrap up gracefully
+          if (iterCount === MAX_ITERATIONS - 2) {
+            sessionMessages.push({
+              role: 'user',
+              content: '[System: You have 3 iterations remaining. Please wrap up, summarise what you completed, and tell the user what (if anything) still needs to be done.]',
+            });
+          }
+
           const stream = client.messages.stream({
             model: 'claude-sonnet-4-6',
-            max_tokens: 4096,
-            system: systemPrompt,
-            tools: AGENT_TOOLS as Anthropic.Tool[],
+            max_tokens: 8192,
+            system: [{ type: 'text', text: systemPrompt, cache_control: { type: 'ephemeral' } }],
+            tools: AGENT_TOOLS.map((t, i) =>
+              i === AGENT_TOOLS.length - 1 ? { ...t, cache_control: { type: 'ephemeral' } } : t,
+            ) as Anthropic.Tool[],
             messages: sessionMessages,
           });
 

@@ -167,6 +167,47 @@ export const AGENT_TOOLS: ToolDefinition[] = [
     },
   },
   {
+    name: 'create_theme',
+    description:
+      `Create a brand-new global theme with a complete --sl-* token set and optionally apply it to the current deck.
+IMPORTANT: Before calling this tool you MUST ask the user the following questions and wait for their answers:
+1. Name and overall mood/style (e.g. "minimal dark", "warm earthy", "bold corporate")
+2. Primary accent colour — exact hex preferred, or a description to derive one from
+3. Background preference — pure white, warm off-white, dark, or a specific hex
+4. Heading font — Neureal, Inter, or a custom Google Font name
+5. Body / paragraph font — Inter, same as heading, or a custom Google Font name
+Only call this tool after you have answers to at least the first two questions.`,
+    input_schema: {
+      type: 'object',
+      properties: {
+        name: { type: 'string', description: 'Human-readable theme name shown in the UI' },
+        tokens: {
+          type: 'object',
+          description:
+            `Complete --sl-* CSS custom property map. All 14 keys are required:
+--sl-bg (main slide background), --sl-surface (panel/card surface),
+--sl-fg (body text colour), --sl-dim (muted text), --sl-very-dim (very muted),
+--sl-border (subtle border), --sl-border-mid (medium border),
+--sl-dark-bg (dark-section background), --sl-dark-fg (dark-section text),
+--sl-dark-dim (dark-section muted text), --sl-accent (primary accent colour),
+--sl-accent-bg (light tint of accent for section backgrounds),
+--sl-font (heading font stack, e.g. "'Inter', sans-serif"),
+--sl-body-font (body font stack, e.g. "'Inter', sans-serif")`,
+        },
+        systemPrompt: {
+          type: 'string',
+          description:
+            'Optional agent tone/direction text injected when this theme is active. Describe voice, language, and style preferences.',
+        },
+        applyToDeck: {
+          type: 'boolean',
+          description: 'If true, immediately applies the new theme to the current deck.',
+        },
+      },
+      required: ['name', 'tokens'],
+    },
+  },
+  {
     name: 'create_slide_type',
     description:
       'Create a new deck-scoped slide type with a Handlebars HTML template and scoped CSS.',
@@ -483,6 +524,34 @@ export async function executeTool(
       return {
         result: 'ok',
         undoPatch: { type: 'update_theme', themeId: theme.id, before },
+      };
+    }
+
+    case 'create_theme': {
+      const name = (input.name as string)?.trim();
+      if (!name) return { result: 'error: name is required' };
+      const rawTokens = coerceObject(input.tokens);
+      if (!rawTokens) return { result: 'error: tokens must be an object' };
+      const REQUIRED_TOKENS = [
+        '--sl-bg', '--sl-surface', '--sl-fg', '--sl-dim', '--sl-very-dim',
+        '--sl-border', '--sl-border-mid', '--sl-dark-bg', '--sl-dark-fg',
+        '--sl-dark-dim', '--sl-accent', '--sl-accent-bg', '--sl-font', '--sl-body-font',
+      ];
+      const missing = REQUIRED_TOKENS.filter((k) => !rawTokens[k]);
+      if (missing.length > 0) return { result: `error: missing required tokens: ${missing.join(', ')}` };
+      const systemPrompt =
+        typeof input.systemPrompt === 'string' ? input.systemPrompt.trim() || null : null;
+      const applyToDeck = input.applyToDeck === true;
+      const [newTheme] = await db
+        .insert(themes)
+        .values({ name, tokens: rawTokens as Record<string, string>, systemPrompt, scope: 'global' })
+        .returning();
+      if (applyToDeck) {
+        await db.update(decks).set({ themeId: newTheme.id }).where(eq(decks.id, deckId));
+      }
+      const editUrl = `/themes/${newTheme.id}`;
+      return {
+        result: `ok — theme "${name}" created (id: ${newTheme.id})${applyToDeck ? ', applied to deck' : ''}. Edit it at ${editUrl}.`,
       };
     }
 

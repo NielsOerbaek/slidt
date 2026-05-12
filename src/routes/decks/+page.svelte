@@ -126,7 +126,7 @@
         <div class="th title">{t('decks.col_title')}</div>
         <div class="th slides">{t('decks.col_slides')}</div>
         <div class="th upd">{t('decks.col_updated')}</div>
-        <div class="th actions">{t('decks.col_actions')}</div>
+        <div class="th actions"></div>
         <div class="th arrow"></div>
       </div>
 
@@ -163,7 +163,7 @@
                 class="chip menu-btn"
                 aria-expanded={openMenuId === deck.id}
                 aria-haspopup="true"
-                onclick={() => openMenuId = openMenuId === deck.id ? null : deck.id}
+                onclick={(e) => { e.preventDefault(); e.stopPropagation(); openMenuId = openMenuId === deck.id ? null : deck.id; }}
               >•••</button>
               {#if openMenuId === deck.id}
                 <div class="deck-dropdown" transition:slide={{ duration: 140, easing: cubicOut }}>
@@ -416,7 +416,7 @@
     padding: 10px 16px;
     text-align: left;
     border: none;
-    border-bottom: var(--st-rule-thin);
+    border-top: var(--st-rule-thin);
     background: transparent;
     font-family: var(--st-font-mono);
     font-size: 10px;
@@ -425,7 +425,8 @@
     cursor: pointer;
     text-decoration: none;
   }
-  .drop-item:last-child { border-bottom: none; }
+  .deck-dropdown > .drop-item:first-child,
+  .deck-dropdown > :first-child .drop-item:only-child { border-top: none; }
   .drop-item:hover { background: var(--st-bg-deep); }
   .drop-item.danger { color: #c0392b; }
   .drop-item.danger:hover { background: #fff5f5; }

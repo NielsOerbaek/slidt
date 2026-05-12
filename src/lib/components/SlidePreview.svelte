@@ -55,10 +55,11 @@
   }
 
   $effect(() => {
-    // Capture reactive dependencies
-    const st = slideType;
+    // Capture reactive dependencies — spread to plain objects so Object.entries
+    // in the renderer works correctly even when Svelte 5 passes reactive proxies.
+    const st = slideType ? { ...slideType } : null;
     const sd = { ...slideData };
-    const th = theme;
+    const th = theme ? { name: theme.name, tokens: { ...theme.tokens } } : null;
     const isEditable = editable;
 
     if (!st || !th) { previewHtml = ''; return; }
@@ -92,7 +93,8 @@
           if (gLink) rendered = rendered.replace('</head>', `${gLink}\n</head>`);
         }
         previewHtml = rendered;
-      } catch {
+      } catch (err) {
+        console.error('[SlidePreview] render failed:', err);
         previewHtml = '';
       }
       renderTimer = null;

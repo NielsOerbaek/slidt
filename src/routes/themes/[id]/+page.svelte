@@ -95,7 +95,7 @@
             savedSystemPrompt = systemPrompt;
             setTimeout(() => (saved = false), 2000);
           }
-          await update();
+          await update({ reset: false });
         };
       }}
       class="token-form"

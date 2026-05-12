@@ -50,8 +50,8 @@
  *   slidt health
  */
 
-import { readFileSync, writeFileSync } from 'fs';
-import { resolve } from 'path';
+import { readFileSync, writeFileSync, mkdirSync } from 'fs';
+import { resolve, dirname } from 'path';
 
 // ── Config ────────────────────────────────────────────────────────
 
@@ -68,6 +68,33 @@ function hasFlag(name: string): boolean {
 
 const BASE_URL = (getFlag('url') ?? process.env.SLIDT_URL ?? 'http://localhost:3000').replace(/\/$/, '');
 const API_KEY = getFlag('api-key') ?? process.env.SLIDT_API_KEY;
+
+// ── Unauthenticated commands ───────────────────────────────────────
+// skill install fetches the skill from the server — no API key needed.
+const _positionals = args.filter((a, i) => {
+  if (a.startsWith('--')) return false;
+  if (args[i - 1]?.startsWith('--')) return false;
+  return true;
+});
+
+if (_positionals[0] === 'skill') {
+  if (_positionals[1] !== 'install') {
+    console.error('Usage: skill install [--out <path>]');
+    process.exit(1);
+  }
+  const defaultOut = `${process.env.HOME}/.claude/skills/slidt/SKILL.md`;
+  const outPath = resolve(getFlag('out') ?? defaultOut);
+  const res = await fetch(`${BASE_URL}/api/skill`);
+  if (!res.ok) {
+    console.error(`Failed to fetch skill: ${res.status} ${res.statusText}`);
+    process.exit(1);
+  }
+  const content = await res.text();
+  mkdirSync(dirname(outPath), { recursive: true });
+  writeFileSync(outPath, content, 'utf-8');
+  console.log(`Skill installed to ${outPath}`);
+  process.exit(0);
+}
 
 if (!API_KEY) {
   console.error('Error: API key required. Set SLIDT_API_KEY env var or pass --api-key <key>');
@@ -644,6 +671,9 @@ Commands:
   key revoke <id>                Revoke an API key
 
   export pdf <deckId> [--out deck.pdf]
+
+  skill install [--out <path>]   Fetch and install this skill (no API key needed)
+                                 Default: ~/.claude/skills/slidt/SKILL.md
 
 Global options:
   --api-key <key>     API key (or set SLIDT_API_KEY)

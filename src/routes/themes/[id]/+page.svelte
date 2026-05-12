@@ -65,8 +65,10 @@
   // Build a renderer Theme from current tokens
   let previewTheme = $derived<Theme>({ name, tokens });
 
-  // Slide type selector for preview
-  let selectedSlideTypeName = $state(BUILT_IN_SLIDE_TYPES[0].name);
+  // Default to 'quote' for --sl-* themes (which don't use --ood-* tokens);
+  // fall back to 'cover' for legacy OOD themes.
+  const defaultPreviewType = '--sl-font' in data.theme.tokens ? 'quote' : BUILT_IN_SLIDE_TYPES[0].name;
+  let selectedSlideTypeName = $state(defaultPreviewType);
   let selectedSlideType = $derived(
     BUILT_IN_SLIDE_TYPES.find((t) => t.name === selectedSlideTypeName) ?? BUILT_IN_SLIDE_TYPES[0],
   );

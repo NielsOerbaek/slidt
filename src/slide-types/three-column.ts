@@ -33,14 +33,16 @@ export const threeColumn: SlideType = {
   </div>
 </div>`,
   css: `& { flex-direction: column; padding: 80px 120px; background: var(--sl-bg, #f5f5f3); }
-.eyebrow { font-size: 0.75rem; font-weight: 500; letter-spacing: 0.12em; text-transform: uppercase; color: var(--sl-dim, #a0a09a); margin-bottom: 16px; font-family: var(--sl-font, 'Inter', sans-serif); }
-h2 { font-size: 2.5rem; font-weight: 500; color: var(--sl-fg, #1a1a1a); margin-bottom: 48px; letter-spacing: -0.025em; font-family: var(--sl-font, 'Inter', sans-serif); }
-.cols { display: grid; grid-template-columns: repeat(3, 1fr); gap: 40px; }
-h4 { font-size: 1.1rem; font-weight: 500; color: var(--sl-fg, #1a1a1a); margin-bottom: 14px; font-family: var(--sl-font, 'Inter', sans-serif); padding-bottom: 12px; border-bottom: 1px solid var(--sl-border, #e0e0db); }
-p { font-size: 1rem; font-weight: 400; color: var(--sl-dim, #a0a09a); line-height: 1.65; font-family: var(--sl-font, 'Inter', sans-serif); }
+.eyebrow { font-size: 20px; font-weight: 500; letter-spacing: 0.14em; text-transform: uppercase; color: var(--sl-dim, #a0a09a); margin-bottom: 24px; font-family: var(--sl-font, 'Neureal', 'Inter', sans-serif); }
+h2 { font-size: 80px; font-weight: 500; color: var(--sl-fg, #1a1a1a); margin-bottom: 56px; letter-spacing: -0.03em; font-family: var(--sl-font, 'Neureal', 'Inter', sans-serif); }
+.cols { display: grid; grid-template-columns: repeat(3, 1fr); gap: 48px; }
+h4 { font-size: 28px; font-weight: 500; color: var(--sl-fg, #1a1a1a); margin-bottom: 16px; font-family: var(--sl-font, 'Neureal', 'Inter', sans-serif); padding-bottom: 14px; border-bottom: 2px solid var(--sl-border, #e0e0db); }
+p { font-size: 24px; font-weight: 400; color: var(--sl-dim, #a0a09a); line-height: 1.5; font-family: var(--sl-font, 'Neureal', 'Inter', sans-serif); }
 @media (max-width: 768px) {
   & { padding: 40px 24px; }
   .cols { grid-template-columns: 1fr; gap: 28px; }
-  h2 { font-size: 1.75rem; margin-bottom: 32px; }
+  h2 { font-size: 2rem; margin-bottom: 32px; }
+  h4 { font-size: 1.1rem; }
+  p { font-size: 1rem; }
 }`,
 };

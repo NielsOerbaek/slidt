@@ -38,21 +38,23 @@ export const timeline: SlideType = {
   </div>
 </div>`,
   css: `& { flex-direction: column; padding: 80px 120px; background: var(--sl-bg, #f5f5f3); overflow: hidden; }
-.eyebrow { font-size: 0.75rem; font-weight: 500; letter-spacing: 0.12em; text-transform: uppercase; color: var(--sl-dim, #a0a09a); margin-bottom: 16px; font-family: var(--sl-font, 'Inter', sans-serif); }
-h2 { font-size: 2.5rem; font-weight: 500; color: var(--sl-fg, #1a1a1a); margin-bottom: 48px; letter-spacing: -0.025em; font-family: var(--sl-font, 'Inter', sans-serif); }
+.eyebrow { font-size: 20px; font-weight: 500; letter-spacing: 0.14em; text-transform: uppercase; color: var(--sl-dim, #a0a09a); margin-bottom: 24px; font-family: var(--sl-font, 'Neureal', 'Inter', sans-serif); }
+h2 { font-size: 80px; font-weight: 500; color: var(--sl-fg, #1a1a1a); margin-bottom: 56px; letter-spacing: -0.03em; font-family: var(--sl-font, 'Neureal', 'Inter', sans-serif); }
 .events { display: flex; flex-direction: column; }
-.event { display: grid; grid-template-columns: 100px 28px 1fr; align-items: start; }
-.year { font-size: 0.8rem; font-weight: 500; color: var(--sl-dim, #a0a09a); padding-top: 4px; font-family: var(--sl-font, 'Inter', sans-serif); text-align: right; padding-right: 18px; }
+.event { display: grid; grid-template-columns: 120px 32px 1fr; align-items: start; }
+.year { font-size: 22px; font-weight: 500; color: var(--sl-dim, #a0a09a); padding-top: 4px; font-family: var(--sl-font, 'Neureal', 'Inter', sans-serif); text-align: right; padding-right: 18px; }
 .dot-col { display: flex; flex-direction: column; align-items: center; }
-.dot { width: 10px; height: 10px; border-radius: 50%; background: var(--sl-fg, #1a1a1a); flex-shrink: 0; position: relative; }
-.dot::after { content: ''; position: absolute; left: 4px; top: 10px; width: 2px; height: 9999px; background: var(--sl-border, #e0e0db); }
+.dot { width: 12px; height: 12px; border-radius: 50%; background: var(--sl-fg, #1a1a1a); flex-shrink: 0; position: relative; }
+.dot::after { content: ''; position: absolute; left: 5px; top: 12px; width: 2px; height: 9999px; background: var(--sl-border, #e0e0db); }
 .event:last-child .dot::after { display: none; }
-.content { padding: 0 0 32px 18px; }
-.ev-title { font-size: 1rem; font-weight: 500; color: var(--sl-fg, #1a1a1a); margin-bottom: 4px; font-family: var(--sl-font, 'Inter', sans-serif); }
-.ev-body { font-size: 0.875rem; color: var(--sl-dim, #a0a09a); font-family: var(--sl-font, 'Inter', sans-serif); line-height: 1.5; }
+.content { padding: 0 0 40px 20px; }
+.ev-title { font-size: 28px; font-weight: 500; color: var(--sl-fg, #1a1a1a); margin-bottom: 6px; font-family: var(--sl-font, 'Neureal', 'Inter', sans-serif); }
+.ev-body { font-size: 22px; color: var(--sl-dim, #a0a09a); font-family: var(--sl-font, 'Neureal', 'Inter', sans-serif); line-height: 1.4; }
 @media (max-width: 768px) {
   & { padding: 40px 24px; }
   .event { grid-template-columns: 64px 22px 1fr; }
-  h2 { font-size: 1.75rem; margin-bottom: 32px; }
+  h2 { font-size: 2rem; margin-bottom: 32px; }
+  .ev-title { font-size: 1rem; }
+  .ev-body { font-size: 0.875rem; }
 }`,
 };

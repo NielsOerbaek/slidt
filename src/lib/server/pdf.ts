@@ -154,6 +154,26 @@ html, body { margin:0; padding:0; width:100vw; height:100vh; overflow:hidden; ba
   transition:color .15s, border-color .15s;
 }
 #prs-t-btn:hover { color:rgba(255,255,255,.7); border-color:rgba(255,255,255,.45); }
+
+/* ── End screen ──────────────────────────────────────── */
+#prs-end {
+  display:none; position:fixed; inset:0; z-index:500;
+  flex-direction:column; align-items:center; justify-content:center;
+  background:#000; color:#fff; gap:32px;
+  font-family:'Neureal','Inter',sans-serif;
+}
+#prs-end-msg {
+  font-size:48px; letter-spacing:-0.025em; opacity:.6;
+}
+#prs-restart {
+  pointer-events:auto; cursor:pointer;
+  background:none; border:1px solid rgba(255,255,255,.3);
+  color:#fff; font-family:inherit; font-size:14px;
+  letter-spacing:0.1em; text-transform:uppercase;
+  padding:10px 28px; transition:border-color .15s, opacity .15s;
+  opacity:.6;
+}
+#prs-restart:hover { border-color:rgba(255,255,255,.7); opacity:1; }
 `;
 
 const PRESENTATION_JS = `
@@ -161,13 +181,14 @@ const PRESENTATION_JS = `
   var TRANS = ['none','fade','slide','zoom'];
   var DUR   = {none:0, fade:400, slide:460, zoom:320};
   var slides = Array.from(document.querySelectorAll('.slide'));
-  var n = slides.length, cur = 0, busy = false;
+  var n = slides.length, cur = 0, busy = false, atEnd = false;
 
   var params = new URLSearchParams(location.search);
   var ti = Math.max(0, TRANS.indexOf(params.get('t') || 'fade'));
 
   var counter = document.getElementById('prs-counter');
   var tBtn    = document.getElementById('prs-t-btn');
+  var endScreen = document.getElementById('prs-end');
 
   function setT(i) {
     ti = ((i % TRANS.length) + TRANS.length) % TRANS.length;
@@ -176,14 +197,50 @@ const PRESENTATION_JS = `
   }
 
   function updateCounter() {
-    if (counter) counter.textContent = (cur+1) + ' / ' + n;
+    if (counter) counter.textContent = atEnd ? n + ' / ' + n : (cur+1) + ' / ' + n;
+  }
+
+  function showEnd() {
+    if (atEnd) return;
+    atEnd = true;
+    var prev = slides[cur];
+    var t = TRANS[ti];
+    if (t === 'none') {
+      prev.classList.remove('active');
+    } else {
+      prev.classList.add('prs-out');
+      busy = true;
+      setTimeout(function() {
+        prev.classList.remove('active','prs-out','prs-back');
+        busy = false;
+      }, DUR[t] || 400);
+    }
+    if (endScreen) endScreen.style.display = 'flex';
+    updateCounter();
+  }
+
+  function hideEnd() {
+    atEnd = false;
+    if (endScreen) endScreen.style.display = 'none';
   }
 
   function show(i) {
     if (busy) return;
-    var fwd = (i > cur) || (cur === n-1 && ((i%n+n)%n) === 0);
+    // Going past last slide → show end screen
+    if (!atEnd && i >= n) { showEnd(); return; }
+    // Going back from end screen → return to last slide
+    if (atEnd && i < n) {
+      hideEnd();
+      slides[cur].classList.add('active');
+      updateCounter();
+      return;
+    }
+    if (atEnd) return;
+    // Clamp to valid range (don't wrap backward past 0)
+    if (i < 0) return;
+    var fwd = i > cur;
     var prev = slides[cur];
-    cur = ((i%n)+n)%n;
+    cur = i;
     var next = slides[cur];
     if (prev === next) return;
     updateCounter();
@@ -227,10 +284,20 @@ const PRESENTATION_JS = `
 
   document.addEventListener('click', function(e) {
     if (e.target.closest && e.target.closest('#prs-hud')) return;
+    if (e.target.closest && e.target.closest('#prs-end')) return;
     if (e.clientX >= window.innerWidth/2) show(cur+1); else show(cur-1);
   });
 
   if (tBtn) tBtn.addEventListener('click', function() { setT(ti+1); });
+
+  var restartBtn = document.getElementById('prs-restart');
+  if (restartBtn) restartBtn.addEventListener('click', function() {
+    hideEnd();
+    cur = 0;
+    slides.forEach(function(s) { s.classList.remove('active','prs-out','prs-back'); });
+    slides[0].classList.add('active');
+    updateCounter();
+  });
 
   setT(ti);
   slides[0].classList.add('active');
@@ -242,7 +309,7 @@ export async function renderDeckToPresentation(deckId: string): Promise<string> 
   const { html } = await loadDeckHtml(deckId);
   return html
     .replace('</style>', PRESENTATION_CSS + '</style>')
-    .replace('</body>', `<div id="prs-hud"><button id="prs-t-btn"></button><span id="prs-counter"></span></div><script>${PRESENTATION_JS}</script></body>`);
+    .replace('</body>', `<div id="prs-end"><div id="prs-end-msg">Ikke flere slides</div><button id="prs-restart">Start forfra</button></div><div id="prs-hud"><button id="prs-t-btn"></button><span id="prs-counter"></span></div><script>${PRESENTATION_JS}</script></body>`);
 }
 
 export async function renderDeckToPdf(deckId: string): Promise<Buffer> {

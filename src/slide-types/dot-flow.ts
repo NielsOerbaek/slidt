@@ -35,14 +35,14 @@ export const dotFlow: SlideType = {
   </div>
 </div>`,
   css: `& { flex-direction: column; justify-content: center; padding: 80px 120px; background: var(--sl-bg, #f5f5f3); }
-.eyebrow { font-size: 0.75rem; font-weight: 500; letter-spacing: 0.12em; text-transform: uppercase; color: var(--sl-dim, #a0a09a); margin-bottom: 16px; font-family: var(--sl-font, 'Inter', sans-serif); }
-h2 { font-size: 2.5rem; font-weight: 500; color: var(--sl-fg, #1a1a1a); margin-bottom: 56px; letter-spacing: -0.025em; font-family: var(--sl-font, 'Inter', sans-serif); }
+.eyebrow { font-size: 20px; font-weight: 500; letter-spacing: 0.14em; text-transform: uppercase; color: var(--sl-dim, #a0a09a); margin-bottom: 24px; font-family: var(--sl-font, 'Neureal', 'Inter', sans-serif); }
+h2 { font-size: 80px; font-weight: 500; color: var(--sl-fg, #1a1a1a); margin-bottom: 64px; letter-spacing: -0.03em; font-family: var(--sl-font, 'Neureal', 'Inter', sans-serif); }
 .flow { display: flex; flex-direction: row; align-items: flex-start; }
-.step { display: flex; flex-direction: column; align-items: center; text-align: center; min-width: 120px; }
-.step-dot { width: 14px; height: 14px; border-radius: 50%; background: var(--sl-fg, #1a1a1a); margin-bottom: 16px; flex-shrink: 0; }
-.connector { flex: 1; height: 2px; background: var(--sl-border, #e0e0db); margin-top: 6px; }
-.step-title { font-size: 0.95rem; font-weight: 500; color: var(--sl-fg, #1a1a1a); margin-bottom: 6px; font-family: var(--sl-font, 'Inter', sans-serif); }
-.step-caption { font-size: 0.8rem; color: var(--sl-dim, #a0a09a); font-family: var(--sl-font, 'Inter', sans-serif); line-height: 1.4; }
+.step { display: flex; flex-direction: column; align-items: center; text-align: center; min-width: 160px; }
+.step-dot { width: 16px; height: 16px; border-radius: 50%; background: var(--sl-fg, #1a1a1a); margin-bottom: 20px; flex-shrink: 0; }
+.connector { flex: 1; height: 2px; background: var(--sl-border, #e0e0db); margin-top: 7px; }
+.step-title { font-size: 26px; font-weight: 500; color: var(--sl-fg, #1a1a1a); margin-bottom: 8px; font-family: var(--sl-font, 'Neureal', 'Inter', sans-serif); }
+.step-caption { font-size: 20px; color: var(--sl-dim, #a0a09a); font-family: var(--sl-font, 'Neureal', 'Inter', sans-serif); line-height: 1.4; }
 @media (max-width: 768px) {
   & { padding: 40px 24px; }
   .flow { flex-direction: column; align-items: flex-start; gap: 0; }

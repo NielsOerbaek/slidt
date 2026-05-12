@@ -1,5 +1,6 @@
 <script lang="ts">
   import { enhance } from '$app/forms';
+  import { invalidateAll } from '$app/navigation';
   import type { PageData, ActionData } from './$types.js';
   import { t } from '$lib/i18n/index.ts';
   import STUnsavedGuard from '$lib/components/st/STUnsavedGuard.svelte';
@@ -87,7 +88,11 @@
         action="?/updatePreferences"
         use:enhance={() => async ({ result, update }) => {
           if (result.type === 'success') prefsDirty = false;
-          await update();
+          // update() with reset:false keeps the toggled state visible while
+          // invalidateAll() ensures the deck-editor page's vim flag is also
+          // refreshed from the server, so navigating back immediately works.
+          await update({ reset: false });
+          if (result.type === 'success') await invalidateAll();
         }}
         oninput={() => (prefsDirty = true)}
         onchange={(e) => {

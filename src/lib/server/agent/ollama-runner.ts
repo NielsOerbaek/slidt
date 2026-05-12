@@ -93,13 +93,10 @@ export function runOllamaStream(
         }));
 
         const historyLength = sessionMessages.length;
-        let iterCount = 0;
-        const MAX_ITERATIONS = 25;
         let finalText = '';
         const allToolCallsThisSession: unknown[] = [];
 
-        while (iterCount < MAX_ITERATIONS) {
-          iterCount++;
+        while (true) {
 
           const response = await fetch(`${OLLAMA_BASE_URL}/v1/chat/completions`, {
             method: 'POST',
@@ -186,7 +183,7 @@ export function runOllamaStream(
             }
           }
 
-          finalText = assistantContent;
+          finalText += assistantContent;
 
           if (finishReason !== 'tool_calls' || pendingToolCalls.length === 0) {
             sessionMessages.push({ role: 'assistant', content: assistantContent });

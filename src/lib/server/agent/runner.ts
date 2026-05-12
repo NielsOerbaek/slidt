@@ -141,21 +141,36 @@ export function runAgentStream(
           .orderBy(asc(agentMessages.createdAt))
           .limit(40);
 
-        const sessionMessages: Anthropic.MessageParam[] = [];
+        const rawSessionMessages: Anthropic.MessageParam[] = [];
         for (const msg of history) {
           if (msg.rawContent && Array.isArray(msg.rawContent) && msg.rawContent.length > 0) {
             // Expand the full stored exchange back into the message sequence
             for (const raw of msg.rawContent as Array<{ role: string; content: unknown }>) {
-              sessionMessages.push({
+              rawSessionMessages.push({
                 role: raw.role as 'user' | 'assistant',
                 content: raw.content as Anthropic.MessageParam['content'],
               });
             }
           } else {
-            sessionMessages.push({
+            rawSessionMessages.push({
               role: msg.role as 'user' | 'assistant',
               content: msg.content,
             });
+          }
+        }
+
+        // Enforce alternating roles required by the Anthropic API. Consecutive
+        // messages with the same role can arise when a previous run's API call
+        // failed after the user message was saved but before the assistant
+        // response was saved, or when MAX_ITERATIONS was reached mid-tool-call.
+        // In both cases, keep only the last of any consecutive same-role run.
+        const sessionMessages: Anthropic.MessageParam[] = [];
+        for (const msg of rawSessionMessages) {
+          const prev = sessionMessages[sessionMessages.length - 1];
+          if (prev && prev.role === msg.role) {
+            sessionMessages[sessionMessages.length - 1] = msg;
+          } else {
+            sessionMessages.push(msg);
           }
         }
 

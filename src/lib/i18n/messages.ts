@@ -181,6 +181,7 @@ export const messages = {
   'agent.undoable_header': { da: '↩ {n} FORTRYDELIGE', en: '↩ {n} UNDOABLE' },
   'agent.close': { da: 'Luk agent', en: 'Close agent' },
   'agent.model_change': { da: 'Skift model i indstillinger', en: 'Change model in settings' },
+  'agent.no_response': { da: 'ingen respons', en: 'no response' },
 
   // Type picker
   'editor.picker_head': { da: 'NY SLIDE · VÆLG TYPE', en: 'NEW SLIDE · CHOOSE TYPE' },

@@ -80,6 +80,15 @@
       .join('');
   }
 
+  function hasVisibleContent(m: Message): boolean {
+    return m.parts.some(
+      (p) =>
+        (p.kind === 'text' && p.text) ||
+        p.kind === 'tool' ||
+        (p.kind === 'thinking' && p.text),
+    );
+  }
+
   function toggle() {
     open = !open;
     if (open) {
@@ -481,6 +490,9 @@
                       {/if}
                     {/if}
                   {/each}
+                  {#if !isThinking(msg) && !hasVisibleContent(msg)}
+                    <span class="no-response">{t('agent.no_response')}</span>
+                  {/if}
                 </div>
               {/if}
             </STTurn>
@@ -694,6 +706,13 @@
     padding: 4px 8px;
     background: var(--st-bg-deep);
     border-left: 2px solid var(--st-ink);
+  }
+  .no-response {
+    font-family: var(--st-font-mono);
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    color: var(--st-ink-dim);
+    font-style: italic;
   }
   .tool-image {
     display: block;

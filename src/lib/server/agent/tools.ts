@@ -1,4 +1,5 @@
 import { db, decks, slides, slideTypes, themes, issues } from '$lib/server/db/index.ts';
+import { recordEdit, fieldCoalesceKey, changedTopLevelFields } from '$lib/server/edit-history.ts';
 import { eq, and, or, inArray } from 'drizzle-orm';
 import { checkHandlebarsTemplate, checkCss } from '$lib/server/agent/guardrails.ts';
 import { validate, ValidationError } from '../../../renderer/validate.ts';
@@ -336,6 +337,19 @@ export async function executeTool(
       }
       await db.update(slides).set({ data: merged }).where(eq(slides.id, id));
       await db.update(decks).set({ updatedAt: new Date() }).where(eq(decks.id, deckId));
+      const changed = changedTopLevelFields(before, merged);
+      if (changed.length > 0) {
+        const summary = changed.length === 1
+          ? `Edit ${changed[0]}`
+          : `Edit ${changed.slice(0, 3).join(', ')}${changed.length > 3 ? '…' : ''}`;
+        await recordEdit({
+          deckId, slideId: id, userId,
+          kind: 'edit_field',
+          before: { data: before }, after: { data: merged },
+          coalesceKey: changed.length === 1 ? fieldCoalesceKey(id, changed[0]) : null,
+          summary,
+        });
+      }
       return { result: 'ok', undoPatch: { type: 'patch_slide', id, before } };
     }
 
@@ -363,6 +377,12 @@ export async function executeTool(
         .update(decks)
         .set({ slideOrder: [...deck.slideOrder, slide!.id], updatedAt: new Date() })
         .where(eq(decks.id, deckId));
+      await recordEdit({
+        deckId, slideId: slide!.id, userId,
+        kind: 'add_slide',
+        before: null, after: { typeId: type.id, typeName: type.name, data },
+        summary: `Add ${type.label} slide`,
+      });
       return {
         result: `ok (id: ${slide!.id})`,
         undoPatch: { type: 'delete_slide', id: slide!.id },
@@ -384,6 +404,12 @@ export async function executeTool(
         .update(decks)
         .set({ slideOrder: prevOrder.filter((sid) => sid !== id), updatedAt: new Date() })
         .where(eq(decks.id, deckId));
+      await recordEdit({
+        deckId, slideId: id, userId,
+        kind: 'delete_slide',
+        before: { typeId: slide.typeId, data: slide.data }, after: null,
+        summary: 'Delete slide',
+      });
       return {
         result: 'ok',
         undoPatch: {
@@ -403,6 +429,12 @@ export async function executeTool(
         .update(decks)
         .set({ slideOrder: order, updatedAt: new Date() })
         .where(eq(decks.id, deckId));
+      await recordEdit({
+        deckId, userId,
+        kind: 'reorder',
+        before: { order: previousOrder }, after: { order },
+        summary: 'Reorder slides',
+      });
       return { result: 'ok', undoPatch: { type: 'reorder_slides', previousOrder } };
     }
 
@@ -421,6 +453,12 @@ export async function executeTool(
         .update(themes)
         .set({ tokens: { ...before, ...tokens } })
         .where(eq(themes.id, theme.id));
+      await recordEdit({
+        deckId, userId,
+        kind: 'apply_theme',
+        before: { tokens: before }, after: { tokens: { ...before, ...tokens } },
+        summary: 'Update theme tokens',
+      });
       return {
         result: 'ok',
         undoPatch: { type: 'update_theme', themeId: theme.id, before },

@@ -1,22 +1,61 @@
 <script lang="ts">
   import { enhance } from '$app/forms';
-  import { goto } from '$app/navigation';
+  import { goto, invalidateAll } from '$app/navigation';
   import type { PageData, ActionData } from './$types.js';
   import { formatRelativeDate } from '$lib/utils/date-utils.ts';
   import STBtn from '$lib/components/st/STBtn.svelte';
   import STFace from '$lib/components/st/STFace.svelte';
   import { t, decksHeadline } from '$lib/i18n/index.ts';
+  import { slide } from 'svelte/transition';
+  import { cubicOut } from 'svelte/easing';
 
   let { data, form }: { data: PageData; form: ActionData } = $props();
 
   let creating = $state(false);
   let newTitle = $state('');
 
+  let openMenuId = $state<string | null>(null);
+  let renamingId = $state<string | null>(null);
+  let renameValue = $state('');
+
+  function closeMenu() { openMenuId = null; }
+
+  async function exportPdf(deckId: string, deckTitle: string) {
+    try {
+      const res = await fetch(`/api/decks/${deckId}/export`);
+      if (!res.ok) return;
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${deckTitle}.pdf`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (_) { /* silent */ }
+  }
+
+  async function renameDeck(deckId: string) {
+    const title = renameValue.trim();
+    renamingId = null;
+    if (!title) return;
+    await fetch(`/api/decks/${deckId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title }),
+    });
+    await invalidateAll();
+  }
+
   const empty = $derived(data.decks.length === 0 && !creating && !(data.sharedDecks?.length > 0));
   const headline = $derived(decksHeadline(data.decks.length));
 </script>
 
 <svelte:head><title>{t('decks.title')}</title></svelte:head>
+
+<svelte:window
+  onclick={(e) => { if (openMenuId && !(e.target as Element).closest?.('.menu-wrap')) closeMenu(); }}
+  onkeydown={(e) => { if (e.key === 'Escape') { closeMenu(); renamingId = null; } }}
+/>
 
 {#if empty}
   <div class="empty-shell">
@@ -96,17 +135,52 @@
           <div class="cell n">{String(i + 1).padStart(2, '0')}</div>
           <div class="cell title">
             {#if i === 0}<span class="dot" aria-hidden="true"></span>{/if}
-            <span class="t">{deck.title}</span>
+            {#if renamingId === deck.id}
+              <input
+                class="rename-input"
+                type="text"
+                bind:value={renameValue}
+                placeholder={t('decks.rename_placeholder')}
+                autofocus
+                onclick={(e) => { e.preventDefault(); e.stopPropagation(); }}
+                onkeydown={(e) => {
+                  e.stopPropagation();
+                  if (e.key === 'Enter') renameDeck(deck.id);
+                  if (e.key === 'Escape') renamingId = null;
+                }}
+                onblur={() => { if (renamingId === deck.id) renameDeck(deck.id); }}
+              />
+            {:else}
+              <span class="t">{deck.title}</span>
+            {/if}
           </div>
           <div class="cell slides">{String(deck.slideOrder.length).padStart(2, '0')}</div>
           <div class="cell upd">{formatRelativeDate(deck.updatedAt).toUpperCase()}</div>
           <div class="cell actions" onclick={(e) => e.stopPropagation()} role="group">
-            <button type="button" class="chip" onclick={() => goto(`/decks/${deck.id}`)}>{t('decks.action_open')}</button>
-            <button type="button" class="chip" onclick={() => window.location.assign(`/api/decks/${deck.id}/export`)}>{t('decks.action_pdf')}</button>
-            <form method="POST" action="?/duplicate" use:enhance>
-              <input type="hidden" name="id" value={deck.id} />
-              <button type="submit" class="chip">{t('decks.action_dup')}</button>
-            </form>
+            <div class="menu-wrap">
+              <button
+                type="button"
+                class="chip menu-btn"
+                aria-expanded={openMenuId === deck.id}
+                aria-haspopup="true"
+                onclick={() => openMenuId = openMenuId === deck.id ? null : deck.id}
+              >•••</button>
+              {#if openMenuId === deck.id}
+                <div class="deck-dropdown" transition:slide={{ duration: 140, easing: cubicOut }}>
+                  <button type="button" class="drop-item" onclick={() => { closeMenu(); goto(`/decks/${deck.id}`); }}>{t('decks.action_open')}</button>
+                  <button type="button" class="drop-item" onclick={() => { closeMenu(); exportPdf(deck.id, deck.title); }}>{t('decks.action_pdf')}</button>
+                  <form method="POST" action="?/duplicate" use:enhance>
+                    <input type="hidden" name="id" value={deck.id} />
+                    <button type="submit" class="drop-item">{t('decks.action_dup')}</button>
+                  </form>
+                  <button type="button" class="drop-item" onclick={() => { closeMenu(); renamingId = deck.id; renameValue = deck.title; }}>{t('decks.action_rename')}</button>
+                  <form method="POST" action="?/delete" use:enhance={() => () => invalidateAll()}>
+                    <input type="hidden" name="id" value={deck.id} />
+                    <button type="submit" class="drop-item danger">{t('decks.action_delete')}</button>
+                  </form>
+                </div>
+              {/if}
+            </div>
           </div>
           <div class="cell arrow">→</div>
         </a>
@@ -242,7 +316,7 @@
   /* ── table ────────────────────────────────────────────── */
   .table {
     display: grid;
-    grid-template-columns: 80px 1fr 100px 180px 160px 60px;
+    grid-template-columns: 80px 1fr 100px 180px 80px 60px;
   }
   .table-head, .row { display: contents; }
 
@@ -300,7 +374,7 @@
     letter-spacing: 0.12em;
     color: var(--st-ink-dim);
   }
-  .cell.actions { gap: 6px; padding: 16px 20px; }
+  .cell.actions { gap: 6px; padding: 14px 16px; justify-content: center; }
   .cell.arrow {
     border-right: 0;
     justify-content: center;
@@ -318,6 +392,57 @@
     background: transparent;
     color: inherit;
     cursor: pointer;
+  }
+
+  /* ── per-row dropdown menu ─────────────────────────────── */
+  .menu-wrap { position: relative; display: flex; }
+  .menu-btn { letter-spacing: 0; padding: 6px 10px; }
+  .deck-dropdown {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    min-width: 130px;
+    background: var(--st-bg);
+    border: var(--st-rule-thick);
+    border-top: none;
+    z-index: 60;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .drop-item {
+    display: block;
+    width: 100%;
+    padding: 10px 16px;
+    text-align: left;
+    border: none;
+    border-bottom: var(--st-rule-thin);
+    background: transparent;
+    font-family: var(--st-font-mono);
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    color: var(--st-ink);
+    cursor: pointer;
+    text-decoration: none;
+  }
+  .drop-item:last-child { border-bottom: none; }
+  .drop-item:hover { background: var(--st-bg-deep); }
+  .drop-item.danger { color: #c0392b; }
+  .drop-item.danger:hover { background: #fff5f5; }
+  .deck-dropdown form { display: contents; }
+
+  /* ── inline rename ─────────────────────────────────────── */
+  .rename-input {
+    flex: 1;
+    min-width: 0;
+    font-family: var(--st-font-display);
+    font-size: 24px;
+    letter-spacing: -0.02em;
+    background: var(--st-bg);
+    border: 2px solid var(--st-cobalt);
+    padding: 2px 8px;
+    color: var(--st-ink);
+    outline: none;
   }
 
   .row { text-decoration: none; color: inherit; }

@@ -46,9 +46,15 @@
     if (typeof localStorage === 'undefined') return;
     const stored = localStorage.getItem('slidt:slideListMode');
     if (stored === 'thumbnails' || stored === 'compact') slideListMode = stored;
+    if (stored === 'thumbnails') {
+      seenForThumbnails = new Set(data.slides.map((s) => s.id));
+    }
   });
   function toggleSlideListMode() {
     slideListMode = slideListMode === 'compact' ? 'thumbnails' : 'compact';
+    if (slideListMode === 'thumbnails') {
+      seenForThumbnails = new Set(data.slides.map((s) => s.id));
+    }
     if (typeof localStorage !== 'undefined') {
       localStorage.setItem('slidt:slideListMode', slideListMode);
     }

@@ -68,6 +68,9 @@ export const messages = {
   'decks.action_open': { da: 'ÅBN', en: 'OPEN' },
   'decks.action_pdf': { da: 'PDF', en: 'PDF' },
   'decks.action_dup': { da: 'KOP', en: 'DUP' },
+  'decks.action_rename': { da: 'OMDØB', en: 'RENAME' },
+  'decks.action_delete': { da: 'SLET', en: 'DELETE' },
+  'decks.rename_placeholder': { da: 'Ny titel', en: 'New title' },
   'decks.shared_with_me': { da: 'DELT MED MIG', en: 'SHARED WITH ME' },
 
   // Decks list headlines (numeric variants → see headlineForCount in i18n/index.ts)

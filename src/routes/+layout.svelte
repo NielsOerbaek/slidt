@@ -38,14 +38,13 @@
     return null;
   }
 
-  // Pages that fill the viewport themselves (workspaces, public viewers, docs
-  // with sticky sidebar) skip the framed shell — they need full bleed.
+  // Pages that fill the viewport themselves (workspaces, public viewers)
+  // skip the framed shell — they need full bleed.
   const fullBleedPaths = [
     /^\/decks\/[^/]+$/,
     /^\/themes\/[^/]+$/,
     /^\/templates\/[^/]+$/,
     /^\/share\//,
-    /^\/docs(\/|$)/,
   ];
   const framed = $derived(
     !!data.user && !fullBleedPaths.some((re) => re.test(page.url.pathname)),

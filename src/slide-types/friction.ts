@@ -1,8 +1,8 @@
 import type { SlideType } from '../renderer/types.ts';
 
-export const friction: SlideType = {
-  name: 'friction',
-  label: 'Two-side friction with question',
+export const comparison: SlideType = {
+  name: 'comparison',
+  label: 'Two-side comparison',
   fields: [
     { name: 'eyebrow', type: 'text' },
     { name: 'title', type: 'richtext', required: true },

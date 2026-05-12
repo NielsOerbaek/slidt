@@ -1,7 +1,7 @@
 import type { SlideType } from '../renderer/types.ts';
 
-export const section: SlideType = {
-  name: 'section',
+export const divider: SlideType = {
+  name: 'divider',
   label: 'Section divider',
   hideCorner: true,
   fields: [

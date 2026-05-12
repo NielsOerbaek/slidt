@@ -1,8 +1,8 @@
 import type { SlideType } from '../renderer/types.ts';
 
-export const reserve: SlideType = {
-  name: 'reserve',
-  label: 'Two-column reserve / callout',
+export const calloutContent: SlideType = {
+  name: 'callout-content',
+  label: 'Content + callout',
   fields: [
     { name: 'eyebrow', type: 'text' },
     { name: 'title', type: 'richtext', required: true },

@@ -1,8 +1,8 @@
 import type { SlideType } from '../renderer/types.ts';
 
-export const values: SlideType = {
-  name: 'values',
-  label: 'Two-column values',
+export const columnList: SlideType = {
+  name: 'column-list',
+  label: 'Column list',
   fields: [
     { name: 'eyebrow', type: 'text' },
     { name: 'title', type: 'richtext' },

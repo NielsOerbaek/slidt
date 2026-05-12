@@ -1,8 +1,8 @@
 import type { SlideType } from '../renderer/types.ts';
 
-export const discussion: SlideType = {
-  name: 'discussion',
-  label: 'Discussion questions',
+export const qaList: SlideType = {
+  name: 'qa-list',
+  label: 'Q&A list',
   fields: [
     { name: 'eyebrow', type: 'text' },
     { name: 'title', type: 'richtext' },

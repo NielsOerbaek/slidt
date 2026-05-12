@@ -27,5 +27,18 @@ Tone and direction:
     '--ood-wicked-matrix-light': '#9CED7C',
     '--ood-wicked-matrix-bright': '#CEF5BF',
     '--ood-black': '#000000',
+    // Semantic tokens — used by new general-purpose slide types
+    '--sl-bg': '#FFFFFF',
+    '--sl-surface': '#EDEDED',
+    '--sl-fg': '#363442',
+    '--sl-dim': '#807B95',
+    '--sl-very-dim': '#D5D3DC',
+    '--sl-border': '#D5D3DC',
+    '--sl-border-mid': '#807B95',
+    '--sl-dark-bg': '#363442',
+    '--sl-dark-fg': '#FFFFFF',
+    '--sl-dark-dim': '#807B95',
+    '--sl-accent': '#6E31FF',
+    '--sl-font': "'Neureal', 'Inter', sans-serif",
   },
 };

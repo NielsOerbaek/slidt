@@ -1,46 +1,67 @@
 import type { SlideType } from '../renderer/types.ts';
-import { title } from './title.ts';
+import { cover } from './title.ts';
 import { agenda } from './agenda.ts';
-import { content } from './content.ts';
-import { principles } from './principles.ts';
-import { values } from './values.ts';
-import { reserve } from './reserve.ts';
-import { purposes } from './purposes.ts';
-import { section } from './section.ts';
-import { ownership } from './ownership.ts';
-import { friction } from './friction.ts';
-import { discussion } from './discussion.ts';
+import { bulletList } from './content.ts';
+import { numberedList } from './principles.ts';
+import { columnList } from './values.ts';
+import { calloutContent } from './reserve.ts';
+import { cardGrid } from './purposes.ts';
+import { divider } from './section.ts';
+import { teamCards } from './ownership.ts';
+import { comparison } from './friction.ts';
+import { qaList } from './discussion.ts';
 import { closing } from './closing.ts';
 import { appendixList } from './appendix-list.ts';
+import { quote } from './quote.ts';
+import { statGrid } from './stat-grid.ts';
+import { timeline } from './timeline.ts';
+import { twoColumn } from './two-column.ts';
+import { threeColumn } from './three-column.ts';
+import { dotFlow } from './dot-flow.ts';
+import { quotePair } from './quote-pair.ts';
 
 export const BUILT_IN_SLIDE_TYPES: SlideType[] = [
-  title,
+  cover,
   agenda,
-  content,
-  principles,
-  values,
-  reserve,
-  purposes,
-  section,
-  ownership,
-  friction,
-  discussion,
+  bulletList,
+  numberedList,
+  columnList,
+  calloutContent,
+  cardGrid,
+  divider,
+  teamCards,
+  comparison,
+  qaList,
   closing,
   appendixList,
+  quote,
+  statGrid,
+  timeline,
+  twoColumn,
+  threeColumn,
+  dotFlow,
+  quotePair,
 ];
 
 export {
-  title,
+  cover,
   agenda,
-  content,
-  principles,
-  values,
-  reserve,
-  purposes,
-  section,
-  ownership,
-  friction,
-  discussion,
+  bulletList,
+  numberedList,
+  columnList,
+  calloutContent,
+  cardGrid,
+  divider,
+  teamCards,
+  comparison,
+  qaList,
   closing,
   appendixList,
+  quote,
+  statGrid,
+  timeline,
+  twoColumn,
+  threeColumn,
+  dotFlow,
+  quotePair,
 };

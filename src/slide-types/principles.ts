@@ -1,8 +1,8 @@
 import type { SlideType } from '../renderer/types.ts';
 
-export const principles: SlideType = {
-  name: 'principles',
-  label: 'Numbered principles list',
+export const numberedList: SlideType = {
+  name: 'numbered-list',
+  label: 'Numbered list',
   fields: [
     { name: 'eyebrow', type: 'text' },
     { name: 'title', type: 'richtext' },

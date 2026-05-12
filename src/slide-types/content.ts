@@ -1,8 +1,8 @@
 import type { SlideType } from '../renderer/types.ts';
 
-export const content: SlideType = {
-  name: 'content',
-  label: 'Bullet list with title',
+export const bulletList: SlideType = {
+  name: 'bullet-list',
+  label: 'Bullet list',
   fields: [
     { name: 'eyebrow', type: 'text' },
     { name: 'title', type: 'richtext' },

@@ -1,8 +1,8 @@
 import type { SlideType } from '../renderer/types.ts';
 
-export const ownership: SlideType = {
-  name: 'ownership',
-  label: 'Ownership model (three cards)',
+export const teamCards: SlideType = {
+  name: 'team-cards',
+  label: 'Team / info cards',
   fields: [
     { name: 'eyebrow', type: 'text' },
     { name: 'title', type: 'richtext' },

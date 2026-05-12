@@ -1,8 +1,8 @@
 import type { SlideType } from '../renderer/types.ts';
 
-export const purposes: SlideType = {
-  name: 'purposes',
-  label: 'Numbered-card grid (four purposes)',
+export const cardGrid: SlideType = {
+  name: 'card-grid',
+  label: 'Card grid',
   fields: [
     { name: 'eyebrow', type: 'text' },
     { name: 'title', type: 'richtext' },

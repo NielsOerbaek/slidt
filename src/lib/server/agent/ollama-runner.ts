@@ -201,15 +201,15 @@ export function runOllamaStream(
 
           if (finishReason !== 'tool_calls' || pendingToolCalls.length === 0) {
             // Empty-response guard: model produced no text and called no tools.
-            // This happens when the model is stuck between asking and acting (e.g. partial
-            // create_theme spec). Force a text-only reply so the user gets feedback.
+            // If you have all needed information, call the appropriate tool immediately.
+            // If you still need information from the user, write a text reply asking for it.
             if (!assistantContent && iterCount === 1) {
               sessionMessages.push({ role: 'assistant', content: '...' });
               sessionMessages.push({
                 role: 'user',
                 content:
-                  '[System: You produced no output. Do NOT call any tools right now. ' +
-                  'Write a text reply asking the user for any information you still need before you can proceed.]',
+                  '[System: Your previous response was empty. If you have all the information you need, call the appropriate tool now. ' +
+                  'If you still need something from the user, write a short text reply asking for it.]',
               });
               continue;
             }

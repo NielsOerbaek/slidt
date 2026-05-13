@@ -35,7 +35,7 @@ export function getPostResponseInjection(
       /\b(step \d|\d\.\s|\bplan\b|trin \d|jeg starter|starting now|i will now|i'll start|executing|i am going to|jeg g[åa]r i gang|i'm starting)\b/i.test(responseText);
     if (looksLikePlan) {
       state.planningNudgeSent = true;
-      return '[System: You wrote a plan but made zero tool calls. Execute your plan now — make the first tool call immediately, no more text first.]';
+      return '[System: You wrote a plan but made zero tool calls. Your NEXT response must be a tool call — call the first tool in your plan RIGHT NOW. Do not write any text before the tool call.]';
     }
   }
   return null;

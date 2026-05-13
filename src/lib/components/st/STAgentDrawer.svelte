@@ -178,6 +178,9 @@
     if (!blocks) {
       // Plain string content
       const text = typeof entry.content === 'string' ? entry.content : '';
+      // Filter out internal [System: ...] injection messages — these are loop-control
+      // directives stored in rawContent for model context, not user-visible chat turns.
+      if (text.startsWith('[System:')) return null;
       return text ? { role: entry.role as 'user' | 'assistant', parts: [{ kind: 'text', text }] } : null;
     }
 

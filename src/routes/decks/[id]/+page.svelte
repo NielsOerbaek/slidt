@@ -1307,6 +1307,14 @@
     min-height: 0;
     flex: 1;
   }
+  /* Make loading/error text visible at thumbnail scale by pinning it to the top */
+  .srow-thumb :global(.empty) {
+    align-items: flex-start;
+    justify-content: flex-start;
+    padding: 4px 5px;
+    font-size: 9px;
+    min-height: 0;
+  }
   .srow.thumb .srow-grip { display: none; }
   .srow-del {
     padding: 14px 10px;

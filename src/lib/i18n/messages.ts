@@ -182,6 +182,7 @@ export const messages = {
   'agent.close': { da: 'Luk agent', en: 'Close agent' },
   'agent.model_change': { da: 'Skift model i indstillinger', en: 'Change model in settings' },
   'agent.no_response': { da: 'ingen respons', en: 'no response' },
+  'agent.clear': { da: 'RYD', en: 'CLEAR' },
 
   // Type picker
   'editor.picker_head': { da: 'NY SLIDE · VÆLG TYPE', en: 'NEW SLIDE · CHOOSE TYPE' },

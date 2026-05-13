@@ -33,13 +33,14 @@ export async function POST(event: RequestEvent) {
   }
 
   const aiModel = event.locals.user?.preferences?.aiModel;
+  const DEFAULT_OLLAMA_MODEL = 'gemma4:26b';
   let stream: ReadableStream<Uint8Array>;
 
-  if (aiModel?.startsWith('ollama:')) {
-    const modelTag = aiModel.slice('ollama:'.length);
-    stream = runOllamaStream(deckId, event.locals.user!.id, body.message.trim(), modelTag);
-  } else {
+  if (aiModel?.startsWith('claude')) {
     stream = runAgentStream(deckId, event.locals.user!.id, body.message.trim());
+  } else {
+    const modelTag = aiModel?.startsWith('ollama:') ? aiModel.slice(7) : DEFAULT_OLLAMA_MODEL;
+    stream = runOllamaStream(deckId, event.locals.user!.id, body.message.trim(), modelTag);
   }
 
   return new Response(stream, {
@@ -49,4 +50,10 @@ export async function POST(event: RequestEvent) {
       Connection: 'keep-alive',
     },
   });
+}
+
+export async function DELETE(event: RequestEvent) {
+  await requireDeckRole(event.params.id!, event.locals.user?.id, 'editor');
+  await db.delete(agentMessages).where(eq(agentMessages.deckId, event.params.id!));
+  return new Response(null, { status: 204 });
 }

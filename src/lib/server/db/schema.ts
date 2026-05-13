@@ -8,7 +8,7 @@ import type { Field } from '../../../renderer/types.ts';
 export type UserPreferences = {
   vim?: boolean;
   locale?: 'da' | 'en';
-  aiModel?: string; // undefined or 'claude' = Claude Sonnet; 'ollama:gemma4:31b' etc = Ollama model
+  aiModel?: string; // 'claude' = Claude Sonnet; 'ollama:tag' = Ollama model; undefined = default Ollama (gemma4:26b)
 };
 
 export const users = pgTable('users', {

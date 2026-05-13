@@ -6,7 +6,7 @@
   import { t } from '$lib/i18n/index.ts';
   import { renderMarkdown } from '$lib/utils/markdown.ts';
 
-  let { deckId, themeId = null, aiModel = 'claude', open = $bindable(false), sending = $bindable(false) }: {
+  let { deckId, themeId = null, aiModel = undefined, open = $bindable(false), sending = $bindable(false) }: {
     deckId: string;
     themeId?: string | null;
     aiModel?: string;
@@ -15,10 +15,11 @@
   } = $props();
 
   const modelInfo = $derived.by(() => {
-    if (aiModel.startsWith('ollama:')) {
-      return { label: aiModel.slice(7) || 'Ollama', host: 'LOCAL' as const };
+    if (aiModel?.startsWith('claude')) {
+      return { label: 'Claude Sonnet 4.6', host: 'API' as const };
     }
-    return { label: 'Claude Sonnet 4.6', host: 'API' as const };
+    const tag = aiModel?.startsWith('ollama:') ? aiModel.slice(7) : 'gemma4:26b';
+    return { label: tag, host: 'LOCAL' as const };
   });
 
   // ── Message model ────────────────────────────────────────────────────
@@ -290,10 +291,25 @@
     };
   }
 
+  // ── Clear context ────────────────────────────────────────────────────
+  async function clearContext() {
+    if (sending) return;
+    await fetch(`/api/decks/${deckId}/agent`, { method: 'DELETE' });
+    messages = [];
+    undoStack = [];
+    historyLoaded = false;
+  }
+
   // ── Send ─────────────────────────────────────────────────────────────
   async function send() {
     const text = input.trim();
     if (!text || sending) return;
+
+    if (text === '/clear') {
+      input = '';
+      await clearContext();
+      return;
+    }
 
     messages = [
       ...messages,
@@ -451,6 +467,9 @@
         {#if sending && activeTool}<span class="active-tool"> · {activeTool}…</span>{/if}
         · {turnCount} {turnCount === 1 ? t('agent.turn_singular') : t('agent.turn_plural')}
       </span>
+      <button class="clear-btn" onclick={clearContext} disabled={sending} title={t('agent.clear')}>
+        {t('agent.clear')}
+      </button>
       <a class="model-badge" href="/settings" title={t('agent.model_change')}>
         <span class="model-host">{modelInfo.host}</span>
         <span class="model-name">{modelInfo.label}</span>
@@ -634,6 +653,18 @@
     color: var(--st-ink);
   }
   .spacer { flex: 1; }
+  .clear-btn {
+    background: transparent;
+    border: 0;
+    font-family: var(--st-font-mono);
+    font-size: 9px;
+    letter-spacing: 0.2em;
+    color: var(--st-ink-dim);
+    cursor: pointer;
+    padding: 0 4px;
+  }
+  .clear-btn:hover { color: var(--st-ink); }
+  .clear-btn:disabled { opacity: 0.4; cursor: default; }
   .panel-close {
     background: transparent;
     border: 0;

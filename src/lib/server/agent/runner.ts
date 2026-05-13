@@ -2,6 +2,7 @@ import Anthropic from '@anthropic-ai/sdk';
 import { db, agentMessages, decks, themes, slideTypes } from '$lib/server/db/index.ts';
 import { eq, asc, or, and } from 'drizzle-orm';
 import { executeTool, AGENT_TOOLS } from '$lib/server/agent/tools.ts';
+import { type LoopHookState, getPreTurnInjection, getPostResponseInjection } from '$lib/server/agent/hooks.ts';
 
 const client = new Anthropic();
 
@@ -17,7 +18,7 @@ Guidelines:
 
 Task approach — decide this before every request:
 - Simple tasks (one or two edits, a colour change, moving a slide): do them directly.
-- Larger tasks (building multiple slides, creating a custom slide type, restructuring the deck, fetching content from a URL, or anything you expect to require 4+ tool calls): write a short numbered plan at the top of your response, then immediately start making tool calls — do NOT end your response before the first tool call. Execute step by step, noting each done step ("✓ Step 2 done"). Do not say the task is finished until every step is checked off. If new steps emerge mid-task, append them to the plan. Exception: if you genuinely need information from the user before you can proceed (e.g. theme name and colours), ask your questions in that turn and wait — then write the plan and execute as soon as the user replies.
+- Larger tasks (building multiple slides, creating a custom slide type, restructuring the deck, fetching content from a URL, or anything you expect to require 4+ tool calls): write a short numbered plan at the top of your response, then IMMEDIATELY make your first tool call IN THE SAME RESPONSE — a response that contains only a plan and zero tool calls is a bug. Do not write "I'll start now" without a tool call already following it. Execute step by step, noting each done step ("✓ Step 2 done"). Do not say the task is finished until every step is checked off. If new steps emerge mid-task, append them to the plan. Exception: if you genuinely need information from the user before you can proceed (e.g. theme name and colours), ask your questions in that turn and wait — then write the plan and execute as soon as the user replies.
 
 Content field rules (CRITICAL):
 - NEVER put HTML markup in content fields. Write plain text only. The template handles all formatting.
@@ -42,6 +43,13 @@ Field-shape rules for add_slide / patch_slide data (READ CAREFULLY — these are
     RIGHT:  cards: [{ "title": "X", "body": "Y" }]
 - A 'group' field is an object with the sub-field names as keys, no wrapper.
 - Lists of strings inside groups follow the same flat-array rule.
+
+Theme changes — alter vs. create:
+- When the user asks to change how the deck looks (colours, fonts, mood) WITHOUT saying whether to modify the existing theme or make a new one, ask exactly this: "Skal jeg ændre det nuværende tema direkte, eller oprette et nyt tema (så det nuværende forbliver uændret)?" (EN: "Should I alter the current theme in place, or create a brand-new theme leaving the original intact?"). Wait for the answer before acting.
+- Unambiguous signals — act directly without asking:
+  - "change/update/set the accent to X", "make the background darker", "tweak the colours" → update_theme
+  - "create a new theme", "I want a new theme called X", "make me a dark theme" → create_theme checklist
+- update_theme patches only the tokens you specify; all others stay as-is.
 
 Theme creation:
 - If you don't yet have the user's answers to (1) name + mood/style, (2) accent colour, (3) background preference, (4) heading font, (5) body font — ask those questions and wait.
@@ -190,6 +198,7 @@ export function runAgentStream(
         const MAX_ITERATIONS = 25;
         let finalText = '';
         const allToolCallsThisSession: unknown[] = [];
+        const hookState: LoopHookState = { planningNudgeSent: false };
 
         // Track how many messages were in history so we can extract the new exchange at end
         const historyLength = sessionMessages.length;
@@ -197,13 +206,8 @@ export function runAgentStream(
         while (iterCount < MAX_ITERATIONS) {
           iterCount++;
 
-          // Warn the agent a few turns before the hard limit so it can wrap up gracefully
-          if (iterCount === MAX_ITERATIONS - 2) {
-            sessionMessages.push({
-              role: 'user',
-              content: '[System: You have 3 iterations remaining. Please wrap up, summarise what you completed, and tell the user what (if anything) still needs to be done.]',
-            });
-          }
+          const preTurn = getPreTurnInjection(iterCount, MAX_ITERATIONS);
+          if (preTurn) sessionMessages.push({ role: 'user', content: preTurn });
 
           const stream = client.messages.stream({
             model: 'claude-sonnet-4-6',
@@ -229,8 +233,16 @@ export function runAgentStream(
           );
 
           if (finalMessage.stop_reason !== 'tool_use' || toolUseBlocks.length === 0) {
-            // Final response — add to sessionMessages so it's included in rawContent
             sessionMessages.push({ role: 'assistant', content: finalMessage.content });
+            const responseText = finalMessage.content
+              .filter((b): b is Anthropic.TextBlock => b.type === 'text')
+              .map((b) => b.text)
+              .join('');
+            const injection = getPostResponseInjection(responseText, iterCount, MAX_ITERATIONS, hookState);
+            if (injection) {
+              sessionMessages.push({ role: 'user', content: injection });
+              continue;
+            }
             break;
           }
 

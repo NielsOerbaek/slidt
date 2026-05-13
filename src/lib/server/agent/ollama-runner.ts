@@ -2,6 +2,7 @@ import { db, agentMessages, decks, themes, slideTypes } from '$lib/server/db/ind
 import { eq, asc, or, and } from 'drizzle-orm';
 import { executeTool, AGENT_TOOLS } from '$lib/server/agent/tools.ts';
 import { BASE_SYSTEM_PROMPT } from '$lib/server/agent/runner.ts';
+import { type LoopHookState, getPostResponseInjection } from '$lib/server/agent/hooks.ts';
 
 type SseEvent =
   | { type: 'thinking'; delta: string }
@@ -95,8 +96,20 @@ export function runOllamaStream(
         const historyLength = sessionMessages.length;
         let finalText = '';
         const allToolCallsThisSession: unknown[] = [];
+        let iterCount = 0;
+        const CONTEXT_WARN_AT = 20;
+        const hookState: LoopHookState = { planningNudgeSent: false };
 
+        // eslint-disable-next-line no-constant-condition
         while (true) {
+          iterCount++;
+
+          if (iterCount === CONTEXT_WARN_AT) {
+            sessionMessages.push({
+              role: 'user',
+              content: '[System: Context is getting long. Please summarise your progress so far and continue with the remaining work.]',
+            });
+          }
 
           const response = await fetch(`${OLLAMA_BASE_URL}/v1/chat/completions`, {
             method: 'POST',
@@ -110,6 +123,7 @@ export function runOllamaStream(
               tools: toOpenAITools(),
               stream: true,
             }),
+            signal: AbortSignal.timeout(90_000),
           });
 
           if (!response.ok || !response.body) {
@@ -186,6 +200,26 @@ export function runOllamaStream(
           finalText += assistantContent;
 
           if (finishReason !== 'tool_calls' || pendingToolCalls.length === 0) {
+            // Empty-response guard: model produced no text and called no tools.
+            // This happens when the model is stuck between asking and acting (e.g. partial
+            // create_theme spec). Force a text-only reply so the user gets feedback.
+            if (!assistantContent && iterCount === 1) {
+              sessionMessages.push({ role: 'assistant', content: '...' });
+              sessionMessages.push({
+                role: 'user',
+                content:
+                  '[System: You produced no output. Do NOT call any tools right now. ' +
+                  'Write a text reply asking the user for any information you still need before you can proceed.]',
+              });
+              continue;
+            }
+
+            const injection = getPostResponseInjection(assistantContent, iterCount, Infinity, hookState);
+            if (injection) {
+              sessionMessages.push({ role: 'assistant', content: assistantContent || null });
+              sessionMessages.push({ role: 'user', content: injection });
+              continue;
+            }
             sessionMessages.push({ role: 'assistant', content: assistantContent });
             break;
           }

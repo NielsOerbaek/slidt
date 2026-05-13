@@ -55,11 +55,12 @@
   }
 
   $effect(() => {
-    // Capture reactive dependencies — spread to plain objects so Object.entries
-    // in the renderer works correctly even when Svelte 5 passes reactive proxies.
-    const st = slideType ? { ...slideType } : null;
-    const sd = { ...slideData };
-    const th = theme ? { name: theme.name, tokens: { ...theme.tokens } } : null;
+    // Capture reactive dependencies — use $state.snapshot() to get fully plain
+    // (non-proxy) copies so Object.entries / Handlebars / PostCSS work correctly
+    // regardless of how deeply Svelte 5 wraps the page data in reactive proxies.
+    const st = $state.snapshot(slideType) as typeof slideType;
+    const sd = $state.snapshot(slideData) as typeof slideData;
+    const th = $state.snapshot(theme) as typeof theme;
     const isEditable = editable;
 
     if (!st || !th) { previewHtml = ''; return; }

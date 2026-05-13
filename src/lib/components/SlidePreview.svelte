@@ -13,6 +13,7 @@
   } = $props();
 
   let previewHtml = $state('');
+  let previewError = $state('');
   let container: HTMLDivElement | undefined = $state();
   let iframe: HTMLIFrameElement | undefined = $state();
   let scale = $state(0.25);
@@ -55,15 +56,17 @@
   }
 
   $effect(() => {
-    // Capture reactive dependencies — use $state.snapshot() to get fully plain
-    // (non-proxy) copies so Object.entries / Handlebars / PostCSS work correctly
-    // regardless of how deeply Svelte 5 wraps the page data in reactive proxies.
-    const st = $state.snapshot(slideType) as typeof slideType;
-    const sd = $state.snapshot(slideData) as typeof slideData;
-    const th = $state.snapshot(theme) as typeof theme;
+    // Use JSON round-trip for guaranteed plain (non-proxy) copies.
+    // $state.snapshot() uses structuredClone internally, which may silently
+    // return an empty object for certain Svelte 5 proxy shapes (e.g. $props()
+    // values backed by SvelteKit page data). JSON.parse/stringify always works
+    // for the JSON-serializable slide/theme data we use here.
+    const st = slideType ? (JSON.parse(JSON.stringify(slideType)) as typeof slideType) : null;
+    const sd = JSON.parse(JSON.stringify(slideData)) as typeof slideData;
+    const th = theme ? (JSON.parse(JSON.stringify(theme)) as typeof theme) : null;
     const isEditable = editable;
 
-    if (!st || !th) { previewHtml = ''; return; }
+    if (!st || !th) { previewHtml = ''; previewError = ''; return; }
 
     if (renderTimer) clearTimeout(renderTimer);
     renderTimer = setTimeout(async () => {
@@ -93,9 +96,12 @@
           const gLink = buildGoogleFontsLink(gFonts);
           if (gLink) rendered = rendered.replace('</head>', `${gLink}\n</head>`);
         }
+        previewError = '';
         previewHtml = rendered;
       } catch (err) {
-        console.error('[SlidePreview] render failed:', err);
+        const msg = err instanceof Error ? err.message : String(err);
+        console.error('[SlidePreview] render failed:', msg);
+        previewError = msg;
         previewHtml = '';
       }
       renderTimer = null;
@@ -141,7 +147,7 @@
     <!-- Reserve height proportional to 1920x1080 (iframe is absolute → doesn't contribute) -->
     <div style="height: {1080 * scale}px;"></div>
   {:else}
-    <div class="empty">{slideType ? 'Rendering…' : 'Select a slide to preview'}</div>
+    <div class="empty" class:error={!!previewError}>{previewError || (slideType ? 'Rendering…' : 'Select a slide to preview')}</div>
   {/if}
 </div>
 
@@ -161,5 +167,13 @@
     min-height: 200px;
     color: #999;
     font-size: 14px;
+    padding: 8px;
+    text-align: center;
+  }
+  .empty.error {
+    color: #e55;
+    font-size: 11px;
+    overflow: hidden;
+    word-break: break-all;
   }
 </style>

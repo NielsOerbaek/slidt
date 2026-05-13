@@ -1,9 +1,331 @@
 {
-  "generatedAt": "2026-04-27T13:51:06.540Z",
+  "generatedAt": "2026-05-13T06:59:13.947Z",
   "days": [
+    {
+      "date": "2026-05-12",
+      "commits": [
+        {
+          "hash": "fe4fe467851b63063f8754b42e3ec262d80fd6d4",
+          "shortHash": "fe4fe46",
+          "date": "2026-05-12T12:41:45+00:00",
+          "isoDate": "2026-05-12",
+          "subject": "action menu navigation (#13) + thumbnail rendering (#7)",
+          "body": "#13 — Deck opens when clicking action menu:\n- Add e.preventDefault()+stopPropagation() directly on the ••• button\n  (container-div stopPropagation alone doesn't block SvelteKit's link handler)\n- Remove \"Handlinger\" text from actions table header\n- Fix dropdown item borders: use border-top instead of border-bottom\n  so :last-child selector works correctly with form{display:contents}\n\n#7 — Slide-list thumbnails not rendering:\n- Spread slideType/theme/tokens to plain objects before passing to\n  render() — Svelte 5 reactive proxies break Object.entries() in\n  themeCss() causing a silent throw that leaves previewHtml empty\n- Expose render errors via console.error so failures are diagnosable\n\nCo-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>",
+          "author": "slidt ralph loop",
+          "type": "fix"
+        },
+        {
+          "hash": "db064b6f1864a91330adf39cb7cb8a22e0887712",
+          "shortHash": "db064b6",
+          "date": "2026-05-12T12:14:30+00:00",
+          "isoDate": "2026-05-12",
+          "subject": "stop planning loop and show tool calls in history",
+          "body": "- System prompt: large tasks must write plan then immediately execute\n  in the same turn, not in a separate tool-call-free response\n- create_theme constraint: \"MUST ask first\" → \"ask if you don't yet\n  have answers, otherwise call immediately\" — prevents the model from\n  narrating tool calls instead of making them\n- STAgentDrawer history: add toolCalls fallback when rawContent is null\n  so tool-only turns are visible after page reload; also add toolCalls\n  field to HistoryRow interface\n\nCo-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>",
+          "author": "slidt ralph loop",
+          "type": "fix",
+          "scope": "agent"
+        },
+        {
+          "hash": "5968a261e6f612eaebb5a3460502dd1ffb1b6c14",
+          "shortHash": "5968a26",
+          "date": "2026-05-12T11:37:04+00:00",
+          "isoDate": "2026-05-12",
+          "subject": "prevent silent failures from consecutive user messages",
+          "body": "When an API call fails after the user message is saved but before the\nassistant response is saved, history reconstruction produces consecutive\nuser-role messages which the Anthropic API rejects. This caused all\nsubsequent turns to silently produce empty responses.\n\n- runner.ts: deduplicate consecutive same-role messages when building\n  sessionMessages from history, keeping the last in each consecutive run\n- STAgentDrawer: show \"ingen respons / no response\" instead of a blank\n  turn when the agent produces no visible content\n- ollama-runner.ts: remove stale MAX_ITERATIONS cap; fix finalText\n  accumulation across iterations\n\nGenerated with [Claude Code](https://claude.ai/code)\nvia [Happy](https://happy.engineering)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nCo-Authored-By: Happy <yesreply@happy.engineering>",
+          "author": "slidt ralph loop",
+          "type": "fix",
+          "scope": "agent"
+        },
+        {
+          "hash": "d9cd662a2f31b71b3446a38784bb33bdabf15705",
+          "shortHash": "d9cd662",
+          "date": "2026-05-12T11:26:31+00:00",
+          "isoDate": "2026-05-12",
+          "subject": "animate face in transcript turns while thinking",
+          "body": "STTurn now renders STFace for agent turns instead of the static '-_-'\nstring. When thinking=true the face cycles through the animation frames.\n\nGenerated with [Claude Code](https://claude.ai/code)\nvia [Happy](https://happy.engineering)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nCo-Authored-By: Happy <yesreply@happy.engineering>",
+          "author": "slidt ralph loop",
+          "type": "fix",
+          "scope": "agent"
+        },
+        {
+          "hash": "8d0de8b121c95b810ab89b25ca5edc795661692d",
+          "shortHash": "8d0de8b",
+          "date": "2026-05-12T11:02:16+00:00",
+          "isoDate": "2026-05-12",
+          "subject": "add create_theme tool with follow-up question guidance",
+          "body": "Adds a create_theme tool that inserts a new global theme into the DB and\noptionally applies it to the current deck. The tool schema documents all\n14 required --sl-* tokens and their meaning.\n\nThe system prompt is updated to instruct the agent to always ask five\nclarifying questions before calling create_theme: name/mood, accent\ncolour, background preference, heading font, and body font.\n\nGenerated with [Claude Code](https://claude.ai/code)\nvia [Happy](https://happy.engineering)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nCo-Authored-By: Happy <yesreply@happy.engineering>",
+          "author": "slidt ralph loop",
+          "type": "feat",
+          "scope": "agent"
+        },
+        {
+          "hash": "88541e8e921d4f0facbbf8c62ebae2d61ef3fb7e",
+          "shortHash": "88541e8",
+          "date": "2026-05-12T10:53:17+00:00",
+          "isoDate": "2026-05-12",
+          "subject": "animate face while agent is thinking",
+          "body": "STFace gains an `animated` prop that cycles through ASCII frames:\n-_- > o_- > o_o > O_o > o_O > O_o > o_O > o_o > -_o > -_-\n\nSTAgentDrawer exposes `sending` as a bindable prop and passes\n`animated={sending}` to the panel-head face. The deck editor binds\n`agentSending` from the drawer so the toggle button face also animates\nwhile the agent is working.\n\nGenerated with [Claude Code](https://claude.ai/code)\nvia [Happy](https://happy.engineering)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nCo-Authored-By: Happy <yesreply@happy.engineering>",
+          "author": "slidt ralph loop",
+          "type": "feat",
+          "scope": "agent"
+        },
+        {
+          "hash": "95b071f6978e140792e2dca6c47708ab0a20426c",
+          "shortHash": "95b071f",
+          "date": "2026-05-12T10:44:36+00:00",
+          "isoDate": "2026-05-12",
+          "subject": "prevent form reset on save",
+          "body": "update() defaults to reset: true which clears form inputs via DOM reset.\nWith bind:value on name/systemPrompt, this writes empty strings back into\nstate, making the editor appear blank after saving.\n\nGenerated with [Claude Code](https://claude.ai/code)\nvia [Happy](https://happy.engineering)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nCo-Authored-By: Happy <yesreply@happy.engineering>",
+          "author": "slidt ralph loop",
+          "type": "fix",
+          "scope": "theme-editor"
+        },
+        {
+          "hash": "41d71259d5186b3980ab72656d8e6b9d4214274d",
+          "shortHash": "41d7125",
+          "date": "2026-05-12T10:33:31+00:00",
+          "isoDate": "2026-05-12",
+          "subject": "replace all --ood-* tokens with --sl-* semantic tokens",
+          "body": "All 13 legacy slide types (cover, agenda, bullet-list, numbered-list,\ncolumn-list, callout-content, card-grid, divider, team-cards, comparison,\nqa-list, closing, appendix-list) now use --sl-* CSS custom properties.\n\nbase-styles.ts updated to use --sl-* for background, text, headings,\nem, corner-logo, and page-num. Added --sl-accent-bg to all three themes\n(#E2D6FF for antal-theta/os-og-data, #e8e8e6 for minimal).\n\n--ood-* tokens removed entirely from all themes, template editor preview,\nand the hasOodTokens filter in the theme editor (no longer needed). Font\nfamilies in old slide types now use var(--sl-font) / var(--sl-body-font).\n\nGenerated with [Claude Code](https://claude.ai/code)\nvia [Happy](https://happy.engineering)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nCo-Authored-By: Happy <yesreply@happy.engineering>",
+          "author": "slidt ralph loop",
+          "type": "refactor"
+        },
+        {
+          "hash": "8bf7005eb5d5029f94d6ab16e42d5a3dcf8d92e4",
+          "shortHash": "8bf7005",
+          "date": "2026-05-12T10:22:01+00:00",
+          "isoDate": "2026-05-12",
+          "subject": "filter preview types to match theme token system",
+          "body": "For themes using only --sl-* semantic tokens (e.g. minimal), the preview\ndropdown now only shows slide types whose CSS uses --sl-* tokens. OOD\nthemes (with --ood-* tokens) continue to show all slide types.\n\nAlso defaults the preview selection to 'quote' (first --sl-* type) instead\nof 'cover' (which is OOD-only) for semantic themes.\n\nGenerated with [Claude Code](https://claude.ai/code)\nvia [Happy](https://happy.engineering)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nCo-Authored-By: Happy <yesreply@happy.engineering>",
+          "author": "slidt ralph loop",
+          "type": "fix",
+          "scope": "theme-editor"
+        },
+        {
+          "hash": "7d3db24889aeafeab94868249bc51b714c0cf111",
+          "shortHash": "7d3db24",
+          "date": "2026-05-12T10:14:23+00:00",
+          "isoDate": "2026-05-12",
+          "subject": "unify --sl-* tokens across all themes",
+          "body": "Add os-og-data.ts static theme file with both --ood-* and --sl-* tokens\n(mapping OOD palette to semantic sl tokens). Add it to BUILT_IN_THEMES\nin seed.ts so it's managed alongside the other preset themes.\n\nAll three themes now have identical --sl-* token keys.\n\nGenerated with [Claude Code](https://claude.ai/code)\nvia [Happy](https://happy.engineering)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nCo-Authored-By: Happy <yesreply@happy.engineering>",
+          "author": "slidt ralph loop",
+          "type": "chore",
+          "scope": "themes"
+        },
+        {
+          "hash": "4b3d3aed1a4b9d00678ee20ad630d417181acb71",
+          "shortHash": "4b3d3ae",
+          "date": "2026-05-12T10:08:00+00:00",
+          "isoDate": "2026-05-12",
+          "subject": "default preview to quote for --sl-* themes",
+          "body": "cover uses hardcoded --ood-* tokens, so themes with only --sl-* tokens\n(like minimal) showed incorrect colors and font changes had no visible\neffect. Default to the quote slide type when the theme has --sl-font,\nso the preview accurately reflects theme colors and font choices.\n\nGenerated with [Claude Code](https://claude.ai/code)\nvia [Happy](https://happy.engineering)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nCo-Authored-By: Happy <yesreply@happy.engineering>",
+          "author": "slidt ralph loop",
+          "type": "fix",
+          "scope": "theme-editor"
+        },
+        {
+          "hash": "db6689263f9bd3cdbbf57eb4723b0b7b94acc1cf",
+          "shortHash": "db66892",
+          "date": "2026-05-12T09:45:28+00:00",
+          "isoDate": "2026-05-12",
+          "subject": "slide type categories + font selection (#11, #12)",
+          "body": "Issue #12 — slide template categories:\n- Add categories.ts with static map (title, content, list, visual)\n- Group type picker in deck editor by category with section headers\n- Group templates page by category when not searching/filtering\n\nIssue #11 — better font selection in theme editor:\n- Font picker section: header font + body font per theme\n- Options: Neureal, Inter, or Custom Google Font (by name)\n- Add --sl-body-font token to default themes (antal-theta, minimal)\n- New slide type CSS uses --sl-body-font for body/caption text\n- Inject Google Fonts <link> in SlidePreview iframe and PDF export\n\nGenerated with [Claude Code](https://claude.ai/code)\nvia [Happy](https://happy.engineering)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nCo-Authored-By: Happy <yesreply@happy.engineering>",
+          "author": "slidt ralph loop",
+          "type": "feat"
+        },
+        {
+          "hash": "15efc96c2fcb620085d419276931de3c33cbf6ef",
+          "shortHash": "15efc96",
+          "date": "2026-05-12T09:29:28+00:00",
+          "isoDate": "2026-05-12",
+          "subject": "present view end screen + scale up new slide type CSS",
+          "body": "- #9: After last slide show \"Ikke flere slides\" end screen with\n  \"Start forfra\" restart button instead of looping back to slide 1.\n  Navigation stops at end; Escape/back arrow returns to last slide.\n\n- #10: All 7 new general-purpose slide types (quote, stat-grid,\n  timeline, two-column, three-column, dot-flow, quote-pair) now use\n  presentation-scale pixel sizes (80px headings, 22–28px body text,\n  48–120px stat values) matching the OOD aesthetic. Removed\n  border-radius from cards; updated font-family fallback to include\n  Neureal; upgraded card borders from 1px to 2px.\n\nGenerated with [Claude Code](https://claude.ai/code)\nvia [Happy](https://happy.engineering)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nCo-Authored-By: Happy <yesreply@happy.engineering>",
+          "author": "slidt ralph loop",
+          "type": "fix"
+        },
+        {
+          "hash": "056fba5bacc74c33dfca15873fad1c67d92c073b",
+          "shortHash": "056fba5",
+          "date": "2026-05-12T09:15:34+00:00",
+          "isoDate": "2026-05-12",
+          "subject": "resolve issues #5–#8 from GitHub tracker",
+          "body": "- #5: docs pages now get page-frame (removed /docs from fullBleedPaths)\n- #6: deck list actions → ••• dropdown with OPEN, PDF (fetch+blob),\n  DUP, RENAME (inline input → PATCH), DELETE; closes on outside click\n- #7: thumbnails eagerly populate seenForThumbnails on mode switch /\n  localStorage load so iframes render without waiting for observer\n- #8: agent tools (patch_slide, add_slide, delete_slide, reorder_slides,\n  update_theme) all now call recordEdit() for history integration\n\nGenerated with [Claude Code](https://claude.ai/code)\nvia [Happy](https://happy.engineering)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nCo-Authored-By: Happy <yesreply@happy.engineering>",
+          "author": "slidt ralph loop",
+          "type": "fix"
+        },
+        {
+          "hash": "3adb9db18503caa0578ecd1eb9ad0f37a7766c94",
+          "shortHash": "3adb9db",
+          "date": "2026-05-12T08:55:48+00:00",
+          "isoDate": "2026-05-12",
+          "subject": "guard against empty tool call id and empty slide type ref (#1)",
+          "body": "- findSlideType: return null immediately for empty/whitespace ref to prevent\n  a useless DB query and a confusing error when Ollama omits typeId\n- ollama-runner: fall back to crypto.randomUUID() when Ollama's streaming\n  response omits the tool_call id, preventing Ollama from rejecting the\n  subsequent tool-result message with \"invalid tool call arguments\"\n\nCloses #1\n\nGenerated with [Claude Code](https://claude.ai/code)\nvia [Happy](https://happy.engineering)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nCo-Authored-By: Happy <yesreply@happy.engineering>",
+          "author": "slidt ralph loop",
+          "type": "fix",
+          "scope": "ollama"
+        },
+        {
+          "hash": "02f75d2cd27283ea1201798e7059a9d1b9b21562",
+          "shortHash": "02f75d2",
+          "date": "2026-05-12T08:48:11+00:00",
+          "isoDate": "2026-05-12",
+          "subject": "action buttons (#3), metric (#4), agent markdown (#2); update docs",
+          "body": "- fix(decks): action chips now stop propagation and work correctly (open, PDF download, dup)\n- fix(decks): main stat now counts all slide_edits last week, not just agent messages\n- fix(agent): render markdown in assistant text responses (bold, italic, code, lists, headings)\n- docs: add skill install to README, CLI docs, and slide type list\n- i18n: add decks.edits_last_week key\n\nCloses #2, #3, #4\n\nGenerated with [Claude Code](https://claude.ai/code)\nvia [Happy](https://happy.engineering)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nCo-Authored-By: Happy <yesreply@happy.engineering>",
+          "author": "slidt ralph loop",
+          "type": "fix"
+        },
+        {
+          "hash": "6d6f4b251aa175345a0f98f7ae07b16a3ad9dba6",
+          "shortHash": "6d6f4b2",
+          "date": "2026-05-12T08:29:55+00:00",
+          "isoDate": "2026-05-12",
+          "subject": "serve skill via GET /api/skill + CLI skill install",
+          "body": "- src/lib/skill-content.ts: skill markdown template with {{BASE_URL}} placeholder\n- src/routes/api/skill/+server.ts: public endpoint (no auth), returns skill with origin injected\n- scripts/slidt.ts: skill install [--out path] fetches and writes skill before API key check\n\nGenerated with [Claude Code](https://claude.ai/code)\nvia [Happy](https://happy.engineering)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nCo-Authored-By: Happy <yesreply@happy.engineering>",
+          "author": "slidt ralph loop",
+          "type": "feat",
+          "scope": "skill"
+        },
+        {
+          "hash": "533171bafd77c8c085e04493c5ac857c2edd7230",
+          "shortHash": "533171b",
+          "date": "2026-05-12T07:28:51+00:00",
+          "isoDate": "2026-05-12",
+          "subject": "vim-mode toggle persistence",
+          "body": "The enhance callback on the preferences form called update() which\nresets the form DOM (including the checkbox) before the new server\ndata arrives, causing the toggle to visually snap back momentarily.\nMore critically, update() alone does not flush SvelteKit's router\ncache for other pages: the deck editor's vim flag (loaded at\n/decks/[id]) could remain stale if the user navigated away and back.\n\nFix: pass reset:false to update() so the toggled checkbox state is\npreserved during the round-trip, then call invalidateAll() explicitly\non success to ensure every cached page load — including the deck\neditor — picks up the updated preference immediately.\n\nGenerated with [Claude Code](https://claude.ai/code)\nvia [Happy](https://happy.engineering)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nCo-Authored-By: Happy <yesreply@happy.engineering>",
+          "author": "slidt ralph loop",
+          "type": "fix",
+          "scope": "settings"
+        },
+        {
+          "hash": "892faf5ea0390ac2449a258162b6fa10dcc3d1e3",
+          "shortHash": "892faf5",
+          "date": "2026-05-12T07:28:08+00:00",
+          "isoDate": "2026-05-12",
+          "subject": "theme selector for slide previews",
+          "body": "Generated with [Claude Code](https://claude.ai/code)\nvia [Happy](https://happy.engineering)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nCo-Authored-By: Happy <yesreply@happy.engineering>",
+          "author": "slidt ralph loop",
+          "type": "feat",
+          "scope": "templates"
+        },
+        {
+          "hash": "260fadcfd755957f0ff430229781afb8c832b4fc",
+          "shortHash": "260fadc",
+          "date": "2026-05-12T07:26:51+00:00",
+          "isoDate": "2026-05-12",
+          "subject": "slide type selector in theme editor preview",
+          "body": "Generated with [Claude Code](https://claude.ai/code)\nvia [Happy](https://happy.engineering)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nCo-Authored-By: Happy <yesreply@happy.engineering>",
+          "author": "slidt ralph loop",
+          "type": "feat",
+          "scope": "themes"
+        },
+        {
+          "hash": "11f6f6f3e07d38d06e331b3aefda78af0ca5cb83",
+          "shortHash": "11f6f6f",
+          "date": "2026-05-12T07:18:28+00:00",
+          "isoDate": "2026-05-12",
+          "subject": "rename OOD types to generic + add 7 new types + minimal theme",
+          "body": "- Rename 11 slide types (title→cover, content→bullet-list, etc.)\n- DB migration 0006 renames slide_types.name and slides.type_name\n- Add 7 new types: quote, stat-grid, timeline, two-column, three-column, dot-flow, quote-pair\n- Add minimal theme with warm-white --sl-* token set\n- OOD theme gains --sl-* tokens for new type compatibility\n- seed.ts now loops over BUILT_IN_THEMES; reports 20 types + 2 themes\n\nGenerated with [Claude Code](https://claude.ai/code)\nvia [Happy](https://happy.engineering)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nCo-Authored-By: Happy <yesreply@happy.engineering>",
+          "author": "slidt ralph loop",
+          "type": "feat",
+          "scope": "slide-types"
+        },
+        {
+          "hash": "b116eb2b639bed65c37f47c7718a7ac299891ae6",
+          "shortHash": "b116eb2",
+          "date": "2026-05-12T07:07:59+00:00",
+          "isoDate": "2026-05-12",
+          "subject": "general-purpose slide types + minimal theme design",
+          "body": "Generated with [Claude Code](https://claude.ai/code)\nvia [Happy](https://happy.engineering)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nCo-Authored-By: Happy <yesreply@happy.engineering>",
+          "author": "slidt ralph loop",
+          "type": "docs",
+          "scope": "spec"
+        }
+      ]
+    },
+    {
+      "date": "2026-04-28",
+      "commits": [
+        {
+          "hash": "2b1a3897ac4e6ffd4712bb408fadf688b7e57909",
+          "shortHash": "2b1a389",
+          "date": "2026-04-28T15:39:00+02:00",
+          "isoDate": "2026-04-28",
+          "subject": "close × now reachable; drawer hydrates history on open",
+          "body": "Two template-editor agent bugs:\n\n- The agent drawer is position:absolute so its close button anchors to\n  the nearest positioned ancestor. The deck editor's .right column has\n  position:relative, but the template editor's .page form didn't —\n  the drawer fell back to the viewport and its top 49px (where × lives)\n  sat behind the global nav (z:40 vs drawer's z:10), making the close\n  button unclickable. Add position: relative on .page so the drawer\n  attaches inside the editor surface, below the nav.\n\n- Drawer used to start with messages = [] every time. Now it fetches\n  GET /api/decks/[id]/agent on first open and projects the persisted\n  Anthropic content blocks back into TextPart / ToolPart / ThinkingPart\n  so prior turns + tool calls appear in the transcript. Tool results\n  attach back to their tool_use parts via tool_use_id.\n\nDoesn't address the bigger requests (don't save by default; agent\nguardrail when required fields go empty) — captured in todo.",
+          "author": "Niels Ørbæk Chemnitz",
+          "type": "fix",
+          "scope": "agent"
+        },
+        {
+          "hash": "aae1e3e28e7e55bd0f0baef242ba526569bd2239",
+          "shortHash": "aae1e3e",
+          "date": "2026-04-28T13:40:11+02:00",
+          "isoDate": "2026-04-28",
+          "subject": "mark history v1 done, capture template-agent investigation",
+          "body": "",
+          "author": "Niels Ørbæk Chemnitz",
+          "type": "chore",
+          "scope": "todo"
+        },
+        {
+          "hash": "1f524195bcac690634ea9e23f174425731d0780a",
+          "shortHash": "1f52419",
+          "date": "2026-04-28T13:38:35+02:00",
+          "isoDate": "2026-04-28",
+          "subject": "persistent edit log + revert (history view v1)",
+          "body": "User-facing scope: a history drawer behind the editor \"more\" menu shows\nevery edit on the deck — field changes, slide adds/deletes, reorders,\ntheme changes, title renames — newest first, grouped by day. Each row\nhas a Revert button that applies the inverse and writes a new edit so\nthe revert itself is in history.\n\nServer scope:\n- New slide_edits table (deckId, slideId, userId, at, kind, before/\n  after jsonb, coalesce_key, summary). Indexed by (deck_id, at).\n  Migration: drizzle/0005_slide_edits.sql, idempotent.\n- $lib/server/edit-history.ts: recordEdit() with 5-second coalescing\n  per (deck, user, coalesceKey). Errors swallowed so a logging hiccup\n  never blocks a save.\n- All mutating endpoints write rows: slide PATCH (data field), slide\n  POST/DELETE, deck PATCH for title/themeId/slideOrder.\n- API: GET /api/decks/[id]/history (viewer, paginated by `before` ISO\n  cursor) and POST /api/decks/[id]/history/[editId]/revert (editor).\n  Revert restores the recorded \"before\" state for that edit kind.\n\nOut of v1 (per agreed scope):\n- No branching, no cross-session undo persistence, no tagged\n  milestones — straight history view + revert only.",
+          "author": "Niels Ørbæk Chemnitz",
+          "type": "feat",
+          "scope": "history"
+        },
+        {
+          "hash": "67707e33ab27a227295102d8ee8708d24d37b987",
+          "shortHash": "67707e3",
+          "date": "2026-04-28T13:23:30+02:00",
+          "isoDate": "2026-04-28",
+          "subject": "agent drawer on the template editor (deck-scoped)",
+          "body": "Adds an Agent toggle to the template editor's topbar (only visible for\ndeck-scoped templates, where we have a parent deckId). It mounts the\nexisting STAgentDrawer pointed at the deck so the agent can inspect /\npatch / iterate on this template using its existing tool set\n(patch_slide_type, inspect_slide_type, list_slide_types). The user\njust says e.g. \"tweak steps-linear-accent so the numbers are larger\"\nand the agent handles it from there.\n\nGlobal templates don't get the toggle for now — they have no deckId\nto anchor the agent session. Could add a \"playground deck\" later if\nthat becomes a real workflow.",
+          "author": "Niels Ørbæk Chemnitz",
+          "type": "feat",
+          "scope": "templates"
+        },
+        {
+          "hash": "5ecc3a5c8808175cb1f7f72a9fbb31f887a2ccd4",
+          "shortHash": "5ecc3a5",
+          "date": "2026-04-28T13:20:14+02:00",
+          "isoDate": "2026-04-28",
+          "subject": "slide-list thumbnail mode (lazy via IntersectionObserver)",
+          "body": "New \"Slide list · Tekst/Miniaturer\" entry in the editor's \"more\" menu.\nWhen set to thumbnails, each row swaps the text snippet for a 16:9\nSlidePreview that mirrors the slide's actual content.\n\nMode is persisted in localStorage (slidt:slideListMode) so it survives\nreloads without a server round-trip. Can be promoted to user prefs\nlater if cross-device sync matters.\n\nLazy mounting: an IntersectionObserver (rootMargin 300px) tracks which\nrows have entered the viewport; SlidePreview only mounts for rows in\nthat set. Once visible, stays mounted to avoid scroll thrash. A\n50-slide deck only spawns iframes for slides the user has actually\nscrolled near.",
+          "author": "Niels Ørbæk Chemnitz",
+          "type": "feat",
+          "scope": "editor"
+        }
+      ]
+    },
     {
       "date": "2026-04-27",
       "commits": [
+        {
+          "hash": "e8ebbb567ff593392540fe859ae34c529a6320c0",
+          "shortHash": "e8ebbb5",
+          "date": "2026-04-27T15:59:08+02:00",
+          "isoDate": "2026-04-27",
+          "subject": "full-bleed editor + name/slug above the preview",
+          "body": "The template editor was framed by the global page-shell and its toolbar\nsat only over the form column, so the name/slug header didn't span the\npreview half. Now:\n\n- /templates/[id] is added to fullBleedPaths in +layout.svelte so the\n  page fills the viewport like /decks/[id] does.\n- Single <form> wraps everything; the topbar (breadcrumb · label ·\n  slug · scope pill · parent deck · Save) runs the full width above\n  the layout grid.\n- The promote action moves to its own promote-bar row below the\n  topbar; the button is a plain <button> firing a fetch so it doesn't\n  submit the editor form by accident.\n- Layout grid is two equal-ish columns (form + preview), with a\n  scoped rule between them; preview lives on a tinted gutter and\n  scrolls independently. Mobile collapses to a single column.",
+          "author": "Niels Ørbæk Chemnitz",
+          "type": "fix",
+          "scope": "templates"
+        },
+        {
+          "hash": "143fcb121be9d3db3e677a4d86533923af191d02",
+          "shortHash": "143fcb1",
+          "date": "2026-04-27T15:53:00+02:00",
+          "isoDate": "2026-04-27",
+          "subject": "agent activity indicator + auto-generated /docs/changelog",
+          "body": "- Agent drawer header now shows \"WORKING · <tool_name>…\" while a tool\n  call is in flight, set on tool_start and cleared on tool_done. Calls\n  like inspect_slide_type that take several seconds finally feel alive.\n- New /docs/changelog page populated from git log at build time. A\n  prebuild script (scripts/gen-changelog.ts) writes\n  src/lib/changelog.generated.json which the page imports. Days group\n  features as headline entries and collapse fixes/polish behind a\n  details element so the page reads top-down. Sidebar gets a\n  \"Changelog\" link.\n- pnpm changelog regenerates manually if needed.",
+          "author": "Niels Ørbæk Chemnitz",
+          "type": "feat"
+        },
         {
           "hash": "c3ac3a6899981059ed009029bbb8030374baf4e2",
           "shortHash": "c3ac3a6",

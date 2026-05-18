@@ -1311,6 +1311,9 @@
     position: absolute;
     top: 0; left: 0;
   }
+  .srow-thumb :global(iframe) {
+    pointer-events: none;
+  }
   .srow-thumb :global(.empty) {
     min-height: 0;
     display: none;

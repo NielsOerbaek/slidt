@@ -23,6 +23,57 @@ interface OllamaToolCall {
   function: { name: string; arguments: string };
 }
 
+const REQUIRED_THEME_TOKENS = [
+  '--sl-bg', '--sl-surface', '--sl-fg', '--sl-dim', '--sl-very-dim',
+  '--sl-border', '--sl-border-mid', '--sl-dark-bg', '--sl-dark-fg', '--sl-dark-dim',
+  '--sl-accent', '--sl-accent-bg', '--sl-font', '--sl-body-font',
+] as const;
+
+/**
+ * Reasoning models often compute complete create_theme parameters in their
+ * thinking block but fail to emit the actual tool call. This function scans
+ * the reasoning text for --sl-* token values and a theme name, and returns a
+ * ready-to-execute tool input if a full set is found. Returns null otherwise.
+ */
+function tryExtractCreateTheme(
+  reasoning: string,
+  messages: OllamaMessage[],
+): { name: string; tokens: Record<string, string>; applyToDeck: boolean } | null {
+  const tokens: Record<string, string> = {};
+  // Handles: `value`, 'value', "value", bare hex #rrggbb, bare rgba(...)
+  const pat = /--sl-([\w-]+)\s*[:\s]+(?:`([^`]+)`|'([^'\n]{1,100})'|"([^"\n]{1,100})"|(#[0-9a-fA-F]{3,8}|rgba?\([^)\n]+\)))/g;
+  let m: RegExpExecArray | null;
+  while ((m = pat.exec(reasoning)) !== null) {
+    const key = `--sl-${m[1]}`;
+    const value = (m[2] ?? m[3] ?? m[4] ?? m[5] ?? '').trim();
+    if ((REQUIRED_THEME_TOKENS as readonly string[]).includes(key) && value) {
+      tokens[key] = value; // later occurrences win (model may revise mid-reasoning)
+    }
+  }
+  if (REQUIRED_THEME_TOKENS.some((k) => !tokens[k])) return null;
+
+  // Theme name: prefer the first single/double-quoted word in user messages
+  let name: string | null = null;
+  for (const msg of [...messages].reverse()) {
+    if (msg.role === 'user' && typeof msg.content === 'string') {
+      const nm = msg.content.match(/['"]([a-zA-Z0-9_-]{2,40})['"]/);
+      if (nm) { name = nm[1] ?? null; break; }
+    }
+  }
+  if (!name) {
+    const nm = reasoning.match(/[Nn]ame\s*[:\s]+['"`]([^'"`\n]{2,40})['"`]/);
+    if (nm) name = nm[1] ?? null;
+  }
+  if (!name) return null;
+
+  const allText = messages
+    .map((msg) => (typeof msg.content === 'string' ? msg.content : ''))
+    .join(' ') + ' ' + reasoning;
+  const applyToDeck = /til dette deck|apply.*to.*deck|for (this|the current) deck/i.test(allText);
+
+  return { name, tokens, applyToDeck };
+}
+
 /** Convert AGENT_TOOLS (Anthropic format) → OpenAI function tool array */
 function toOpenAITools() {
   return AGENT_TOOLS.map((tool) => ({
@@ -203,8 +254,40 @@ export function runOllamaStream(
           finalText += assistantContent;
 
           if (finishReason !== 'tool_calls' || pendingToolCalls.length === 0) {
-            // Empty-response guard: model produced no visible text and called no tools.
-            // This also catches reasoning-only turns where the model "thought" but didn't act.
+            // Reasoning-only guard: model thought but produced no text and no tool calls.
+            // Try to salvage by extracting a create_theme call from the reasoning before
+            // falling back to a nudge. Reasoning models consistently compute all token values
+            // but fail to emit the function-call structure — extraction bypasses that failure.
+            if (!assistantContent && reasoningContent) {
+              const extracted = tryExtractCreateTheme(reasoningContent, sessionMessages);
+              if (extracted) {
+                const toolUseId = crypto.randomUUID();
+                emit({ type: 'tool_start', tool: 'create_theme', toolUseId, input: extracted });
+                try {
+                  const { result, undoPatch } = await executeTool(deckId, 'create_theme', extracted, userId);
+                  emit({ type: 'tool_done', tool: 'create_theme', toolUseId, result, undoPatch });
+                  allToolCallsThisSession.push({ name: 'create_theme', input: extracted, result, undoPatch });
+                  sessionMessages.push({
+                    role: 'assistant',
+                    content: null,
+                    tool_calls: [{ id: toolUseId, type: 'function', function: { name: 'create_theme', arguments: JSON.stringify(extracted) } }],
+                  });
+                  sessionMessages.push({ role: 'tool', tool_call_id: toolUseId, content: result });
+                } catch (err) {
+                  const errMsg = err instanceof Error ? err.message : String(err);
+                  emit({ type: 'tool_done', tool: 'create_theme', toolUseId, result: `error: ${errMsg}` });
+                  sessionMessages.push({
+                    role: 'assistant',
+                    content: null,
+                    tool_calls: [{ id: toolUseId, type: 'function', function: { name: 'create_theme', arguments: JSON.stringify(extracted) } }],
+                  });
+                  sessionMessages.push({ role: 'tool', tool_call_id: toolUseId, content: `error: ${errMsg}` });
+                }
+                continue;
+              }
+            }
+
+            // Empty / reasoning-only with no extractable tool call → nudge once, then exit.
             if (!assistantContent && !hookState.planningNudgeSent) {
               hookState.planningNudgeSent = true;
               const hadReasoning = reasoningContent.length > 0;
@@ -213,8 +296,7 @@ export function runOllamaStream(
                 role: 'user',
                 content: hadReasoning
                   ? '[System: You produced internal reasoning but no visible response and no tool calls. ' +
-                    'If you have calculated all needed values, call the appropriate tool RIGHT NOW with those exact values. ' +
-                    'Do not repeat the reasoning — just call the tool.]'
+                    'Your NEXT response MUST be a tool call — call it RIGHT NOW. Do not output any text first.]'
                   : '[System: Your previous response was empty. If you have all the information you need, call the appropriate tool now. ' +
                     'If you still need something from the user, write a short text reply asking for it.]',
               });

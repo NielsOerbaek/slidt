@@ -52,6 +52,8 @@
   // on `tool_done`, so the panel header can surface "WORKING · inspect_slide_type"
   // instead of a generic spinner during multi-second calls.
   let activeTool = $state<string | null>(null);
+  // True from POST until the first SSE event arrives — indicates model is loading/starting.
+  let waitingForModel = $state(false);
   let errorMsg = $state('');
   let composeEl = $state<HTMLTextAreaElement | undefined>(undefined);
   let transcriptEl = $state<HTMLDivElement | undefined>(undefined);
@@ -323,6 +325,7 @@
     input = '';
     if (composeEl) { composeEl.style.height = 'auto'; }
     sending = true;
+    waitingForModel = true;
     errorMsg = '';
     scrollToBottom();
 
@@ -355,6 +358,7 @@
           let event: { type: string } & Record<string, unknown>;
           try { event = JSON.parse(raw); } catch { continue; }
 
+          waitingForModel = false;
           if (event.type === 'thinking') {
             updateAssistant(assistantIdx, (m) => appendThinking(m, event.delta as string));
             scrollToBottom();
@@ -401,6 +405,7 @@
       messages = messages.filter((_, i) => i !== assistantIdx);
     } finally {
       sending = false;
+      waitingForModel = false;
       activeTool = null;
       scrollToBottom();
     }
@@ -463,13 +468,17 @@
   {#if open}
     <div class="panel-head">
       <STFace size={16} color="var(--st-cobalt)" animated={sending} />
-      <span class="tag">{t('agent.tag')}</span>
       <span class="dot" class:live={sending} aria-hidden="true"></span>
       <span class="status">
-        {sending ? t('agent.working') : t('agent.live')}
-        {#if sending && activeTool}<span class="active-tool"> · {activeTool}…</span>{/if}
-        · {turnCount} {turnCount === 1 ? t('agent.turn_singular') : t('agent.turn_plural')}
+        {#if waitingForModel}
+          <span class="loading-label">{t('agent.loading')}</span>
+        {:else if sending && activeTool}
+          <span class="active-tool">{activeTool}…</span>
+        {:else}
+          {sending ? t('agent.working') : t('agent.live')}
+        {/if}
       </span>
+      <span class="spacer"></span>
       <button class="clear-btn" onclick={clearContext} disabled={sending} title={t('agent.clear')}>
         {t('agent.clear')}
       </button>
@@ -477,7 +486,6 @@
         <span class="model-host">{modelInfo.host}</span>
         <span class="model-name">{modelInfo.label}</span>
       </a>
-      <span class="spacer"></span>
       <button class="panel-close" onclick={toggle} type="button" aria-label={t('agent.close')}>×</button>
     </div>
     <div class="body">
@@ -624,7 +632,6 @@
     color: var(--st-ink);
     flex-shrink: 0;
   }
-  .tag { font-size: 10px; letter-spacing: 0.28em; }
   .dot { width: 8px; height: 8px; background: var(--st-cobalt); }
   .dot.live { animation: pulse 1.4s ease-in-out infinite; }
   @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
@@ -634,6 +641,10 @@
     font-family: var(--st-font-mono);
     text-transform: none;
     letter-spacing: 0.08em;
+  }
+  .loading-label {
+    color: var(--st-ink-dim);
+    animation: pulse 1.4s ease-in-out infinite;
   }
   .model-badge {
     display: inline-flex;

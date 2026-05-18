@@ -50,6 +50,7 @@
     letter-spacing: 0.05em;
     line-height: 1;
     display: inline-block;
+    white-space: nowrap;
     user-select: none;
   }
 </style>

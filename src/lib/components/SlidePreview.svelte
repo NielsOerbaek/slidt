@@ -3,12 +3,13 @@
   import { render } from '../../renderer/index.ts';
   import { extractGoogleFonts, buildGoogleFontsLink } from '../utils/google-fonts.ts';
 
-  let { slideType, slideData, theme, label = 'Slide preview', editable = false, onedit }: {
+  let { slideType, slideData, theme, label = 'Slide preview', editable = false, thumbnail = false, onedit }: {
     slideType: SlideType | null;
     slideData: Record<string, unknown>;
     theme: Theme | null;
     label?: string;
     editable?: boolean;
+    thumbnail?: boolean;
     onedit?: (field: string, value: string) => void;
   } = $props();
 
@@ -17,7 +18,7 @@
   let container: HTMLDivElement | undefined = $state();
   let iframe: HTMLIFrameElement | undefined = $state();
   let scale = $state(0.25);
-  let renderTimer: ReturnType<typeof setTimeout> | null = null;
+  let renderVersion = 0;
 
   // Attach contenteditable + listeners to data-slidt-field nodes inside the
   // iframe directly from the parent. This relies on the iframe having
@@ -65,11 +66,14 @@
     const sd = JSON.parse(JSON.stringify(slideData)) as typeof slideData;
     const th = theme ? (JSON.parse(JSON.stringify(theme)) as typeof theme) : null;
     const isEditable = editable;
+    const isThumbnail = thumbnail;
 
     if (!st || !th) { previewHtml = ''; previewError = ''; return; }
 
-    if (renderTimer) clearTimeout(renderTimer);
-    renderTimer = setTimeout(async () => {
+    // Use a version counter so stale async renders from previous effect runs
+    // are ignored if props change before the render completes.
+    const myVersion = ++renderVersion;
+    void (async () => {
       try {
         const deck = {
           title: 'Preview',
@@ -81,8 +85,11 @@
           skipValidation: true,
           editable: isEditable,
         });
+        if (myVersion !== renderVersion) return; // superseded
         // Inject font-face rules (iframe has allow-same-origin so it can load from /fonts/)
-        let rendered = html.replace('<style>', `<style>
+        // In thumbnail mode, also suppress page-num and corner-logo (they render as confusing artifacts at tiny scale).
+        const thumbCss = isThumbnail ? '.page-num,.corner-logo{display:none!important}' : '';
+        let rendered = html.replace('<style>', `<style>${thumbCss}
 @font-face{font-family:'Neureal';font-weight:400;font-style:normal;src:url('/fonts/Neureal-Regular.woff2') format('woff2')}
 @font-face{font-family:'Neureal Mono';font-weight:400;font-style:normal;src:url('/fonts/NeurealMono-Regular.woff2') format('woff2')}
 @font-face{font-family:'Inter';font-weight:300;font-style:normal;src:url('/fonts/inter/inter-latin-300-normal.woff2') format('woff2')}
@@ -99,17 +106,13 @@
         previewError = '';
         previewHtml = rendered;
       } catch (err) {
+        if (myVersion !== renderVersion) return;
         const msg = err instanceof Error ? err.message : String(err);
         console.error('[SlidePreview] render failed:', msg);
         previewError = msg;
         previewHtml = '';
       }
-      renderTimer = null;
-    }, 100);
-
-    return () => {
-      if (renderTimer) { clearTimeout(renderTimer); renderTimer = null; }
-    };
+    })();
   });
 
   $effect(() => {

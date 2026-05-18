@@ -123,7 +123,7 @@ export function runOllamaStream(
               tools: toOpenAITools(),
               stream: true,
             }),
-            signal: AbortSignal.timeout(90_000),
+            signal: AbortSignal.timeout(300_000),
           });
 
           if (!response.ok || !response.body) {

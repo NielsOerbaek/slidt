@@ -795,7 +795,6 @@
             onmouseenter={(e) => onSlideRowEnter(e, slide.id)}
             onmouseleave={onSlideRowLeave}
           >
-            <span class="srow-n">{String(i + 1).padStart(2, '0')}</span>
             {#if slideListMode === 'thumbnails'}
               <div class="srow-thumb">
                 {#if seenForThumbnails.has(slide.id) && type && data.theme}
@@ -804,10 +803,13 @@
                     slideData={slideDataMap[slide.id] ?? {}}
                     theme={data.theme}
                     label={`Slide ${i + 1} thumbnail`}
+                    thumbnail={true}
                   />
                 {/if}
+                <div class="srow-thumb-badge">{String(i + 1).padStart(2, '0')}</div>
               </div>
             {:else}
+              <span class="srow-n">{String(i + 1).padStart(2, '0')}</span>
               <span class="srow-body">
                 <span class="srow-title">{snippet ?? type?.label ?? t('editor.slide_unknown')}</span>
                 {#if snippet && type}
@@ -1247,10 +1249,10 @@
     user-select: none;
   }
   .srow.thumb {
-    grid-template-columns: 36px 1fr 28px;
-    padding: 8px 6px;
-    column-gap: 6px;
-    align-items: stretch;
+    grid-template-columns: 1fr;
+    padding: 6px 8px;
+    column-gap: 0;
+    position: relative;
   }
   .srow:hover:not(.active) { background: var(--st-bg-deep); }
   .srow.active {
@@ -1296,26 +1298,52 @@
   .srow-thumb {
     aspect-ratio: 16 / 9;
     width: 100%;
-    background: var(--st-bg-deep);
+    background: #c8c7c0;
     border: var(--st-rule-thin);
     overflow: hidden;
-    display: flex;
-    align-items: stretch;
+    position: relative;
   }
   .srow-thumb :global(.preview-wrap) {
     border-radius: 0;
     min-height: 0;
-    flex: 1;
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0; left: 0;
   }
-  /* Make loading/error text visible at thumbnail scale by pinning it to the top */
   .srow-thumb :global(.empty) {
-    align-items: flex-start;
-    justify-content: flex-start;
-    padding: 4px 5px;
-    font-size: 9px;
     min-height: 0;
+    display: none;
   }
+  .srow-thumb-badge {
+    position: absolute;
+    bottom: 3px;
+    left: 4px;
+    font-family: var(--st-font-mono);
+    font-size: 9px;
+    letter-spacing: 0.12em;
+    color: var(--st-ink);
+    background: rgba(250,250,247,0.8);
+    padding: 1px 3px;
+    line-height: 1.3;
+    pointer-events: none;
+    z-index: 2;
+  }
+  .srow.thumb .srow-n { display: none; }
   .srow.thumb .srow-grip { display: none; }
+  .srow.thumb .srow-del {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    padding: 2px 5px;
+    font-size: 13px;
+    line-height: 1;
+    background: rgba(250,250,247,0.85);
+    border-radius: 2px;
+    z-index: 2;
+    opacity: 0;
+  }
+  .srow.thumb:hover .srow-del { opacity: 0.8; }
   .srow-del {
     padding: 14px 10px;
     font-size: 16px;
@@ -1430,7 +1458,7 @@
     gap: 6px;
     flex-wrap: wrap;
   }
-  .thumb {
+  .thumbs .thumb {
     aspect-ratio: 16/9;
     width: 60px;
     background: var(--st-bg);
@@ -1446,8 +1474,8 @@
     justify-content: flex-start;
     padding: 4px 6px;
   }
-  .thumb.active { border-color: var(--st-cobalt); color: var(--st-cobalt); }
-  .thumb:hover:not(.active) { background: var(--st-bg-deep); }
+  .thumbs .thumb.active { border-color: var(--st-cobalt); color: var(--st-cobalt); }
+  .thumbs .thumb:hover:not(.active) { background: var(--st-bg-deep); }
 
   /* ── Share dialog ─────────────────────────────────────── */
   .share-dialog {

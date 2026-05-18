@@ -1,5 +1,5 @@
 # Single-stage bookworm build so playwright --with-deps works without extra apt passes.
-FROM node:20-bookworm
+FROM node:22-bookworm
 
 WORKDIR /app
 

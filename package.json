@@ -54,8 +54,5 @@
   },
   "engines": {
     "node": ">=22"
-  },
-  "pnpm": {
-    "onlyBuiltDependencies": ["esbuild", "@node-rs/argon2", "playwright", "@playwright/test"]
   }
 }

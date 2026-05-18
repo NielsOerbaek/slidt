@@ -3,8 +3,8 @@ FROM node:22-bookworm
 
 WORKDIR /app
 
-# pnpm via corepack
-RUN corepack enable
+# pnpm via corepack — pin to same version used locally to avoid pnpm 11 breakage
+RUN corepack enable && corepack prepare pnpm@10.33.2 --activate
 
 # Install Node dependencies first (cached layer)
 COPY package.json pnpm-lock.yaml ./

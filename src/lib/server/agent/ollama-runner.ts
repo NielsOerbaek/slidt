@@ -141,6 +141,7 @@ export function runOllamaStream(
           const dec = new TextDecoder();
           let buf = '';
           let assistantContent = '';
+          let reasoningContent = '';
           const pendingToolCalls: OllamaToolCall[] = [];
           let finishReason: string | null = null;
 
@@ -174,6 +175,7 @@ export function runOllamaStream(
               if (choice.finish_reason) finishReason = choice.finish_reason;
               const delta = choice.delta;
               if (delta.reasoning) {
+                reasoningContent += delta.reasoning;
                 emit({ type: 'thinking', delta: delta.reasoning });
               }
               if (delta.content) {
@@ -201,21 +203,27 @@ export function runOllamaStream(
           finalText += assistantContent;
 
           if (finishReason !== 'tool_calls' || pendingToolCalls.length === 0) {
-            // Empty-response guard: model produced no text and called no tools.
-            // If you have all needed information, call the appropriate tool immediately.
-            // If you still need information from the user, write a text reply asking for it.
-            if (!assistantContent && iterCount === 1) {
-              sessionMessages.push({ role: 'assistant', content: '...' });
+            // Empty-response guard: model produced no visible text and called no tools.
+            // This also catches reasoning-only turns where the model "thought" but didn't act.
+            if (!assistantContent && !hookState.planningNudgeSent) {
+              hookState.planningNudgeSent = true;
+              const hadReasoning = reasoningContent.length > 0;
+              sessionMessages.push({ role: 'assistant', content: hadReasoning ? '[internal reasoning only]' : '...' });
               sessionMessages.push({
                 role: 'user',
-                content:
-                  '[System: Your previous response was empty. If you have all the information you need, call the appropriate tool now. ' +
-                  'If you still need something from the user, write a short text reply asking for it.]',
+                content: hadReasoning
+                  ? '[System: You produced internal reasoning but no visible response and no tool calls. ' +
+                    'If you have calculated all needed values, call the appropriate tool RIGHT NOW with those exact values. ' +
+                    'Do not repeat the reasoning — just call the tool.]'
+                  : '[System: Your previous response was empty. If you have all the information you need, call the appropriate tool now. ' +
+                    'If you still need something from the user, write a short text reply asking for it.]',
               });
               continue;
             }
 
-            const injection = getPostResponseInjection(assistantContent, iterCount, Infinity, hookState);
+            // Pass full brain output (reasoning + text) so the hook can detect planning in thinking blocks
+            const fullOutput = [reasoningContent, assistantContent].filter(Boolean).join('\n');
+            const injection = getPostResponseInjection(fullOutput, iterCount, Infinity, hookState);
             if (injection) {
               sessionMessages.push({ role: 'assistant', content: assistantContent || null });
               sessionMessages.push({ role: 'user', content: injection });

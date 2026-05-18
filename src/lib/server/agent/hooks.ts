@@ -32,7 +32,14 @@ export function getPostResponseInjection(
     const looksLikePlan =
       responseText.length > 150 &&
       !endsWithQuestion &&
-      /\b(step \d|\d\.\s|\bplan\b|trin \d|jeg starter|starting now|i will now|i'll start|executing|i am going to|jeg g[åa]r i gang|i'm starting)\b/i.test(responseText);
+      (
+        // General planning keywords
+        /\b(step \d|\d\.\s|\bplan\b|trin \d|jeg starter|starting now|i will now|i will call|i'll start|executing|i am going to|jeg g[åa]r i gang|i'm starting|now i will|now i'll|calling now)\b/i.test(responseText) ||
+        // Theme token calculations — model listed --sl-* values but didn't call the tool
+        /--sl-[a-z]/.test(responseText) ||
+        // Model wrote out a tool invocation in prose instead of calling it
+        /\b(create_theme|update_theme|patch_slide|add_slide|reorder_slides|set_deck_title)\b/.test(responseText)
+      );
     if (looksLikePlan) {
       state.planningNudgeSent = true;
       return '[System: You wrote a plan but made zero tool calls. Your NEXT response must be a tool call — call the first tool in your plan RIGHT NOW. Do not write any text before the tool call.]';

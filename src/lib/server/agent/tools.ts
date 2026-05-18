@@ -183,15 +183,15 @@ If you do not yet have answers to the questions below, ask them first and wait b
         tokens: {
           type: 'object',
           description:
-            `Complete --sl-* CSS custom property map. All 14 keys are required:
---sl-bg (main slide background), --sl-surface (panel/card surface),
---sl-fg (body text colour), --sl-dim (muted text), --sl-very-dim (very muted),
---sl-border (subtle border), --sl-border-mid (medium border),
---sl-dark-bg (dark-section background), --sl-dark-fg (dark-section text),
---sl-dark-dim (dark-section muted text), --sl-accent (primary accent colour),
---sl-accent-bg (light tint of accent for section backgrounds),
---sl-font (heading font stack, e.g. "'Inter', sans-serif"),
---sl-body-font (body font stack, e.g. "'Inter', sans-serif")`,
+            `Complete CSS token map. All 14 keys are required. Use plain names WITHOUT the --sl- prefix (the server adds it):
+bg (main slide background), surface (panel/card surface),
+fg (body text colour), dim (muted text), very_dim (very muted),
+border (subtle border), border_mid (medium border),
+dark_bg (dark-section background), dark_fg (dark-section text),
+dark_dim (dark-section muted text), accent (primary accent colour),
+accent_bg (light tint of accent for section backgrounds),
+font (heading font stack, e.g. "'Inter', sans-serif"),
+body_font (body font stack, e.g. "'Inter', sans-serif")`,
         },
         systemPrompt: {
           type: 'string',
@@ -531,19 +531,26 @@ export async function executeTool(
       if (!name) return { result: 'error: name is required' };
       const rawTokens = coerceObject(input.tokens);
       if (!rawTokens) return { result: 'error: tokens must be an object' };
+      // Normalize keys: model sends plain names (bg, dark_bg) or full --sl-* names.
+      // Convert underscores → hyphens and add --sl- prefix if missing.
+      const normalizedTokens: Record<string, string> = {};
+      for (const [k, v] of Object.entries(rawTokens)) {
+        const cssKey = k.startsWith('--') ? k : `--sl-${k.replace(/_/g, '-')}`;
+        normalizedTokens[cssKey] = String(v);
+      }
       const REQUIRED_TOKENS = [
         '--sl-bg', '--sl-surface', '--sl-fg', '--sl-dim', '--sl-very-dim',
         '--sl-border', '--sl-border-mid', '--sl-dark-bg', '--sl-dark-fg',
         '--sl-dark-dim', '--sl-accent', '--sl-accent-bg', '--sl-font', '--sl-body-font',
       ];
-      const missing = REQUIRED_TOKENS.filter((k) => !rawTokens[k]);
+      const missing = REQUIRED_TOKENS.filter((k) => !normalizedTokens[k]);
       if (missing.length > 0) return { result: `error: missing required tokens: ${missing.join(', ')}` };
       const systemPrompt =
         typeof input.systemPrompt === 'string' ? input.systemPrompt.trim() || null : null;
       const applyToDeck = input.applyToDeck === true;
       const [newTheme] = await db
         .insert(themes)
-        .values({ name, tokens: rawTokens as Record<string, string>, systemPrompt, scope: 'global' })
+        .values({ name, tokens: normalizedTokens, systemPrompt, scope: 'global' })
         .returning();
       if (!newTheme) return { result: 'error: theme insert failed' };
       if (applyToDeck) {

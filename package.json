@@ -53,6 +53,9 @@
     "vitest": "^1.5.0"
   },
   "engines": {
-    "node": ">=20"
+    "node": ">=22"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": ["esbuild", "@node-rs/argon2", "playwright", "@playwright/test"]
   }
 }

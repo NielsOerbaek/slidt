@@ -31,6 +31,8 @@ export async function GET(event: RequestEvent) {
       at: slideEdits.at,
       kind: slideEdits.kind,
       summary: slideEdits.summary,
+      before: slideEdits.before,
+      after: slideEdits.after,
     })
     .from(slideEdits)
     .leftJoin(users, eq(slideEdits.userId, users.id))

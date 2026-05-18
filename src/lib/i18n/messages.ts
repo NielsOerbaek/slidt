@@ -149,6 +149,7 @@ export const messages = {
     en: 'Revert this change? "{summary}"',
   },
   'history.revert_failed': { da: 'Kunne ikke fortryde', en: 'Revert failed' },
+  'history.show_changes': { da: 'vis ændringer', en: 'show changes' },
   'editor.action_add_slide': { da: 'Tilføj slide', en: 'Add slide' },
   'editor.action_reorder': { da: 'Omarranger slides', en: 'Reorder slides' },
   'editor.action_apply_theme': { da: 'Skift tema', en: 'Apply theme' },

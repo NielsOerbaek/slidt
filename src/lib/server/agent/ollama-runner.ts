@@ -122,6 +122,7 @@ export function runOllamaStream(
               messages: [{ role: 'system', content: systemPrompt }, ...sessionMessages],
               tools: toOpenAITools(),
               stream: true,
+              keep_alive: -1,
             }),
             signal: AbortSignal.timeout(300_000),
           });

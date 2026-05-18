@@ -14,6 +14,7 @@
   import { slideSnippet } from '$lib/utils/slide-snippet.ts';
   import { t } from '$lib/i18n/index.ts';
   import { goto } from '$app/navigation';
+  import { tick } from 'svelte';
   import { fade, scale, slide } from 'svelte/transition';
   import { cubicOut } from 'svelte/easing';
   import { groupByCategory } from '../../../slide-types/categories.ts';
@@ -785,7 +786,21 @@
             data-slide-id={slide.id}
             use:observeSlideRow
             onclick={() => { selectedSlideId = slide.id; mobilePane = 'edit'; }}
-            onkeydown={(e) => e.key === 'Enter' && (selectedSlideId = slide.id, mobilePane = 'edit')}
+            onkeydown={async (e) => {
+              if (e.key === 'Enter') { selectedSlideId = slide.id; mobilePane = 'edit'; return; }
+              const slides = displaySlides;
+              const idx = slides.findIndex((s) => s.id === slide.id);
+              let targetIdx: number | null = null;
+              if (e.key === 'ArrowDown' || (data.vim && e.key === 'j')) targetIdx = idx + 1;
+              else if (e.key === 'ArrowUp' || (data.vim && e.key === 'k')) targetIdx = idx - 1;
+              if (targetIdx !== null && targetIdx >= 0 && targetIdx < slides.length) {
+                e.preventDefault();
+                e.stopPropagation(); // prevent global vim handler from double-firing
+                selectedSlideId = slides[targetIdx].id;
+                await tick();
+                document.querySelector<HTMLElement>(`[data-slide-id="${slides[targetIdx].id}"]`)?.focus();
+              }
+            }}
             draggable="true"
             ondragstart={(e) => onDragStart(e, slide.id)}
             ondragover={(e) => onDragOver(e, slide.id)}

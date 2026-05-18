@@ -3,6 +3,7 @@ import type { RequestEvent } from '@sveltejs/kit';
 import { requireDeckRole } from '$lib/server/deck-access.ts';
 import { runAgentStream } from '$lib/server/agent/runner.ts';
 import { runOllamaStream } from '$lib/server/agent/ollama-runner.ts';
+import { runAiSdkStream } from '$lib/server/agent/aisdk-runner.ts';
 import { db, agentMessages } from '$lib/server/db/index.ts';
 import { asc, eq } from 'drizzle-orm';
 
@@ -33,10 +34,17 @@ export async function POST(event: RequestEvent) {
   }
 
   const aiModel = event.locals.user?.preferences?.aiModel;
-  const DEFAULT_OLLAMA_MODEL = 'gemma4:26b';
+  const DEFAULT_OLLAMA_MODEL = process.env.OLLAMA_DEFAULT_MODEL ?? 'gemma4:31b-it-bf16';
+  const AGENT_BACKEND = process.env.AGENT_BACKEND ?? 'legacy';
+  const isClaudeModel = !!aiModel?.startsWith('claude');
   let stream: ReadableStream<Uint8Array>;
 
-  if (aiModel?.startsWith('claude')) {
+  if (AGENT_BACKEND === 'aisdk') {
+    const modelTag = isClaudeModel
+      ? (aiModel ?? 'claude-sonnet-4-6')
+      : (aiModel?.startsWith('ollama:') ? aiModel.slice(7) : DEFAULT_OLLAMA_MODEL);
+    stream = runAiSdkStream(deckId, event.locals.user!.id, body.message.trim(), modelTag, isClaudeModel);
+  } else if (isClaudeModel) {
     stream = runAgentStream(deckId, event.locals.user!.id, body.message.trim());
   } else {
     const modelTag = aiModel?.startsWith('ollama:') ? aiModel.slice(7) : DEFAULT_OLLAMA_MODEL;

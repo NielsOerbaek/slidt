@@ -41,10 +41,27 @@ services:
       ORIGIN: ${ORIGIN:-http://localhost:3000}
       OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-}
       OLLAMA_API_KEY: ${OLLAMA_API_KEY:-}
+      OLLAMA_DEFAULT_MODEL: ${OLLAMA_DEFAULT_MODEL:-gemma4:31b-it-bf16}
+      AGENT_BACKEND: ${AGENT_BACKEND:-legacy}
     volumes:
       - ./data/assets:/data/assets
     ports:
       - '3000:3000'
+
+  ollama:
+    image: ollama/ollama:latest
+    volumes:
+      - ./data/ollama:/root/.ollama
+    ports:
+      - '11434:11434'
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    profiles: [ollama]
 
   caddy:
     image: caddy:2-alpine

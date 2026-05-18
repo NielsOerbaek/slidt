@@ -43,6 +43,27 @@
     </tbody>
   </table>
 
+  <h3>Agent backend &amp; model selection</h3>
+  <p>
+    Two agent backends are available, selected via the <code>AGENT_BACKEND</code> environment variable:
+  </p>
+  <dl>
+    <dt><code>legacy</code> (default)</dt>
+    <dd>Hand-rolled runners: <code>runner.ts</code> for Claude models, <code>ollama-runner.ts</code> for Ollama/Gemma models.</dd>
+    <dt><code>aisdk</code></dt>
+    <dd>Single <code>streamText</code>-based runner built on the Vercel AI SDK. Supports both Anthropic and Ollama models. Handles stop-reason edge cases and tool-JSON repair natively.</dd>
+  </dl>
+  <p>
+    Set <code>OLLAMA_DEFAULT_MODEL</code> to control which Ollama model is used when the user has not selected a specific model in Settings. Defaults to <code>gemma4:31b-it-bf16</code>.
+  </p>
+  <p>
+    To run Ollama locally with GPU support, use the bundled Docker Compose profile:
+  </p>
+  <pre><code>docker compose --profile ollama up</code></pre>
+  <p>
+    This starts an <code>ollama/ollama</code> container with Nvidia GPU reservation. Set <code>OLLAMA_BASE_URL=http://ollama:11434</code> in the app service to connect.
+  </p>
+
   <h3>Vim navigation (opt-in)</h3>
   <p>Enable vim mode in settings. When no input is focused:</p>
   <table>

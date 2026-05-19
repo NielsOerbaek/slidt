@@ -302,6 +302,7 @@ export const messages = {
     da: 'API-modeller er hostet hos udbyderen og afregnes pr. forbrug.',
     en: 'API models are hosted by the provider and billed per use.',
   },
+  'settings.advanced': { da: 'Avancerede indstillinger', en: 'Advanced settings' },
   'settings.key_set_as': { da: 'Sæt som:', en: 'Set as:' },
 
   'settings.api_keys': { da: 'API-NØGLER', en: 'API KEYS' },

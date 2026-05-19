@@ -14,14 +14,6 @@
     sending?: boolean;
   } = $props();
 
-  const modelInfo = $derived.by(() => {
-    if (aiModel?.startsWith('claude')) {
-      return { label: 'Claude Sonnet 4.6', host: 'API' as const };
-    }
-    const tag = aiModel?.startsWith('ollama:') ? aiModel.slice(7) : 'gemma4:26b';
-    return { label: tag, host: 'LOCAL' as const };
-  });
-
   // ── Message model ────────────────────────────────────────────────────
   // Assistant turns interleave text deltas and tool calls in the order they
   // arrive over SSE. Storing them as an ordered `parts` array preserves that
@@ -482,11 +474,7 @@
       <button class="clear-btn" onclick={clearContext} disabled={sending} title={t('agent.clear')}>
         {t('agent.clear')}
       </button>
-      <a class="model-badge" href="/settings" title={t('agent.model_change')}>
-        <span class="model-host">{modelInfo.host}</span>
-        <span class="model-name">{modelInfo.label}</span>
-      </a>
-      <button class="panel-close" onclick={toggle} type="button" aria-label={t('agent.close')}>×</button>
+<button class="panel-close" onclick={toggle} type="button" aria-label={t('agent.close')}>×</button>
     </div>
     <div class="body">
       <div class="transcript" bind:this={transcriptEl}>
@@ -646,27 +634,7 @@
     color: var(--st-ink-dim);
     animation: pulse 1.4s ease-in-out infinite;
   }
-  .model-badge {
-    display: inline-flex;
-    align-items: baseline;
-    gap: 6px;
-    padding: 3px 8px;
-    border: 1.5px solid var(--st-ink);
-    text-decoration: none;
-    color: var(--st-ink);
-    font-size: 9px;
-    letter-spacing: 0.18em;
-  }
-  .model-badge:hover { background: var(--st-bg-deep); }
-  .model-host { color: var(--st-cobalt); font-weight: 500; }
-  .model-name {
-    text-transform: none;
-    letter-spacing: 0;
-    font-family: var(--st-font-display);
-    font-size: 11px;
-    color: var(--st-ink);
-  }
-  .spacer { flex: 1; }
+.spacer { flex: 1; }
   .clear-btn {
     background: transparent;
     border: 0;

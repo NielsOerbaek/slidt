@@ -130,34 +130,37 @@
           </select>
         </div>
 
-        <div class="pref-row">
-          <div class="pref-info">
-            <span class="pref-name">{t('settings.agent_model_name')}</span>
-            <span class="pref-desc">{t('settings.agent_model_desc')}</span>
-            {#if data.ollamaModels.length === 0}
-              <span class="pref-desc">{t('settings.agent_model_unavailable')}</span>
+        <details class="advanced-prefs">
+          <summary class="advanced-summary">{t('settings.advanced')}</summary>
+          <div class="pref-row">
+            <div class="pref-info">
+              <span class="pref-name">{t('settings.agent_model_name')}</span>
+              <span class="pref-desc">{t('settings.agent_model_desc')}</span>
+              {#if data.ollamaModels.length === 0}
+                <span class="pref-desc">{t('settings.agent_model_unavailable')}</span>
+              {/if}
+            </div>
+            <select name="aiModel">
+              {#if data.ollamaModels.length > 0}
+                <optgroup label={t('settings.agent_model_local')}>
+                  {#each data.ollamaModels as model}
+                    <option value="ollama:{model}" selected={data.user.preferences?.aiModel === `ollama:${model}`}>
+                      {model}
+                    </option>
+                  {/each}
+                </optgroup>
+              {/if}
+              <optgroup label={t('settings.agent_model_api')}>
+                <option value="claude" selected={!data.user.preferences?.aiModel || data.user.preferences.aiModel === 'claude'}>
+                  {t('settings.agent_model_claude')}
+                </option>
+              </optgroup>
+            </select>
+            {#if !data.user.preferences?.aiModel || data.user.preferences.aiModel === 'claude'}
+              <span class="pref-meter">{t('settings.agent_model_meter')}</span>
             {/if}
           </div>
-          <select name="aiModel">
-            {#if data.ollamaModels.length > 0}
-              <optgroup label={t('settings.agent_model_local')}>
-                {#each data.ollamaModels as model}
-                  <option value="ollama:{model}" selected={data.user.preferences?.aiModel === `ollama:${model}`}>
-                    {model}
-                  </option>
-                {/each}
-              </optgroup>
-            {/if}
-            <optgroup label={t('settings.agent_model_api')}>
-              <option value="claude" selected={!data.user.preferences?.aiModel || data.user.preferences.aiModel === 'claude'}>
-                {t('settings.agent_model_claude')}
-              </option>
-            </optgroup>
-          </select>
-          {#if !data.user.preferences?.aiModel || data.user.preferences.aiModel === 'claude'}
-            <span class="pref-meter">{t('settings.agent_model_meter')}</span>
-          {/if}
-        </div>
+        </details>
 
         <div class="row-actions">
           <button type="submit" class="btn-accent">{t('settings.save_prefs')}</button>
@@ -361,6 +364,28 @@
     border-bottom: var(--st-rule-thin);
     gap: 16px;
   }
+  .advanced-prefs { border: none; margin-top: 8px; }
+  .advanced-summary {
+    font-family: var(--st-font-mono);
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    color: var(--st-ink-dim);
+    cursor: pointer;
+    list-style: none;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 0;
+  }
+  .advanced-summary::-webkit-details-marker { display: none; }
+  .advanced-summary::before {
+    content: '▶';
+    font-size: 8px;
+    transition: transform 0.15s;
+  }
+  .advanced-prefs[open] .advanced-summary::before { transform: rotate(90deg); }
+  .advanced-summary:hover { color: var(--st-ink); }
+  .advanced-prefs .pref-row { border-top: var(--st-rule-thin); border-bottom: none; }
   .pref-row:first-child { padding-top: 0; }
   .pref-info { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
   .pref-name {

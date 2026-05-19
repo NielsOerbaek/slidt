@@ -22,6 +22,17 @@ type AnthropicRawRow = { role: string; content: unknown };
 export function anthropicRawToAiSdkMessages(rawRows: AnthropicRawRow[]): ModelMessage[] {
   const messages: ModelMessage[] = [];
 
+  // Pre-build toolCallId → toolName map from all tool_use blocks so tool results
+  // can include the required toolName field.
+  const toolNameMap = new Map<string, string>();
+  for (const row of rawRows) {
+    if (row.role === 'assistant' && Array.isArray(row.content)) {
+      for (const block of row.content as AnthropicBlock[]) {
+        if (block.type === 'tool_use') toolNameMap.set(block.id, block.name);
+      }
+    }
+  }
+
   for (const row of rawRows) {
     if (row.role !== 'assistant' && row.role !== 'user') continue;
 
@@ -96,7 +107,7 @@ export function anthropicRawToAiSdkMessages(rawRows: AnthropicRawRow[]): ModelMe
           toolResults.push({
             type: 'tool-result',
             toolCallId: block.tool_use_id,
-            toolName: '', // not stored — acceptable for history context
+            toolName: toolNameMap.get(block.tool_use_id) ?? 'unknown',
             output,
           });
         }

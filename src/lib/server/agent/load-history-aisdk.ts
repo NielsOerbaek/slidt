@@ -56,7 +56,9 @@ export function anthropicRawToAiSdkMessages(rawRows: AnthropicRawRow[]): ModelMe
         if (block.type === 'text') {
           assistantContent.push({ type: 'text', text: block.text });
         } else if (block.type === 'thinking') {
-          assistantContent.push({ type: 'reasoning', text: block.thinking });
+          // Strip reasoning/thinking blocks from history — they waste tokens and
+          // models don't benefit from re-reading their own prior thinking.
+          continue;
         } else if (block.type === 'tool_use') {
           assistantContent.push({
             type: 'tool-call',

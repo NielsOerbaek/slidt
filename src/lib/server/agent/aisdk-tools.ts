@@ -13,7 +13,14 @@ export function buildAiSdkTools(deckId: string, userId: string): ToolSet {
     result[t.name] = tool<any, any>({
       description: t.description,
       inputSchema: jsonSchema(t.input_schema),
-      execute: (input: Record<string, unknown>) => executeTool(deckId, t.name, input, userId),
+      execute: async (input: Record<string, unknown>) => {
+        try {
+          return await executeTool(deckId, t.name, input, userId);
+        } catch (err) {
+          const msg = err instanceof Error ? err.message : String(err);
+          return { result: `error: ${msg}` };
+        }
+      },
     });
   }
   return result;

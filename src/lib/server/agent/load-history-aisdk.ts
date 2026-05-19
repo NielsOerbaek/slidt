@@ -91,19 +91,21 @@ export function anthropicRawToAiSdkMessages(rawRows: AnthropicRawRow[]): ModelMe
         if (block.type === 'tool_result') {
           hasToolResults = true;
           const resultContent = block.content;
-          // Flatten content to a string if it's an array (strip images already done at write time)
-          let output: unknown;
+          // AI SDK v6 Zod schema requires output as { type: 'text', value: string }.
+          // Flatten array content (strip images already done at write time) → text string,
+          // then wrap in the required typed shape.
+          let text: string;
           if (typeof resultContent === 'string') {
-            output = resultContent;
+            text = resultContent;
           } else if (Array.isArray(resultContent)) {
-            const texts = (resultContent as Array<{ type: string; text?: string }>)
+            text = (resultContent as Array<{ type: string; text?: string }>)
               .filter((c) => c.type === 'text')
               .map((c) => c.text ?? '')
               .join('');
-            output = texts;
           } else {
-            output = String(resultContent ?? '');
+            text = String(resultContent ?? '');
           }
+          const output = { type: 'text' as const, value: text };
           toolResults.push({
             type: 'tool-result',
             toolCallId: block.tool_use_id,

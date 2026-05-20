@@ -42,6 +42,7 @@
   let menuOpenFor = $state<string | null>(null);
   let menuBtnRect = $state<DOMRect | null>(null);
   let listBodyEl: HTMLElement | null = null;
+  let duplicating = $state(false);
 
   // Slide-list display mode: text rows ("compact") vs 16:9 previews ("thumbnails").
   // Persisted per-device in localStorage so it survives page reloads without a
@@ -302,40 +303,47 @@
   }
 
   async function duplicateSlide(slideId: string, opts: { skipUndo?: boolean } = {}) {
-    const slide = data.slides.find((s) => s.id === slideId);
-    if (!slide) return;
-    const srcIndex = data.deck.slideOrder.indexOf(slideId);
+    if (duplicating) return;
+    duplicating = true;
+    try {
+      const slide = data.slides.find((s) => s.id === slideId);
+      if (!slide) return;
+      const srcIndex = data.deck.slideOrder.indexOf(slideId);
 
-    const res = await fetch(`/api/decks/${data.deck.id}/slides`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ typeId: slide.typeId, data: slideDataMap[slide.id] ?? slide.data }),
-    });
-    if (!res.ok) return;
-    const { slide: newSlide } = await res.json();
+      const res = await fetch(`/api/decks/${data.deck.id}/slides`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ typeId: slide.typeId, data: slideDataMap[slide.id] ?? slide.data }),
+      });
+      if (!res.ok) return;
+      const { slide: newSlide } = await res.json();
 
-    // POST appends to slideOrder end; move it to srcIndex + 1
-    const order = [...data.deck.slideOrder];
-    const newIdxInOrder = order.indexOf(newSlide.id);
-    if (newIdxInOrder !== -1) order.splice(newIdxInOrder, 1);
-    order.splice(srcIndex + 1, 0, newSlide.id);
+      // POST appends to slideOrder end; move it to srcIndex + 1
+      const order = [...data.deck.slideOrder];
+      const newIdxInOrder = order.indexOf(newSlide.id);
+      if (newIdxInOrder !== -1) order.splice(newIdxInOrder, 1);
+      order.splice(srcIndex + 1, 0, newSlide.id);
 
-    await fetch(`/api/decks/${data.deck.id}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ slideOrder: order }),
-    });
+      const patchRes = await fetch(`/api/decks/${data.deck.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ slideOrder: order }),
+      });
+      if (!patchRes.ok) return;
 
-    slideDataMap[newSlide.id] = { ...(slideDataMap[slideId] ?? (slide.data as Record<string, unknown>)) };
-    await invalidateAll();
-    selectedSlideId = newSlide.id;
+      slideDataMap[newSlide.id] = { ...(slideDataMap[slideId] ?? (slide.data as Record<string, unknown>)) };
+      await invalidateAll();
+      selectedSlideId = newSlide.id;
 
-    if (opts.skipUndo) return;
-    pushUndo({
-      label: t('editor.action_duplicate_slide'),
-      undo: async () => { await deleteSlide(newSlide.id, { skipUndo: true }); },
-      redo: async () => { await duplicateSlide(slideId, { skipUndo: true }); },
-    });
+      if (opts.skipUndo) return;
+      pushUndo({
+        label: t('editor.action_duplicate_slide'),
+        undo: async () => { await deleteSlide(newSlide.id, { skipUndo: true }); },
+        redo: async () => { await duplicateSlide(slideId, { skipUndo: true }); },
+      });
+    } finally {
+      duplicating = false;
+    }
   }
 
   // ── Slide-list hover preview ───────────────────────────────────────

@@ -39,6 +39,9 @@
   let mobilePane = $state<'list' | 'edit' | 'preview' | 'agent'>('list');
   let moreMenuOpen = $state(false);
   let historyOpen = $state(false);
+  let menuOpenFor = $state<string | null>(null);
+  let menuBtnRect = $state<DOMRect | null>(null);
+  let listBodyEl: HTMLElement | null = null;
 
   // Slide-list display mode: text rows ("compact") vs 16:9 previews ("thumbnails").
   // Persisted per-device in localStorage so it survives page reloads without a
@@ -291,6 +294,50 @@
     });
   }
 
+  function openSlideMenu(e: MouseEvent, slideId: string) {
+    e.stopPropagation();
+    if (menuOpenFor === slideId) { menuOpenFor = null; menuBtnRect = null; return; }
+    menuBtnRect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+    menuOpenFor = slideId;
+  }
+
+  async function duplicateSlide(slideId: string, opts: { skipUndo?: boolean } = {}) {
+    const slide = data.slides.find((s) => s.id === slideId);
+    if (!slide) return;
+    const srcIndex = data.deck.slideOrder.indexOf(slideId);
+
+    const res = await fetch(`/api/decks/${data.deck.id}/slides`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ typeId: slide.typeId, data: slideDataMap[slide.id] ?? slide.data }),
+    });
+    if (!res.ok) return;
+    const { slide: newSlide } = await res.json();
+
+    // POST appends to slideOrder end; move it to srcIndex + 1
+    const order = [...data.deck.slideOrder];
+    const newIdxInOrder = order.indexOf(newSlide.id);
+    if (newIdxInOrder !== -1) order.splice(newIdxInOrder, 1);
+    order.splice(srcIndex + 1, 0, newSlide.id);
+
+    await fetch(`/api/decks/${data.deck.id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ slideOrder: order }),
+    });
+
+    slideDataMap[newSlide.id] = { ...(slideDataMap[slideId] ?? (slide.data as Record<string, unknown>)) };
+    await invalidateAll();
+    selectedSlideId = newSlide.id;
+
+    if (opts.skipUndo) return;
+    pushUndo({
+      label: t('editor.action_duplicate_slide'),
+      undo: async () => { await deleteSlide(newSlide.id, { skipUndo: true }); },
+      redo: async () => { await duplicateSlide(slideId, { skipUndo: true }); },
+    });
+  }
+
   // ── Slide-list hover preview ───────────────────────────────────────
   let hoveredSlideId = $state<string | null>(null);
   let hoverTop = $state(0);
@@ -356,6 +403,7 @@
       // Some browsers won't initiate a drag without setData.
       e.dataTransfer.setData('text/plain', slideId);
     }
+    listBodyEl?.style.setProperty('--drop-gap', `${(e.currentTarget as HTMLElement).offsetHeight}px`);
   }
 
   function onDragOver(e: DragEvent, targetId: string) {
@@ -374,6 +422,7 @@
   function onDragEnd() {
     draggedId = null;
     dropTargetId = null;
+    listBodyEl?.style.removeProperty('--drop-gap');
   }
 
   async function applySlideOrder(order: string[]) {
@@ -656,6 +705,9 @@
   onkeydown={handleKeydown}
   onclick={(e) => {
     if (moreMenuOpen && !(e.target as Element).closest?.('.more-wrap')) moreMenuOpen = false;
+    if (menuOpenFor && !(e.target as Element).closest?.('.srow-menu') && !(e.target as Element).closest?.('.srow-popup')) {
+      menuOpenFor = null; menuBtnRect = null;
+    }
   }}
 />
 
@@ -769,7 +821,7 @@
         <span>{t('editor.slides_label')}</span>
         <span>{String(data.slides.length).padStart(2, '0')}</span>
       </div>
-      <div class="list-body">
+      <div class="list-body" bind:this={listBodyEl} onscroll={() => { menuOpenFor = null; menuBtnRect = null; }}>
         {#each displaySlides as slide, i (slide.id)}
           {@const type = data.slideTypes.find((t) => t.id === slide.typeId)}
           {@const active = selectedSlideId === slide.id}
@@ -832,13 +884,15 @@
                 {/if}
               </span>
             {/if}
-            <button
-              class="srow-del"
-              type="button"
-              onclick={(e) => { e.stopPropagation(); deleteSlide(slide.id); }}
-              title={t('editor.delete_slide')}
-              aria-label={t('editor.delete_slide')}
-            >×</button>
+            <div class="srow-menu">
+              <button
+                class="srow-menu-btn"
+                type="button"
+                aria-label={t('editor.slide_menu')}
+                title={t('editor.slide_menu')}
+                onclick={(e) => openSlideMenu(e, slide.id)}
+              >⋯</button>
+            </div>
             <span class="srow-grip" aria-hidden="true">⋮⋮</span>
           </div>
         {/each}
@@ -847,6 +901,20 @@
         <span>{t('editor.slides_add')}</span>
         <span class="key">n</span>
       </button>
+      {#if menuOpenFor && menuBtnRect}
+        <div
+          class="srow-popup"
+          role="menu"
+          style="top: {menuBtnRect.bottom + 2}px; right: {document.documentElement.clientWidth - menuBtnRect.right}px;"
+        >
+          <button type="button" class="srow-popup-item" role="menuitem"
+            onclick={() => { const id = menuOpenFor!; menuOpenFor = null; menuBtnRect = null; duplicateSlide(id); }}
+          >{t('editor.duplicate_slide')}</button>
+          <button type="button" class="srow-popup-item danger" role="menuitem"
+            onclick={() => { const id = menuOpenFor!; menuOpenFor = null; menuBtnRect = null; deleteSlide(id); }}
+          >{t('editor.delete_slide')}</button>
+        </div>
+      {/if}
     </aside>
 
     <!-- Form -->
@@ -1262,6 +1330,7 @@
     color: var(--st-ink);
     cursor: pointer;
     user-select: none;
+    transition: margin 150ms ease;
   }
   .srow.thumb {
     grid-template-columns: 1fr;
@@ -1274,9 +1343,9 @@
     background: var(--st-cobalt);
     color: var(--st-bg);
   }
-  .srow.dragging { opacity: 0.4; }
-  .srow.drop-before { border-top-color: var(--st-cobalt); }
-  .srow.drop-after { border-bottom: 2px solid var(--st-cobalt); }
+  .srow.dragging { opacity: 0.4; transition: none; }
+  .srow.drop-before { border-top-color: var(--st-cobalt); margin-top: var(--drop-gap, 40px); }
+  .srow.drop-after { border-bottom: 2px solid var(--st-cobalt); margin-bottom: var(--drop-gap, 40px); }
   .srow-n {
     padding: 14px 0;
     text-align: center;
@@ -1349,33 +1418,66 @@
   }
   .srow.thumb .srow-n { display: none; }
   .srow.thumb .srow-grip { display: none; }
-  .srow.thumb .srow-del {
+  /* ── Slide row context menu ──────────────────────────────── */
+  .srow-menu {
+    display: flex;
+    align-items: center;
+    opacity: 0;
+    transition: opacity 100ms ease;
+  }
+  .srow:hover .srow-menu,
+  .srow.active .srow-menu { opacity: 0.6; }
+  .srow-menu:hover { opacity: 1 !important; }
+  .srow-menu-btn {
+    padding: 14px 10px;
+    font-size: 16px;
+    letter-spacing: 0.08em;
+    color: inherit;
+    background: transparent;
+    border: 0;
+    cursor: pointer;
+    line-height: 1;
+  }
+  /* Thumbnail mode: absolute position */
+  .srow.thumb .srow-menu {
     position: absolute;
     top: 2px;
     right: 2px;
+    opacity: 0;
+    z-index: 2;
+  }
+  .srow.thumb:hover .srow-menu { opacity: 0.8; }
+  .srow.thumb .srow-menu-btn {
     padding: 2px 5px;
     font-size: 13px;
     line-height: 1;
     background: rgba(250,250,247,0.85);
     border-radius: 2px;
-    z-index: 2;
-    opacity: 0;
   }
-  .srow.thumb:hover .srow-del { opacity: 0.8; }
-  .srow-del {
-    padding: 14px 10px;
-    font-size: 16px;
-    color: inherit;
-    opacity: 0;
+  /* Fixed popup (rendered outside .list-body to escape overflow clip) */
+  .srow-popup {
+    position: fixed;
+    z-index: 200;
+    background: var(--st-bg);
+    border: var(--st-rule-thin);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.18);
+    min-width: 140px;
+    display: flex;
+    flex-direction: column;
+  }
+  .srow-popup-item {
+    padding: 10px 16px;
+    text-align: left;
     background: transparent;
     border: 0;
     cursor: pointer;
-    line-height: 1;
-    transition: opacity 100ms ease;
+    font-family: var(--st-font-display);
+    font-size: 14px;
+    color: var(--st-ink);
+    white-space: nowrap;
   }
-  .srow:hover .srow-del,
-  .srow.active .srow-del { opacity: 0.6; }
-  .srow .srow-del:hover { opacity: 1; }
+  .srow-popup-item:hover { background: var(--st-bg-deep); }
+  .srow-popup-item.danger { color: #c0392b; }
 
   .srow-grip {
     padding: 14px 14px;
@@ -1815,6 +1917,11 @@
     /* Type grid: 2 columns on mobile */
     .type-grid { grid-template-columns: repeat(2, 1fr); }
     .type-picker-body { max-height: 70vh; }
+
+    /* Menu always visible on touch (no hover) */
+    .srow-menu { opacity: 0.5; }
+    .srow.active .srow-menu { opacity: 0.8; }
+    .srow.thumb .srow-menu { opacity: 0.6; }
   }
 
   @media (max-width: 480px) {

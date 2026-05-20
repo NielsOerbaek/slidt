@@ -117,6 +117,9 @@ export const messages = {
   'editor.slides_add': { da: '+ TILFØJ', en: '+ ADD' },
   'editor.slide_unknown': { da: 'Ukendt', en: 'Unknown' },
   'editor.delete_slide': { da: 'Slet slide', en: 'Delete slide' },
+  'editor.slide_menu': { da: 'Slidehandlinger', en: 'Slide actions' },
+  'editor.duplicate_slide': { da: 'Dupliker slide', en: 'Duplicate slide' },
+  'editor.action_duplicate_slide': { da: 'Dupliker slide', en: 'Duplicate slide' },
 
   // Form
   'editor.form_head': {

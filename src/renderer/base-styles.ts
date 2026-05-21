@@ -97,4 +97,18 @@ em {
   z-index: 2;
 }
 .slide.dark .page-num { color: var(--sl-dark-dim); opacity: 0.85; }
+
+.img-wrap {
+  position: relative;
+  overflow: hidden;
+}
+.img-wrap > img {
+  position: absolute;
+  width: calc(100% * 100 / var(--crop-w, 100));
+  height: calc(100% * 100 / var(--crop-h, 100));
+  left: calc(var(--crop-x, 0) / var(--crop-w, 100) * -100%);
+  top: calc(var(--crop-y, 0) / var(--crop-h, 100) * -100%);
+  transform: rotate(var(--rotate, 0deg));
+  transform-origin: center center;
+}
 `;

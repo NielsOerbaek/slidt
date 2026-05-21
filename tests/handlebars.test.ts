@@ -43,3 +43,47 @@ describe('handlebars helpers', () => {
     expect(a).toBe(b);
   });
 });
+
+describe('img helper', () => {
+  it('returns empty string for null/empty value', () => {
+    const tpl = compile('{{img image "hero"}}');
+    expect(tpl({ image: null })).toBe('');
+    expect(tpl({ image: '' })).toBe('');
+    expect(tpl({})).toBe('');
+  });
+
+  it('renders a bare asset ID string with defaults', () => {
+    const tpl = compile('{{img image "hero"}}');
+    const html = tpl({ image: 'abc-123' });
+    expect(html).toContain('/api/assets/abc-123');
+    expect(html).toContain('class="img-wrap hero"');
+    expect(html).toContain('--crop-x: 0');
+    expect(html).toContain('--crop-w: 100');
+    expect(html).toContain('--rotate: 0deg');
+  });
+
+  it('renders an image object with crop values', () => {
+    const tpl = compile('{{img image "hero"}}');
+    const html = tpl({
+      image: { id: 'def-456', cropX: 20, cropY: 10, cropW: 60, cropH: 80, rotate: 90 },
+    });
+    expect(html).toContain('/api/assets/def-456');
+    expect(html).toContain('--crop-x: 20');
+    expect(html).toContain('--crop-y: 10');
+    expect(html).toContain('--crop-w: 60');
+    expect(html).toContain('--crop-h: 80');
+    expect(html).toContain('--rotate: 90deg');
+  });
+
+  it('omits extra class when wrapperClass not provided', () => {
+    const tpl = compile('{{img image}}');
+    const html = tpl({ image: 'abc-123' });
+    expect(html).toContain('class="img-wrap"');
+  });
+
+  it('encodes special characters in asset ID', () => {
+    const tpl = compile('{{img image "h"}}');
+    const html = tpl({ image: 'id with spaces' });
+    expect(html).toContain('/api/assets/id%20with%20spaces');
+  });
+});

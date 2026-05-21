@@ -1,5 +1,6 @@
 @import './tokens.css';
 @import './fonts.css';
+@import 'cropperjs/dist/cropper.css';
 
 *, *::before, *::after { box-sizing: border-box; }
 * { margin: 0; padding: 0; }

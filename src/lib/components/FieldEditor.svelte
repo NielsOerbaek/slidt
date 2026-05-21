@@ -1,11 +1,13 @@
 <script lang="ts">
   import type { Field } from '../../renderer/types.ts';
   import { t } from '$lib/i18n/index.ts';
+  import ImageFieldEditor from './ImageFieldEditor.svelte';
 
-  let { field, value, onchange }: {
+  let { field, value, onchange, deckId = '' }: {
     field: Field;
     value: unknown;
     onchange: (v: unknown) => void;
+    deckId?: string;
   } = $props();
 
   function defaultForField(f: Field): unknown {
@@ -19,11 +21,13 @@
   }
 </script>
 
-{#if field.type === 'text' || field.type === 'image'}
+{#if field.type === 'image'}
+  <ImageFieldEditor {field} {value} {onchange} {deckId} />
+
+{:else if field.type === 'text'}
   <input
     type="text"
     value={value as string ?? ''}
-    placeholder={field.type === 'image' ? '/api/assets/...' : ''}
     oninput={(e) => onchange((e.target as HTMLInputElement).value)}
   />
 
@@ -64,6 +68,7 @@
         <svelte:self
           field={field.items!}
           value={item}
+          {deckId}
           onchange={(v) => {
             const next = [...items];
             next[i] = v;
@@ -96,6 +101,7 @@
         <svelte:self
           field={subField}
           value={grp[subField.name]}
+          {deckId}
           onchange={(v) => onchange({ ...grp, [subField.name]: v })}
         />
       </div>

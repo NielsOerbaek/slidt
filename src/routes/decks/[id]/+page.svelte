@@ -937,6 +937,7 @@
               <FieldEditor
                 {field}
                 value={selectedData[field.name]}
+                deckId={data.deck.id}
                 onchange={(v) => handleFieldChange({ ...selectedData, [field.name]: v })}
               />
             </STField>

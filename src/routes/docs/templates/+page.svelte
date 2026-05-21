@@ -26,6 +26,7 @@
       <tr><td><code>select</code></td><td>string</td><td>One of a fixed set of options</td></tr>
       <tr><td><code>list</code></td><td>array</td><td>Repeating items — either strings or objects (see below)</td></tr>
       <tr><td><code>group</code></td><td>object</td><td>Nested sub-fields keyed by name</td></tr>
+      <tr><td><code>image</code></td><td>string or object</td><td>Image asset — stores asset ID or crop object <code>&#123;id, cropX, cropY, cropW, cropH, rotate&#125;</code></td></tr>
     </tbody>
   </table>
 
@@ -63,6 +64,7 @@
       <tr><td><code>fmt</code></td><td>Format a <em>string</em> value for display. Never pass objects or arrays.</td></tr>
       <tr><td><code>eq</code></td><td><code>&#123;&#123;#if (eq a b)&#125;&#125;</code> — equality check</td></tr>
       <tr><td><code>default</code></td><td><code>&#123;&#123;default value "fallback"&#125;&#125;</code></td></tr>
+      <tr><td><code>img</code></td><td><code>&#123;&#123;img fieldName "wrapper-class"&#125;&#125;</code> — renders an image from an <code>image</code> field. Accepts a bare asset ID string or a crop object. Outputs a <code>&lt;div class="img-wrap …"&gt;&lt;img&gt;&lt;/div&gt;</code> with CSS custom properties for cropping and rotation.</td></tr>
       <tr><td><code>each</code></td><td>Iterate over arrays</td></tr>
       <tr><td><code>if</code> / <code>unless</code></td><td>Conditional blocks</td></tr>
       <tr><td><code>with</code></td><td>Change context to a nested object</td></tr>
@@ -80,6 +82,17 @@
   font-family: var(--st-font-display);
 &#125;</code></pre>
   <p>Prohibited: <code>@import</code>, <code>url()</code> with external refs, <code>expression()</code>, <code>behavior:</code>.</p>
+
+  <h3>Built-in image slide types</h3>
+  <p>Three global slide types ship with slidt for image-based layouts:</p>
+  <table>
+    <thead><tr><th>Slide type</th><th>Description</th></tr></thead>
+    <tbody>
+      <tr><td><code>image-full</code></td><td>Full-bleed single image with an optional caption overlay</td></tr>
+      <tr><td><code>image-side</code></td><td>Image on one side, text content on the other</td></tr>
+      <tr><td><code>image-grid</code></td><td>Grid of up to four images with optional captions</td></tr>
+    </tbody>
+  </table>
 
   <h3>Common pitfalls</h3>
   <ul>

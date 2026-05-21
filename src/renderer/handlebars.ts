@@ -38,7 +38,7 @@ env.registerHelper('img', (fieldValue: unknown, wrapperClass: unknown) => {
     cropY = typeof v.cropY === 'number' ? v.cropY : 0;
     cropW = typeof v.cropW === 'number' && v.cropW > 0 ? v.cropW : 100;
     cropH = typeof v.cropH === 'number' && v.cropH > 0 ? v.cropH : 100;
-    rotate = typeof v.rotate === 'number' ? v.rotate : 0;
+    rotate = typeof v.rotate === 'number' && isFinite(v.rotate) ? v.rotate : 0;
   } else {
     return new env.SafeString('');
   }

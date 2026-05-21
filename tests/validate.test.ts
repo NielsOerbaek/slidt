@@ -72,3 +72,28 @@ describe('validate', () => {
     expect(() => validate({ mark: 'red' }, fields)).toThrow(/mark/);
   });
 });
+
+describe('image field validation', () => {
+  it('accepts a bare string asset ID', () => {
+    expect(() => validate({ img: 'uuid-abc' }, [{ name: 'img', type: 'image' }])).not.toThrow();
+  });
+
+  it('accepts a crop object with id', () => {
+    expect(() =>
+      validate(
+        { img: { id: 'uuid-abc', cropX: 0, cropY: 0, cropW: 100, cropH: 100, rotate: 0 } },
+        [{ name: 'img', type: 'image' }],
+      ),
+    ).not.toThrow();
+  });
+
+  it('accepts an empty string for optional image field', () => {
+    expect(() => validate({ img: '' }, [{ name: 'img', type: 'image' }])).not.toThrow();
+  });
+
+  it('rejects a crop object missing id', () => {
+    expect(() =>
+      validate({ img: { cropX: 0, cropW: 100 } }, [{ name: 'img', type: 'image', required: true }]),
+    ).toThrow();
+  });
+});

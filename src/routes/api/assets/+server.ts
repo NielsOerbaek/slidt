@@ -26,6 +26,12 @@ export async function POST(event: RequestEvent) {
   if (typeof kind !== 'string') throw error(400, 'kind required');
   if (!(file instanceof Blob)) throw error(400, 'file required');
 
+  // Server-side MIME and size guard
+  const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml'];
+  const MAX_BYTES = 20 * 1024 * 1024; // 20 MB
+  if (!ALLOWED_TYPES.includes(file.type)) throw error(415, 'Unsupported file type');
+  if (file.size > MAX_BYTES) throw error(413, 'File too large (max 20 MB)');
+
   const [deck] = await db
     .select({ id: decks.id })
     .from(decks)

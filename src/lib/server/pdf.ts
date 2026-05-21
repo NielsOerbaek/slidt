@@ -1,4 +1,5 @@
 import { readFile } from 'fs/promises';
+import path from 'path';
 import { render } from '../../renderer/index.ts';
 import { buildFontCss } from './font-css.ts';
 import { stitchPdfs } from './pdf-utils.ts';
@@ -16,7 +17,49 @@ export function injectFontCss(html: string, fontCss: string): string {
   return html.replace('<style>', `<style>\n${fontCss}\n`);
 }
 
-async function loadDeckHtml(deckId: string): Promise<{ html: string; appendixAssets: typeof assets.$inferSelect[] }> {
+const ASSET_MIME: Record<string, string> = {
+  '.jpg': 'image/jpeg',
+  '.jpeg': 'image/jpeg',
+  '.png': 'image/png',
+  '.gif': 'image/gif',
+  '.webp': 'image/webp',
+  '.svg': 'image/svg+xml',
+};
+
+/**
+ * Replace `src="/api/assets/UUID"` attributes with base64 data URIs so that
+ * Playwright's setContent() — which has no base URL and cannot make HTTP
+ * requests to auth-gated endpoints — can render slide images in the PDF.
+ */
+export async function rewriteAssetUrls(html: string, assetMap: Map<string, string>): Promise<string> {
+  if (assetMap.size === 0 || !html.includes('/api/assets/')) return html;
+
+  // Collect unique asset IDs referenced in src attributes
+  const ids = new Set<string>();
+  const pattern = /src="\/api\/assets\/([^"]+)"/g;
+  let m: RegExpExecArray | null;
+  while ((m = pattern.exec(html)) !== null) ids.add(decodeURIComponent(m[1]));
+
+  // Read each file and build id → data URI map
+  const dataUris = new Map<string, string>();
+  for (const id of ids) {
+    const storagePath = assetMap.get(id);
+    if (!storagePath) continue;
+    const buf = await readFile(storagePath).catch(() => null);
+    if (!buf) continue;
+    const ext = path.extname(storagePath).toLowerCase();
+    const mime = ASSET_MIME[ext] ?? 'application/octet-stream';
+    dataUris.set(id, `data:${mime};base64,${buf.toString('base64')}`);
+  }
+
+  return html.replace(/src="\/api\/assets\/([^"]+)"/g, (original, encoded) => {
+    const id = decodeURIComponent(encoded);
+    const uri = dataUris.get(id);
+    return uri ? `src="${uri}"` : original;
+  });
+}
+
+async function loadDeckHtml(deckId: string): Promise<{ html: string; appendixAssets: typeof assets.$inferSelect[]; imageAssets: Map<string, string> }> {
   // 1. Load deck
   const [deck] = await db.select().from(decks).where(eq(decks.id, deckId)).limit(1);
   if (!deck) throw new Error(`Deck not found: ${deckId}`);
@@ -50,9 +93,12 @@ async function loadDeckHtml(deckId: string): Promise<{ html: string; appendixAss
   }
   if (!theme) throw new Error('No theme configured for this deck');
 
-  // 5. Load appendix-pdf assets
+  // 5. Load assets: split into appendix PDFs and image assets for URL rewriting
   const deckAssets = await db.select().from(assets).where(eq(assets.deckId, deckId));
   const appendixAssets = deckAssets.filter((a) => a.kind === 'appendix-pdf');
+  const imageAssets = new Map(
+    deckAssets.filter((a) => a.kind === 'image').map((a) => [a.id, a.storagePath]),
+  );
 
   // 6. Assemble render inputs
   const deckSlides: Slide[] = ordered.map((s) => {
@@ -81,7 +127,7 @@ async function loadDeckHtml(deckId: string): Promise<{ html: string; appendixAss
   const gFonts = extractGoogleFonts(renderTheme.tokens);
   const gLink = buildGoogleFontsLink(gFonts);
   if (gLink) injected = injected.replace('</head>', `${gLink}\n</head>`);
-  return { html: injected, appendixAssets };
+  return { html: injected, appendixAssets, imageAssets };
 }
 
 export async function renderDeckToHtml(deckId: string): Promise<string> {
@@ -319,7 +365,11 @@ export async function renderDeckToPresentation(deckId: string): Promise<string> 
 }
 
 export async function renderDeckToPdf(deckId: string): Promise<Buffer> {
-  const { html: htmlWithFonts, appendixAssets } = await loadDeckHtml(deckId);
+  const { html: htmlWithFonts, appendixAssets, imageAssets } = await loadDeckHtml(deckId);
+
+  // Rewrite /api/assets/UUID src URLs to base64 data URIs so Playwright can
+  // render images without needing to make authenticated HTTP requests.
+  const html = await rewriteAssetUrls(htmlWithFonts, imageAssets);
 
   // 8. Print to PDF via Playwright
   // new Function prevents Vite/Rollup from statically analysing and bundling playwright.
@@ -330,7 +380,7 @@ export async function renderDeckToPdf(deckId: string): Promise<Buffer> {
   let pdfBuf: Buffer;
   try {
     const page = await browser.newPage();
-    await page.setContent(htmlWithFonts, { waitUntil: 'networkidle' });
+    await page.setContent(html, { waitUntil: 'networkidle' });
     await page.evaluate(async () => { await document.fonts.ready; });
     const bytes = await page.pdf({
       width: '1920px',

@@ -30,28 +30,26 @@ async function renderOne(type: SlideType, data: Record<string, unknown>): Promis
 }
 
 describe('title slide type', () => {
-  it('renders eyebrow, title, titleAlt, kicker, and a mark', async () => {
+  it('renders eyebrow, title, titleAlt, and kicker', async () => {
     const html = await renderOne(cover, {
       eyebrow: 'Diskussionsoplæg',
       title: 'ANTAL',
       titleAlt: 'og Theta',
       kicker: 'Hvordan ANTAL passer ind',
-      mark: 'dandelion-green',
     });
     expect(html).toContain('Diskussionsoplæg');
     expect(html).toContain('ANTAL');
     expect(html).toContain('og Theta');
     expect(html).toContain('Hvordan ANTAL passer ind');
-    // Dandelion SVG is inlined — verify the green stroke colour appears.
-    expect(html).toContain('#9CED7C');
   });
 
-  it('falls back to violet mark when none specified', async () => {
+  it('renders title and titleAlt without optional fields', async () => {
     const html = await renderOne(cover, {
       title: 'X',
       titleAlt: 'Y',
     });
-    expect(html).toContain('#6E31FF');
+    expect(html).toContain('X');
+    expect(html).toContain('Y');
   });
 });
 

@@ -49,10 +49,21 @@
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let cropperInstance: any = null;
   let cropImgEl: HTMLImageElement | undefined = $state();
+  // Track which image ID the Cropper was last initialized for. imgValue is a
+  // $derived that produces a new object reference on every parent re-render
+  // (even when the data is unchanged), which would cause the $effect to re-run
+  // and destroy+recreate the Cropper — snapping the crop box back to its
+  // default position mid-drag. The guard below prevents that.
+  let lastCroppedId = '';
 
   $effect(() => {
     if (!editorOpen || !cropImgEl || !imgValue) return;
+
+    // Cropper is already live for this image — don't reinitialize.
+    if (cropperInstance && lastCroppedId === imgValue.id) return;
+
     let cancelled = false;
+    const snapshot = { ...imgValue }; // plain copy; safe to use after awaits
 
     (async () => {
       if (!CropperClass) {
@@ -62,7 +73,7 @@
       if (cancelled || !cropImgEl) return;
 
       cropperInstance?.destroy();
-      const savedValue = imgValue;
+      lastCroppedId = snapshot.id;
       cropperInstance = new CropperClass(cropImgEl, {
         viewMode: 2,
         autoCrop: true,
@@ -71,19 +82,19 @@
         rotatable: true,
         scalable: false,
         ready() {
-          if (!cropImgEl || !savedValue) return;
-          if (savedValue.cropW < 100 || savedValue.cropH < 100) {
+          if (!cropImgEl || !snapshot) return;
+          if (snapshot.cropW < 100 || snapshot.cropH < 100) {
             const nw = cropImgEl.naturalWidth;
             const nh = cropImgEl.naturalHeight;
             cropperInstance?.setData({
-              x: (savedValue.cropX / 100) * nw,
-              y: (savedValue.cropY / 100) * nh,
-              width: (savedValue.cropW / 100) * nw,
-              height: (savedValue.cropH / 100) * nh,
-              rotate: savedValue.rotate,
+              x: (snapshot.cropX / 100) * nw,
+              y: (snapshot.cropY / 100) * nh,
+              width: (snapshot.cropW / 100) * nw,
+              height: (snapshot.cropH / 100) * nh,
+              rotate: snapshot.rotate,
             });
-          } else if (savedValue.rotate) {
-            cropperInstance?.rotate(savedValue.rotate);
+          } else if (snapshot.rotate) {
+            cropperInstance?.rotate(snapshot.rotate);
           }
         },
       });
@@ -114,12 +125,14 @@
     editorOpen = false;
     cropperInstance.destroy();
     cropperInstance = null;
+    lastCroppedId = '';
   }
 
   function cancelEditing() {
     editorOpen = false;
     cropperInstance?.destroy();
     cropperInstance = null;
+    lastCroppedId = '';
   }
 
   function setAspectRatio(ratio: number) { cropperInstance?.setAspectRatio(ratio); }

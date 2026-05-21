@@ -33,6 +33,7 @@
     "@sveltejs/kit": "^2.57.1",
     "ai": "^6.0.184",
     "ai-sdk-ollama": "^3.8.4",
+    "cropperjs": "^2.1.1",
     "drizzle-orm": "^0.45.2",
     "handlebars": "^4.7.8",
     "ollama-ai-provider": "^1.2.0",

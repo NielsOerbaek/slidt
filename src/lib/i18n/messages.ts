@@ -363,6 +363,27 @@ export const messages = {
   'field.select_default': { da: '— vælg —', en: '— select —' },
   'field.remove': { da: 'Fjern', en: 'Remove' },
   'field.add_item': { da: '+ Tilføj {label}', en: '+ Add {label}' },
+
+  // ── Image upload ────────────────────────────────────────────────────────
+  'imageUpload.uploadButton': { da: 'Upload billede', en: 'Upload image' },
+  'imageUpload.replaceButton': { da: 'Erstat', en: 'Replace' },
+  'imageUpload.editButton': { da: 'Rediger', en: 'Edit' },
+  'imageUpload.removeButton': { da: 'Fjern', en: 'Remove' },
+  'imageUpload.dragDrop': { da: 'eller træk og slip', en: 'or drag and drop' },
+  'imageUpload.uploading': { da: 'Uploader…', en: 'Uploading…' },
+  'imageUpload.invalidType': { da: 'Vælg en billedfil', en: 'Please select an image file' },
+  'imageUpload.tooLarge': { da: 'Filen skal være under 20 MB', en: 'File must be under 20 MB' },
+
+  // ── Image editor (Cropper.js modal) ──────────────────────────────────
+  'imageEditor.title': { da: 'Rediger billede', en: 'Edit image' },
+  'imageEditor.cropFree': { da: 'Fri', en: 'Free' },
+  'imageEditor.crop16x9': { da: '16:9', en: '16:9' },
+  'imageEditor.crop4x3': { da: '4:3', en: '4:3' },
+  'imageEditor.crop1x1': { da: 'Kvadrat', en: 'Square' },
+  'imageEditor.rotateCCW': { da: 'Roter venstre', en: 'Rotate left' },
+  'imageEditor.rotateCW': { da: 'Roter højre', en: 'Rotate right' },
+  'imageEditor.reset': { da: 'Nulstil', en: 'Reset' },
+  'imageEditor.done': { da: 'Færdig', en: 'Done' },
 } as const satisfies Record<string, { da: string; en: string }>;
 
 export type MessageKey = keyof typeof messages;

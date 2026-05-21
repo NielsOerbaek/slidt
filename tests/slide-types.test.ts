@@ -7,6 +7,15 @@ import { agenda } from '../src/slide-types/agenda.ts';
 import type { Deck, Theme, SlideType } from '../src/renderer/types.ts';
 import { appendixList } from '../src/slide-types/appendix-list.ts';
 import { BUILT_IN_SLIDE_TYPES } from '../src/slide-types/index.ts';
+import { content } from '../src/slide-types/content.ts';
+import { principles } from '../src/slide-types/principles.ts';
+import { discussion } from '../src/slide-types/discussion.ts';
+import { values } from '../src/slide-types/values.ts';
+import { reserve } from '../src/slide-types/reserve.ts';
+import { purposes } from '../src/slide-types/purposes.ts';
+import { ownership } from '../src/slide-types/ownership.ts';
+import { friction } from '../src/slide-types/friction.ts';
+import { imageFull } from '../src/slide-types/image-full.ts';
 
 const emptyTheme: Theme = { name: 'empty', tokens: {} };
 
@@ -79,10 +88,6 @@ describe('agenda slide type', () => {
     expect(html).toContain('<li>Theta</li>');
   });
 });
-import { content } from '../src/slide-types/content.ts';
-import { principles } from '../src/slide-types/principles.ts';
-import { discussion } from '../src/slide-types/discussion.ts';
-import { values } from '../src/slide-types/values.ts';
 
 describe('content slide type', () => {
   it('renders eyebrow, title, and bullets', async () => {
@@ -145,10 +150,6 @@ describe('values slide type', () => {
     expect(html).toContain('Ikke være');
   });
 });
-import { reserve } from '../src/slide-types/reserve.ts';
-import { purposes } from '../src/slide-types/purposes.ts';
-import { ownership } from '../src/slide-types/ownership.ts';
-import { friction } from '../src/slide-types/friction.ts';
 
 describe('reserve slide type', () => {
   it('renders title, paragraphs, and callout', async () => {
@@ -241,17 +242,44 @@ describe('appendix-list slide type', () => {
   });
 });
 
+describe('image-full slide type', () => {
+  it('renders img-wrap with asset URL', async () => {
+    const html = await renderOne(imageFull, {
+      image: 'asset-uuid-1',
+      overlay: true,
+      headline: 'Visual story',
+      caption: 'Copenhagen, 2026',
+    });
+    expect(html).toContain('/api/assets/asset-uuid-1');
+    expect(html).toContain('img-wrap');
+    expect(html).toContain('Visual story');
+    expect(html).toContain('Copenhagen, 2026');
+    expect(html).toContain('has-overlay');
+  });
+
+  it('renders with image object and no overlay', async () => {
+    const html = await renderOne(imageFull, {
+      image: { id: 'asset-uuid-2', cropX: 10, cropY: 5, cropW: 80, cropH: 90, rotate: 0 },
+      overlay: false,
+    });
+    expect(html).toContain('/api/assets/asset-uuid-2');
+    // Check that the HTML content (not CSS) doesn't have the class on the image-full-slide element
+    expect(html).not.toContain('image-full-slide has-overlay');
+  });
+});
+
 describe('BUILT_IN_SLIDE_TYPES', () => {
-  it('exports exactly 13 types', () => {
-    expect(BUILT_IN_SLIDE_TYPES).toHaveLength(13);
+  it('exports exactly 21 types', () => {
+    expect(BUILT_IN_SLIDE_TYPES).toHaveLength(21);
   });
 
   it('includes the expected names', () => {
     const names = BUILT_IN_SLIDE_TYPES.map((t) => t.name).sort();
     expect(names).toEqual([
-      'agenda', 'appendix-list', 'closing', 'content', 'discussion',
-      'friction', 'ownership', 'principles', 'purposes', 'reserve',
-      'section', 'title', 'values',
+      'agenda', 'appendix-list', 'bullet-list', 'callout-content', 'card-grid',
+      'closing', 'column-list', 'comparison', 'cover', 'divider', 'dot-flow',
+      'image-full', 'numbered-list', 'qa-list', 'quote', 'quote-pair',
+      'stat-grid', 'team-cards', 'three-column', 'timeline', 'two-column',
     ]);
   });
 

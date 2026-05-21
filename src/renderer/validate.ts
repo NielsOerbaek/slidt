@@ -43,10 +43,18 @@ function checkField(value: unknown, field: Field, path: string): void {
       return;
     }
     case 'image': {
-      if (typeof value !== 'string') {
-        throw new ValidationError(`Field ${path} must be image (string ref), got ${typeof value}`);
+      if (typeof value === 'string') {
+        return;
       }
-      return;
+      if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+        const obj = value as Record<string, unknown>;
+        if (typeof obj.id === 'string') {
+          return;
+        }
+      }
+      throw new ValidationError(
+        `Field ${path} must be image (string or crop object), got ${typeof value}`,
+      );
     }
     case 'list': {
       if (!Array.isArray(value)) {

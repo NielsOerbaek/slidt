@@ -20,6 +20,7 @@ import { threeColumn } from './three-column.ts';
 import { dotFlow } from './dot-flow.ts';
 import { quotePair } from './quote-pair.ts';
 import { imageFull } from './image-full.ts';
+import { imageSide } from './image-side.ts';
 
 export const BUILT_IN_SLIDE_TYPES: SlideType[] = [
   cover,
@@ -43,6 +44,7 @@ export const BUILT_IN_SLIDE_TYPES: SlideType[] = [
   dotFlow,
   quotePair,
   imageFull,
+  imageSide,
 ];
 
 export {
@@ -67,4 +69,5 @@ export {
   dotFlow,
   quotePair,
   imageFull,
+  imageSide,
 };

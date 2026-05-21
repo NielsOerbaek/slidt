@@ -1,21 +1,22 @@
 import { describe, it, expect } from 'vitest';
 import { render } from '../src/renderer/index.ts';
-import { title } from '../src/slide-types/title.ts';
+import { cover } from '../src/slide-types/title.ts';
 import { closing } from '../src/slide-types/closing.ts';
-import { section } from '../src/slide-types/section.ts';
+import { divider } from '../src/slide-types/section.ts';
 import { agenda } from '../src/slide-types/agenda.ts';
 import type { Deck, Theme, SlideType } from '../src/renderer/types.ts';
 import { appendixList } from '../src/slide-types/appendix-list.ts';
 import { BUILT_IN_SLIDE_TYPES } from '../src/slide-types/index.ts';
-import { content } from '../src/slide-types/content.ts';
-import { principles } from '../src/slide-types/principles.ts';
-import { discussion } from '../src/slide-types/discussion.ts';
-import { values } from '../src/slide-types/values.ts';
-import { reserve } from '../src/slide-types/reserve.ts';
-import { purposes } from '../src/slide-types/purposes.ts';
-import { ownership } from '../src/slide-types/ownership.ts';
-import { friction } from '../src/slide-types/friction.ts';
+import { bulletList } from '../src/slide-types/content.ts';
+import { numberedList } from '../src/slide-types/principles.ts';
+import { qaList } from '../src/slide-types/discussion.ts';
+import { columnList } from '../src/slide-types/values.ts';
+import { calloutContent } from '../src/slide-types/reserve.ts';
+import { cardGrid } from '../src/slide-types/purposes.ts';
+import { teamCards } from '../src/slide-types/ownership.ts';
+import { comparison } from '../src/slide-types/friction.ts';
 import { imageFull } from '../src/slide-types/image-full.ts';
+import { imageSide } from '../src/slide-types/image-side.ts';
 
 const emptyTheme: Theme = { name: 'empty', tokens: {} };
 
@@ -30,7 +31,7 @@ async function renderOne(type: SlideType, data: Record<string, unknown>): Promis
 
 describe('title slide type', () => {
   it('renders eyebrow, title, titleAlt, kicker, and a mark', async () => {
-    const html = await renderOne(title, {
+    const html = await renderOne(cover, {
       eyebrow: 'Diskussionsoplæg',
       title: 'ANTAL',
       titleAlt: 'og Theta',
@@ -46,7 +47,7 @@ describe('title slide type', () => {
   });
 
   it('falls back to violet mark when none specified', async () => {
-    const html = await renderOne(title, {
+    const html = await renderOne(cover, {
       title: 'X',
       titleAlt: 'Y',
     });
@@ -64,7 +65,7 @@ describe('closing slide type', () => {
 
 describe('section slide type', () => {
   it('renders bigMark, title, subtitle and omits corner logo', async () => {
-    const html = await renderOne(section, {
+    const html = await renderOne(divider, {
       bigMark: 'ϑ',
       title: 'Theta',
       subtitle: 'into the picture',
@@ -91,7 +92,7 @@ describe('agenda slide type', () => {
 
 describe('content slide type', () => {
   it('renders eyebrow, title, and bullets', async () => {
-    const html = await renderOne(content, {
+    const html = await renderOne(bulletList, {
       eyebrow: 'Recap',
       title: 'Hvad er ANTAL?',
       bullets: ['**ANTAL** er en forening', 'F.M.B.A. stiftet i 2022'],
@@ -105,7 +106,7 @@ describe('content slide type', () => {
 
 describe('principles slide type', () => {
   it('renders an ordered list of {title, body} items', async () => {
-    const html = await renderOne(principles, {
+    const html = await renderOne(numberedList, {
       eyebrow: 'Værdi',
       title: 'De syv principper',
       items: [
@@ -121,7 +122,7 @@ describe('principles slide type', () => {
 
 describe('discussion slide type', () => {
   it('renders letter-marked items', async () => {
-    const html = await renderOne(discussion, {
+    const html = await renderOne(qaList, {
       eyebrow: 'Diskussion',
       title: 'Fire spørgsmål',
       items: [
@@ -137,7 +138,7 @@ describe('discussion slide type', () => {
 
 describe('values slide type', () => {
   it('renders two columns each with heading + items', async () => {
-    const html = await renderOne(values, {
+    const html = await renderOne(columnList, {
       eyebrow: 'Princip 5',
       title: 'De fælles værdier',
       columns: [
@@ -153,7 +154,7 @@ describe('values slide type', () => {
 
 describe('reserve slide type', () => {
   it('renders title, paragraphs, and callout', async () => {
-    const html = await renderOne(reserve, {
+    const html = await renderOne(calloutContent, {
       eyebrow: 'Princip 6',
       title: 'Udelelig reserve',
       paragraphs: ['Bygger på fællesøkonomi.', 'Må ikke udbetales.'],
@@ -167,7 +168,7 @@ describe('reserve slide type', () => {
 
 describe('purposes slide type', () => {
   it('renders a grid of numbered cards', async () => {
-    const html = await renderOne(purposes, {
+    const html = await renderOne(cardGrid, {
       eyebrow: 'Helikopter',
       title: 'Fire formål',
       cards: [
@@ -183,7 +184,7 @@ describe('purposes slide type', () => {
 
 describe('ownership slide type', () => {
   it('renders a source line and three cards', async () => {
-    const html = await renderOne(ownership, {
+    const html = await renderOne(teamCards, {
       eyebrow: 'Theta',
       title: 'Demokratisk organisering',
       source: 'F.M.B.A.-struktur.',
@@ -201,7 +202,7 @@ describe('ownership slide type', () => {
 
 describe('friction slide type', () => {
   it('renders two sides and a question', async () => {
-    const html = await renderOne(friction, {
+    const html = await renderOne(comparison, {
       eyebrow: 'Friktion 1',
       title: 'Medarbejdereje?',
       sideA: {
@@ -268,9 +269,32 @@ describe('image-full slide type', () => {
   });
 });
 
+describe('image-side slide type', () => {
+  it('renders image column and text column', async () => {
+    const html = await renderOne(imageSide, {
+      image: 'asset-side-1',
+      title: 'Billede og tekst',
+      body: 'En linje til højre.',
+      flip: false,
+    });
+    expect(html).toContain('/api/assets/asset-side-1');
+    expect(html).toContain('Billede og tekst');
+    expect(html).toContain('En linje til højre');
+    expect(html).not.toContain('image-side-slide flipped');
+  });
+
+  it('adds "flipped" class when flip is true', async () => {
+    const html = await renderOne(imageSide, {
+      image: 'asset-side-2',
+      flip: true,
+    });
+    expect(html).toContain('image-side-slide flipped');
+  });
+});
+
 describe('BUILT_IN_SLIDE_TYPES', () => {
-  it('exports exactly 21 types', () => {
-    expect(BUILT_IN_SLIDE_TYPES).toHaveLength(21);
+  it('exports exactly 22 types', () => {
+    expect(BUILT_IN_SLIDE_TYPES).toHaveLength(22);
   });
 
   it('includes the expected names', () => {
@@ -278,7 +302,7 @@ describe('BUILT_IN_SLIDE_TYPES', () => {
     expect(names).toEqual([
       'agenda', 'appendix-list', 'bullet-list', 'callout-content', 'card-grid',
       'closing', 'column-list', 'comparison', 'cover', 'divider', 'dot-flow',
-      'image-full', 'numbered-list', 'qa-list', 'quote', 'quote-pair',
+      'image-full', 'image-side', 'numbered-list', 'qa-list', 'quote', 'quote-pair',
       'stat-grid', 'team-cards', 'three-column', 'timeline', 'two-column',
     ]);
   });

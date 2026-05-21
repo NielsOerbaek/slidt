@@ -290,9 +290,36 @@ describe('image-side slide type', () => {
   });
 });
 
+describe('image-grid slide type', () => {
+  it('renders multiple grid cells with images', async () => {
+    const imageGrid = (await import('../src/slide-types/image-grid.ts')).imageGrid;
+    const html = await renderOne(imageGrid, {
+      images: [
+        { image: 'grid-asset-1', caption: 'First' },
+        { image: 'grid-asset-2', caption: '' },
+        { image: 'grid-asset-3', caption: 'Third' },
+      ],
+    });
+    expect(html).toContain('/api/assets/grid-asset-1');
+    expect(html).toContain('/api/assets/grid-asset-2');
+    expect(html).toContain('/api/assets/grid-asset-3');
+    expect(html).toContain('First');
+    expect(html).toContain('Third');
+    expect(html).not.toContain('undefined');
+  });
+
+  it('renders a single image', async () => {
+    const imageGrid = (await import('../src/slide-types/image-grid.ts')).imageGrid;
+    const html = await renderOne(imageGrid, {
+      images: [{ image: 'solo-asset', caption: '' }],
+    });
+    expect(html).toContain('/api/assets/solo-asset');
+  });
+});
+
 describe('BUILT_IN_SLIDE_TYPES', () => {
-  it('exports exactly 22 types', () => {
-    expect(BUILT_IN_SLIDE_TYPES).toHaveLength(22);
+  it('exports exactly 23 types', () => {
+    expect(BUILT_IN_SLIDE_TYPES).toHaveLength(23);
   });
 
   it('includes the expected names', () => {
@@ -300,7 +327,7 @@ describe('BUILT_IN_SLIDE_TYPES', () => {
     expect(names).toEqual([
       'agenda', 'appendix-list', 'bullet-list', 'callout-content', 'card-grid',
       'closing', 'column-list', 'comparison', 'cover', 'divider', 'dot-flow',
-      'image-full', 'image-side', 'numbered-list', 'qa-list', 'quote', 'quote-pair',
+      'image-full', 'image-grid', 'image-side', 'numbered-list', 'qa-list', 'quote', 'quote-pair',
       'stat-grid', 'team-cards', 'three-column', 'timeline', 'two-column',
     ]);
   });

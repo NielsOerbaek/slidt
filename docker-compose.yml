@@ -5,8 +5,6 @@ services:
       POSTGRES_DB: slidt
       POSTGRES_USER: slidt
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-slidt}
-    ports:
-      - '5432:5432'
     volumes:
       - ./data/pg:/var/lib/postgresql/data
     healthcheck:

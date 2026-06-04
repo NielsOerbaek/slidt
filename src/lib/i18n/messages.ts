@@ -264,6 +264,7 @@ export const messages = {
   },
 
   'share.view_only': { da: 'KUN VISNING', en: 'VIEW ONLY' },
+  'share.download_pdf': { da: 'Download PDF', en: 'Download PDF' },
 
   // ── Editor: theme picker & collaborators (new) ───────────────────────
   'editor.theme_button': { da: 'TEMA', en: 'THEME' },

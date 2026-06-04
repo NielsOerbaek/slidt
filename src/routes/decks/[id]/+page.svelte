@@ -1816,7 +1816,7 @@
   .collab-remove:hover { color: #ff6060; }
   .collab-add { display: flex; gap: 8px; margin-top: 12px; align-items: center; }
   .collab-add input { flex: 1; padding: 6px 10px; border: 2px solid var(--st-ink); background: var(--st-bg); color: var(--st-ink); font-family: var(--st-font-mono); font-size: 12px; border-radius: 0; }
-  .collab-add select { padding: 6px 8px; border: 2px solid var(--st-ink); background: var(--st-bg); color: var(--st-ink); font-family: var(--st-font-mono); font-size: 11px; border-radius: 0; }
+  .collab-add select { width: auto; padding: 6px 8px; border: 2px solid var(--st-ink); background: var(--st-bg); color: var(--st-ink); font-family: var(--st-font-mono); font-size: 11px; border-radius: 0; }
   .collab-error { font-family: var(--st-font-mono); font-size: 11px; color: #ff6060; margin: 0 0 8px; }
   .btn-sm {
     padding: 6px 14px;

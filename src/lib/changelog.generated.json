@@ -1,6 +1,263 @@
 {
-  "generatedAt": "2026-05-13T06:59:13.947Z",
+  "generatedAt": "2026-05-20T06:38:50.642Z",
   "days": [
+    {
+      "date": "2026-05-19",
+      "commits": [
+        {
+          "hash": "f60b10852ec3331f373fe60e87d447ebd8574ff1",
+          "shortHash": "f60b108",
+          "date": "2026-05-19T13:09:04+00:00",
+          "isoDate": "2026-05-19",
+          "subject": "strip thinking from history, surface tool errors to model",
+          "body": "- load-history-aisdk: skip thinking/reasoning blocks when reconstructing\n  history — they waste tokens (can be 10k+ chars) and models gain nothing\n  from re-reading their own prior reasoning\n- aisdk-tools: wrap executeTool() in try/catch so unexpected throws\n  return {result:'error: ...'} instead of crashing the stream; the model\n  then sees the error in context and can adapt or report it\n\nCo-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>",
+          "author": "slidt ralph loop",
+          "type": "fix",
+          "scope": "agent"
+        },
+        {
+          "hash": "33a234cd2de2fa292d9a66ae2c908d636f14927c",
+          "shortHash": "33a234c",
+          "date": "2026-05-19T13:07:22+00:00",
+          "isoDate": "2026-05-19",
+          "subject": "retry streamText with backoff on 504/503 from Ollama",
+          "body": "When Ollama is busy or the model is loading, it returns 504 Gateway\nTime-out. Add an exponential-backoff retry loop (up to 4 retries: 2, 4,\n8, 16 s) around streamText + fullStream consumption. Transient 50x\nerrors are detected by message pattern; other errors fail immediately.\nA thinking-delta notifies the user during each wait.\n\nCo-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>",
+          "author": "slidt ralph loop",
+          "type": "fix",
+          "scope": "agent"
+        },
+        {
+          "hash": "a3e1b883c0a888b11da9f8ce2a9827e66aee2f8f",
+          "shortHash": "a3e1b88",
+          "date": "2026-05-19T12:47:36+00:00",
+          "isoDate": "2026-05-19",
+          "subject": "wrap tool result output as {type:'text',value} for AI SDK schema",
+          "body": "AI SDK v6 Zod validation for ToolResultPart.output requires a typed\nobject ({type:'text',value:string}) not a plain string. Passing raw\nstrings caused \"messages do not match ModelMessage[] schema\" on every\nturn after the first tool call.\n\nCo-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>",
+          "author": "slidt ralph loop",
+          "type": "fix",
+          "scope": "agent"
+        },
+        {
+          "hash": "af6a699f192c38ad1c21b632f320acdec00e39ff",
+          "shortHash": "af6a699",
+          "date": "2026-05-19T11:22:37+00:00",
+          "isoDate": "2026-05-19",
+          "subject": "resolve toolName from tool_use blocks in history reconstruction",
+          "body": "AI SDK v6 schema validation rejects tool-result messages with empty\ntoolName. Pre-build a toolCallId → toolName map from assistant tool_use\nblocks so every tool result in the reconstructed history has the correct\nname. This fixes \"messages do not match ModelMessage[] schema\" on the\nsecond turn of any session that used tools.\n\nCo-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>",
+          "author": "slidt ralph loop",
+          "type": "fix",
+          "scope": "agent"
+        },
+        {
+          "hash": "64fc65fa146df0f7445343cf930f220743d406a7",
+          "shortHash": "64fc65f",
+          "date": "2026-05-19T11:06:12+00:00",
+          "isoDate": "2026-05-19",
+          "subject": "hide model badge, collapse model setting, default qwen3.6:35b",
+          "body": "- Remove model badge from agent drawer header (no need to show model)\n- Move agent model selector into a <details> collapsible under\n  \"Advanced settings\" in /settings so casual users don't see it\n- Default OLLAMA_DEFAULT_MODEL → qwen3.6:35b in .env.example and\n  docker-compose.yml fallback\n\nCo-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>",
+          "author": "slidt ralph loop",
+          "type": "feat",
+          "scope": "ux"
+        }
+      ]
+    },
+    {
+      "date": "2026-05-18",
+      "commits": [
+        {
+          "hash": "9a7af27466cd5055133cc3f36b734092a903a7e8",
+          "shortHash": "9a7af27",
+          "date": "2026-05-18T13:32:48+00:00",
+          "isoDate": "2026-05-18",
+          "subject": "use plain key names in create_theme tokens schema",
+          "body": "Ollama's gemma4 JSON repair rejects keys starting with '--' (invalid\nJSON identifier start). The model was correctly computing all token\nvalues but the tool call was silently dropped by Ollama before the SDK\nsaw it.\n\nFix: schema now accepts plain underscore names (bg, dark_bg, body_font,\netc.). Server normalises them to --sl-* before validation and DB insert,\nso existing storage format is unchanged.\n\nCo-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>",
+          "author": "slidt ralph loop",
+          "type": "fix",
+          "scope": "tools"
+        },
+        {
+          "hash": "1ba409b45e2166fbca8eeb06400767cf42871d83",
+          "shortHash": "1ba409b",
+          "date": "2026-05-18T13:07:50+00:00",
+          "isoDate": "2026-05-18",
+          "subject": "pin pnpm@10.33.2 via corepack to match local version",
+          "body": "pnpm 11 (downloaded by corepack by default on Node 22) blocks all\ninstall scripts unless explicitly approved. Pinning to 10.33.2 —\nthe same version used locally to generate the lockfile — avoids this.\n\nCo-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>",
+          "author": "slidt ralph loop",
+          "type": "fix",
+          "scope": "docker"
+        },
+        {
+          "hash": "5fbce0f678ac40cd48136e7be1e8ebf6b5ef4b51",
+          "shortHash": "5fbce0f",
+          "date": "2026-05-18T12:56:55+00:00",
+          "isoDate": "2026-05-18",
+          "subject": "approve esbuild/argon2/playwright build scripts for pnpm 11",
+          "body": "pnpm 11 blocks install scripts by default; must list approved packages\nin pnpm.onlyBuiltDependencies. Also bumps engines.node to >=22.\n\nCo-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>",
+          "author": "slidt ralph loop",
+          "type": "fix",
+          "scope": "docker"
+        },
+        {
+          "hash": "025fde0ae43e9bf3f13624c3d67c14f26f172a51",
+          "shortHash": "025fde0",
+          "date": "2026-05-18T12:48:45+00:00",
+          "isoDate": "2026-05-18",
+          "subject": "upgrade base image to node:22 for pnpm 11 compatibility",
+          "body": "pnpm 11 (resolved by corepack) requires Node ≥ 22; node:20-bookworm\nwas causing ERR_UNKNOWN_BUILTIN_MODULE during pnpm install --frozen-lockfile.\n\nCo-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>",
+          "author": "slidt ralph loop",
+          "type": "fix",
+          "scope": "docker"
+        },
+        {
+          "hash": "bfb3614e636c0ab47822771434052bdec618dc90",
+          "shortHash": "bfb3614",
+          "date": "2026-05-18T12:43:55+00:00",
+          "isoDate": "2026-05-18",
+          "subject": "AI SDK v6 runner with Anthropic + Ollama support",
+          "body": "Add aisdk-runner.ts — a single streamText-based agent runner that\nreplaces the two hand-rolled runners for Claude and Gemma. Gated behind\nAGENT_BACKEND=aisdk; legacy runners remain the default.\n\n- build-system-prompt.ts: shared system-prompt extraction\n- aisdk-tools.ts: AGENT_TOOLS → AI SDK tool() via jsonSchema()\n- persist-aisdk.ts: StepResult[] → Anthropic rawContent blocks for\n  drawer compatibility; stripImages + toolCalls log helpers\n- load-history-aisdk.ts: stored rawContent → ModelMessage[] for history\n- aisdk-runner.ts: streamText loop, SSE event mapping, DB persistence\n- ai-sdk-ollama: native /api/chat, think:true, keep_alive:-1, v3 model\n- Anthropic: adaptive thinking via providerOptions\n- 26 unit + stream integration tests (vitest)\n\nCo-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>",
+          "author": "slidt ralph loop",
+          "type": "feat",
+          "scope": "agent"
+        },
+        {
+          "hash": "3aff6635cabebb3bbbf76fe45ada9dc484cc5f27",
+          "shortHash": "3aff663",
+          "date": "2026-05-18T10:24:51+00:00",
+          "isoDate": "2026-05-18",
+          "subject": "reasoning-model create_theme extraction test suite",
+          "body": "Four new tests verifying the reasoning-only fallback logic:\n- Full token set in reasoning → tool_start/tool_done emitted, correct values\n- Mid-reasoning revision → last occurrence of each token wins\n- Partial tokens in reasoning → extraction skipped, nudge sent (2nd fetch)\n- --sl-* in text content → looksLikePlan hook fires, nudge sent (2nd fetch)\n\nCo-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>",
+          "author": "slidt ralph loop",
+          "type": "test",
+          "scope": "agent"
+        },
+        {
+          "hash": "da07f1c298a842590dc48b77d44cf10388a73e09",
+          "shortHash": "da07f1c",
+          "date": "2026-05-18T10:21:02+00:00",
+          "isoDate": "2026-05-18",
+          "subject": "extract create_theme from reasoning when model fails to emit tool call",
+          "body": "Reasoning models (DeepSeek-R1, QwQ, etc.) consistently compute all --sl-*\ntoken values in their thinking block but fail to generate the OpenAI\nfunction-call structure. tryExtractCreateTheme() scans the reasoning text for\na complete set of 14 --sl-* tokens and a theme name, then executes the tool\ndirectly — bypassing the model's broken tool-call emission.\n\nExtraction runs before the nudge so the common case (reasoning-only turn with\nfull tokens) is handled immediately without a wasted round-trip.\n\nCo-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>",
+          "author": "slidt ralph loop",
+          "type": "fix",
+          "scope": "agent"
+        },
+        {
+          "hash": "66a1039f8bbc9944c3215964f922c0f6aea76888",
+          "shortHash": "66a1039",
+          "date": "2026-05-18T09:46:44+00:00",
+          "isoDate": "2026-05-18",
+          "subject": "catch reasoning-only turns and broader plan detection in Ollama runner",
+          "body": "Two root causes for tool calls being skipped:\n1. Model outputs plan in delta.reasoning (thinking) → assistantContent is empty\n   but the empty guard only fired at iterCount===1. Now fires on any turn where\n   the model produced no visible text and called no tools (guarded by\n   planningNudgeSent to avoid infinite loops). Nudge message distinguishes\n   reasoning-only from truly empty responses.\n2. looksLikePlan regex missed patterns like --sl-* token lists, \"I will call\",\n   and tool names written in prose. Extended with those patterns.\nAlso passes full brain output (reasoning + text) to getPostResponseInjection so\nplanning detected in thinking blocks is caught even when assistantContent is empty.\n\nCo-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>",
+          "author": "slidt ralph loop",
+          "type": "fix",
+          "scope": "agent"
+        },
+        {
+          "hash": "2456aa9c4f085bba17d27360ae3183f57f25060e",
+          "shortHash": "2456aa9",
+          "date": "2026-05-18T09:36:42+00:00",
+          "isoDate": "2026-05-18",
+          "subject": "set keep_alive: -1 to prevent model unloading between conversations",
+          "body": "Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>",
+          "author": "slidt ralph loop",
+          "type": "fix",
+          "scope": "ollama"
+        },
+        {
+          "hash": "e5d3c38349cd36efa63af3c288a085d42e04fdee",
+          "shortHash": "e5d3c38",
+          "date": "2026-05-18T09:32:53+00:00",
+          "isoDate": "2026-05-18",
+          "subject": "fold-out diff for text/color/image-path changes",
+          "body": "Each history row with an edit_field or edit_title change shows a native\n<details> toggle (\"show changes\"). Expanding it lists each changed field\nwith before → after values; color fields get an inline swatch. The API\nnow returns before/after JSON so the client can compute diffs.\n\nCo-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>",
+          "author": "slidt ralph loop",
+          "type": "feat",
+          "scope": "history"
+        },
+        {
+          "hash": "a5ca27e93127b9ef2b1603c857fcecf8c163cd31",
+          "shortHash": "a5ca27e",
+          "date": "2026-05-18T09:28:37+00:00",
+          "isoDate": "2026-05-18",
+          "subject": "arrow up/down (+ j/k vim) keyboard navigation when thumbnail focused",
+          "body": "When a slide row has focus, ArrowUp/Down (always) and j/k (vim mode)\nnavigate to the adjacent slide and shift focus to the new row. stopPropagation\nprevents the global window vim handler from double-firing.\n\nCo-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>",
+          "author": "slidt ralph loop",
+          "type": "feat",
+          "scope": "thumbnail"
+        },
+        {
+          "hash": "92391e58da5cc0696102885968b0142f457ed1de",
+          "shortHash": "92391e5",
+          "date": "2026-05-18T09:20:40+00:00",
+          "isoDate": "2026-05-18",
+          "subject": "disable pointer-events on iframe so srow click-to-navigate works",
+          "body": "iframes capture mouse events and don't bubble them to the parent, so clicking\na slide thumbnail did nothing. pointer-events: none passes clicks through to\nthe .srow onclick handler.\n\nCo-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>",
+          "author": "slidt ralph loop",
+          "type": "fix",
+          "scope": "thumbnail"
+        },
+        {
+          "hash": "b3cd366f6a78efd0d0180c1e3e63a1200d6f3676",
+          "shortHash": "b3cd366",
+          "date": "2026-05-18T09:15:18+00:00",
+          "isoDate": "2026-05-18",
+          "subject": "scope .thumb CSS to .thumbs container to prevent width bleed onto .srow.thumb",
+          "body": "The bare `.thumb` selector also matched `.srow.thumb` rows in thumbnail list\nmode, capping them at 60px wide. Scoped to `.thumbs .thumb` so slide list\nthumbnails expand to full panel width while nav buttons stay at 60px.\n\nCo-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>",
+          "author": "slidt ralph loop",
+          "type": "fix",
+          "scope": "thumbnail"
+        }
+      ]
+    },
+    {
+      "date": "2026-05-13",
+      "commits": [
+        {
+          "hash": "0e6e14bbca0ee4c5baebc68b7e266c9556c47e8e",
+          "shortHash": "0e6e14b",
+          "date": "2026-05-13T09:44:20+00:00",
+          "isoDate": "2026-05-13",
+          "subject": "hide system injection messages from chat UI + improve tool-call nudges",
+          "body": "Agent loop:\n- STAgentDrawer: filter [System: ...] entries when projecting rawContent\n  history — these are internal loop-control directives, not user chat turns\n- ollama-runner: remove \"Do NOT call any tools\" restriction from the\n  empty-response guard so the model can execute tools when it already has\n  all needed information (blocked create_theme in the spritz scenario)\n- hooks: sharpen the planning nudge to \"Your NEXT response must be a tool\n  call\" to better override Ollama's tendency to stall after writing a plan\n\nThumbnails (diagnostic):\n- Page CSS: pin .empty text to top-left in thumbnail context so\n  \"Rendering…\" and error messages are visible within the 85px tall\n  thumbnail area (previously clipped by overflow:hidden)\n\nCo-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>",
+          "author": "slidt ralph loop",
+          "type": "fix",
+          "scope": "agent"
+        },
+        {
+          "hash": "1b7cd77bbe7297389c0c9e28b0188b7bdcd7b13d",
+          "shortHash": "1b7cd77",
+          "date": "2026-05-13T08:52:50+00:00",
+          "isoDate": "2026-05-13",
+          "subject": "replace \\$state.snapshot() with JSON clone in SlidePreview",
+          "body": "\\$state.snapshot() uses structuredClone() internally. For \\$props() values\nbacked by SvelteKit page data the structured-clone algorithm may silently\nproduce an empty/incomplete result depending on how the Svelte 5 proxy\nlayer was constructed — explaining why thumbnails remained blank even\nafter the previous fix.\n\nJSON.parse(JSON.stringify()) is guaranteed to strip all proxy wrappers\nfor the plain JSON-serializable slide/theme data used here, so\nObject.entries(theme.tokens), Handlebars template execution, and PostCSS\nall receive clean plain objects.\n\nAlso surfaces render errors visually in the thumbnail/preview area\n(red text, not just a console.error) so failures are immediately\nvisible without DevTools.\n\nCo-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>",
+          "author": "slidt ralph loop",
+          "type": "fix",
+          "scope": "thumbnail"
+        },
+        {
+          "hash": "d0d048f04fb0933a0755e19960f9ca91f377dfbf",
+          "shortHash": "d0d048f",
+          "date": "2026-05-13T08:05:24+00:00",
+          "isoDate": "2026-05-13",
+          "subject": "use \\$state.snapshot() for deep plain copies in SlidePreview",
+          "body": "Shallow object spreads (fe4fe46) only de-proxied the top level. Svelte 5\ndeep-reactive proxies wrap nested arrays/objects too (e.g. slideType.fields,\nslideData list values), which can cause Object.entries / Handlebars / PostCSS\nto behave incorrectly or throw silently.\n\n\\$state.snapshot() is the idiomatic Svelte 5 API for extracting a fully\nnon-reactive plain-object copy, ensuring render() receives clean data.\n\nCloses #7\n\nCo-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>",
+          "author": "slidt ralph loop",
+          "type": "fix",
+          "scope": "thumbnail"
+        },
+        {
+          "hash": "ec5972f8b72b1b89026f0597fd2b797138eb1ae8",
+          "shortHash": "ec5972f",
+          "date": "2026-05-13T07:02:33+00:00",
+          "isoDate": "2026-05-13",
+          "subject": "harness improvements — Ollama default, CLEAR, hooks, theme guidance",
+          "body": "- Flip default model: Ollama gemma4:26b is now default; Claude only when aiModel='claude'\n- Extract shared loop hooks (getPreTurnInjection, getPostResponseInjection) to hooks.ts\n- Ollama runner: unbounded loop with context-fill warning at iteration 20, 90s fetch timeout, planning-loop guard, empty-response recovery nudge\n- Add DELETE /api/decks/:id/agent to clear conversation history\n- STAgentDrawer: flip modelInfo detection, CLEAR button, /clear command, agent.clear i18n key\n- System prompt: alter-vs-create guidance for ambiguous theme change requests\n\nCo-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>",
+          "author": "slidt ralph loop",
+          "type": "feat",
+          "scope": "agent"
+        }
+      ]
+    },
     {
       "date": "2026-05-12",
       "commits": [

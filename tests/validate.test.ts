@@ -19,6 +19,20 @@ describe('validate', () => {
     expect(() => validate({}, fields)).toThrow(/title/);
   });
 
+  it('allows empty required fields when requireRequired is false', () => {
+    const fields: Field[] = [
+      { name: 'callout', type: 'richtext', required: true },
+      { name: 'cards', type: 'list', required: true, items: { name: 'c', type: 'text' } },
+    ];
+    expect(() => validate({ callout: '', cards: [] }, fields, { requireRequired: false })).not.toThrow();
+    expect(() => validate({}, fields, { requireRequired: false })).not.toThrow();
+  });
+
+  it('still enforces field types when requireRequired is false', () => {
+    const fields: Field[] = [{ name: 'title', type: 'text', required: true }];
+    expect(() => validate({ title: 123 }, fields, { requireRequired: false })).toThrow(/must be text/);
+  });
+
   it('rejects wrong scalar type', () => {
     const fields: Field[] = [{ name: 'n', type: 'text' }];
     expect(() => validate({ n: 42 }, fields)).toThrow(/text/);

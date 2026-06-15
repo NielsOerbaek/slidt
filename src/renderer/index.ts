@@ -30,7 +30,9 @@ export async function render(
       throw new Error(`Unknown slide type: ${slide.typeName}`);
     }
     usedTypeNames.add(type.name);
-    if (!options.skipValidation) validate(slide.data, type.fields);
+    // Rendering tolerates empty required fields (mid-edit slides must still
+    // preview/present/export); type validation still applies.
+    if (!options.skipValidation) validate(slide.data, type.fields, { requireRequired: false });
     const source = options.editable ? makeEditable(type.htmlTemplate) : type.htmlTemplate;
     const tpl = compile(source);
     const inner = tpl(slide.data);

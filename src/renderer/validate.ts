@@ -8,14 +8,14 @@ export class ValidationError extends Error {
   }
 }
 
-function checkField(value: unknown, field: Field, path: string): void {
+function checkField(value: unknown, field: Field, path: string, requireRequired: boolean): void {
   const isEmpty =
     value === undefined ||
     value === null ||
     (typeof value === 'string' && value === '') ||
     (Array.isArray(value) && value.length === 0);
 
-  if (field.required && isEmpty) {
+  if (requireRequired && field.required && isEmpty) {
     throw new ValidationError(`Required field missing: ${path}`);
   }
   if (isEmpty) return;
@@ -71,21 +71,21 @@ function checkField(value: unknown, field: Field, path: string): void {
       }
       value.forEach((el, i) => {
         if (field.items!.type === 'group') {
-          checkGroup(el, field.items!, `${path}[${i}]`);
+          checkGroup(el, field.items!, `${path}[${i}]`, requireRequired);
         } else {
-          checkField(el, field.items!, `${path}[${i}]`);
+          checkField(el, field.items!, `${path}[${i}]`, requireRequired);
         }
       });
       return;
     }
     case 'group': {
-      checkGroup(value, field, path);
+      checkGroup(value, field, path, requireRequired);
       return;
     }
   }
 }
 
-function checkGroup(value: unknown, field: Field, path: string): void {
+function checkGroup(value: unknown, field: Field, path: string, requireRequired: boolean): void {
   if (typeof value !== 'object' || value === null || Array.isArray(value)) {
     throw new ValidationError(`Field ${path} must be an object, got ${typeof value}`);
   }
@@ -94,16 +94,26 @@ function checkGroup(value: unknown, field: Field, path: string): void {
   }
   const obj = value as Record<string, unknown>;
   for (const sub of field.fields) {
-    checkField(obj[sub.name], sub, `${path}.${sub.name}`);
+    checkField(obj[sub.name], sub, `${path}.${sub.name}`, requireRequired);
   }
 }
 
-export function validate(data: unknown, fields: Field[]): void {
+export interface ValidateOptions {
+  /**
+   * Enforce `required` fields (throw when one is empty). Defaults to true.
+   * Rendering passes false so a deck with mid-edit / intentionally-empty
+   * fields can still preview, present, and export instead of 500-ing.
+   */
+  requireRequired?: boolean;
+}
+
+export function validate(data: unknown, fields: Field[], options: ValidateOptions = {}): void {
+  const requireRequired = options.requireRequired ?? true;
   if (typeof data !== 'object' || data === null || Array.isArray(data)) {
     throw new ValidationError('slide data must be an object');
   }
   const obj = data as Record<string, unknown>;
   for (const f of fields) {
-    checkField(obj[f.name], f, f.name);
+    checkField(obj[f.name], f, f.name, requireRequired);
   }
 }

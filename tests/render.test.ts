@@ -25,6 +25,17 @@ describe('render', () => {
     expect(html).toContain('<h1>Hello</h1>');
   });
 
+  it('renders a slide with an empty required field instead of throwing', async () => {
+    const deck: Deck = {
+      title: 'Doc',
+      lang: 'da',
+      slides: [{ typeName: 'test', data: { title: '' } }],
+    };
+    await expect(render(deck, emptyTheme, [minimalType])).resolves.toContain(
+      '<section class="slide st-test">',
+    );
+  });
+
   it('includes scoped CSS for used slide types', async () => {
     const deck: Deck = {
       title: 'Doc',
@@ -72,12 +83,23 @@ describe('render', () => {
     await expect(render(deck, emptyTheme, [minimalType])).rejects.toThrow(/missing/);
   });
 
-  it('throws if required data is missing', async () => {
+  it('tolerates missing required data (renders rather than throwing)', async () => {
     const deck: Deck = {
       title: 'Doc',
       lang: 'da',
       slides: [{ typeName: 'test', data: {} }],
     };
-    await expect(render(deck, emptyTheme, [minimalType])).rejects.toThrow(/title/);
+    await expect(render(deck, emptyTheme, [minimalType])).resolves.toContain(
+      '<section class="slide st-test">',
+    );
+  });
+
+  it('still throws on a wrong-typed field', async () => {
+    const deck: Deck = {
+      title: 'Doc',
+      lang: 'da',
+      slides: [{ typeName: 'test', data: { title: 42 } }],
+    };
+    await expect(render(deck, emptyTheme, [minimalType])).rejects.toThrow(/must be text/);
   });
 });

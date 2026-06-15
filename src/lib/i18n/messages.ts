@@ -375,12 +375,14 @@ export const messages = {
   'imageUpload.invalidType': { da: 'Vælg en billedfil', en: 'Please select an image file' },
   'imageUpload.tooLarge': { da: 'Filen skal være under 20 MB', en: 'File must be under 20 MB' },
 
-  // ── Image editor (Cropper.js modal) ──────────────────────────────────
+  // ── Image editor (fit / zoom / position modal) ───────────────────────
   'imageEditor.title': { da: 'Rediger billede', en: 'Edit image' },
-  'imageEditor.cropFree': { da: 'Fri', en: 'Free' },
-  'imageEditor.crop16x9': { da: '16:9', en: '16:9' },
-  'imageEditor.crop4x3': { da: '4:3', en: '4:3' },
-  'imageEditor.crop1x1': { da: 'Kvadrat', en: 'Square' },
+  'imageEditor.fit': { da: 'Tilpasning', en: 'Fit' },
+  'imageEditor.fitContain': { da: 'Tilpas', en: 'Fit' },
+  'imageEditor.fitCover': { da: 'Fyld', en: 'Fill' },
+  'imageEditor.fitFill': { da: 'Stræk', en: 'Stretch' },
+  'imageEditor.zoom': { da: 'Zoom', en: 'Zoom' },
+  'imageEditor.positionHint': { da: 'Træk billedet for at flytte det', en: 'Drag the image to reposition' },
   'imageEditor.rotateCCW': { da: 'Roter venstre', en: 'Rotate left' },
   'imageEditor.rotateCW': { da: 'Roter højre', en: 'Rotate right' },
   'imageEditor.reset': { da: 'Nulstil', en: 'Reset' },

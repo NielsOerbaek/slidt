@@ -1,6 +1,17 @@
 <script lang="ts">
-  import { onDestroy } from 'svelte';
   import type { Field } from '../../renderer/types.ts';
+  import {
+    FITS,
+    MIN_ZOOM,
+    MAX_ZOOM,
+    toFitImage,
+    serializeFit,
+    fitDefaults,
+    applyDrag,
+    clamp,
+    type FitImage,
+    type ImageFit,
+  } from '../../renderer/image-transform.ts';
   import { t } from '$lib/i18n/index.ts';
 
   let { field, value, onchange, deckId }: {
@@ -10,135 +21,78 @@
     deckId: string;
   } = $props();
 
-  type ImageValue = {
-    id: string;
-    cropX: number;
-    cropY: number;
-    cropW: number;
-    cropH: number;
-    rotate: number;
-  };
+  // Suppress unused-prop lint; kept for API symmetry with other field editors.
+  void field;
 
-  function parseValue(v: unknown): ImageValue | null {
-    if (typeof v === 'string' && v) {
-      return { id: v, cropX: 0, cropY: 0, cropW: 100, cropH: 100, rotate: 0 };
-    }
-    if (v !== null && typeof v === 'object') {
-      const obj = v as Record<string, unknown>;
-      if (typeof obj.id === 'string' && obj.id) {
-        return {
-          id: obj.id,
-          cropX: typeof obj.cropX === 'number' ? obj.cropX : 0,
-          cropY: typeof obj.cropY === 'number' ? obj.cropY : 0,
-          cropW: typeof obj.cropW === 'number' && obj.cropW > 0 ? obj.cropW : 100,
-          cropH: typeof obj.cropH === 'number' && obj.cropH > 0 ? obj.cropH : 100,
-          rotate: typeof obj.rotate === 'number' ? obj.rotate : 0,
-        };
-      }
-    }
-    return null;
-  }
-
-  let imgValue = $derived(parseValue(value));
+  let imgValue = $derived(toFitImage(value));
   let uploading = $state(false);
   let uploadError = $state('');
   let editorOpen = $state(false);
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  let CropperClass: any = null;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  let cropperInstance: any = null;
-  let cropImgEl: HTMLImageElement | undefined = $state();
-  // Track which image ID the Cropper was last initialized for. imgValue is a
-  // $derived that produces a new object reference on every parent re-render
-  // (even when the data is unchanged), which would cause the $effect to re-run
-  // and destroy+recreate the Cropper — snapping the crop box back to its
-  // default position mid-drag. The guard below prevents that.
-  let lastCroppedId = '';
+  // Working copy edited inside the modal; committed on "done".
+  let work = $state<FitImage | null>(null);
+  let frameEl: HTMLElement | undefined = $state();
 
-  $effect(() => {
-    if (!editorOpen || !cropImgEl || !imgValue) return;
+  const fitLabels: Record<ImageFit, string> = {
+    contain: 'imageEditor.fitContain',
+    cover: 'imageEditor.fitCover',
+    fill: 'imageEditor.fitFill',
+  };
 
-    // Cropper is already live for this image — don't reinitialize.
-    if (cropperInstance && lastCroppedId === imgValue.id) return;
+  let previewStyle = $derived(
+    work
+      ? `object-fit:${work.fit};object-position:${work.posX}% ${work.posY}%;` +
+          `transform:scale(${work.zoom}) rotate(${work.rotate}deg);` +
+          `transform-origin:${work.posX}% ${work.posY}%;`
+      : '',
+  );
 
-    let cancelled = false;
-    const snapshot = { ...imgValue }; // plain copy; safe to use after awaits
-
-    (async () => {
-      if (!CropperClass) {
-        const mod = await import('cropperjs');
-        CropperClass = mod.default;
-      }
-      if (cancelled || !cropImgEl) return;
-
-      cropperInstance?.destroy();
-      lastCroppedId = snapshot.id;
-      cropperInstance = new CropperClass(cropImgEl, {
-        viewMode: 2,
-        autoCrop: true,
-        movable: true,
-        zoomable: true,
-        rotatable: true,
-        scalable: false,
-        ready() {
-          if (!cropImgEl || !snapshot) return;
-          if (snapshot.cropW < 100 || snapshot.cropH < 100) {
-            const nw = cropImgEl.naturalWidth;
-            const nh = cropImgEl.naturalHeight;
-            cropperInstance?.setData({
-              x: (snapshot.cropX / 100) * nw,
-              y: (snapshot.cropY / 100) * nh,
-              width: (snapshot.cropW / 100) * nw,
-              height: (snapshot.cropH / 100) * nh,
-              rotate: snapshot.rotate,
-            });
-          } else if (snapshot.rotate) {
-            cropperInstance?.rotate(snapshot.rotate);
-          }
-        },
-      });
-    })();
-
-    return () => { cancelled = true; };
-  });
-
-  onDestroy(() => {
-    cropperInstance?.destroy();
-    cropperInstance = null;
-  });
-
-  function doneEditing() {
-    if (!cropperInstance || !cropImgEl) { editorOpen = false; return; }
-    const data = cropperInstance.getData();
-    const nw = cropImgEl.naturalWidth || 1;
-    const nh = cropImgEl.naturalHeight || 1;
-    const next: ImageValue = {
-      id: imgValue!.id,
-      cropX: Math.round((data.x / nw) * 1000) / 10,
-      cropY: Math.round((data.y / nh) * 1000) / 10,
-      cropW: Math.round((data.width / nw) * 1000) / 10,
-      cropH: Math.round((data.height / nh) * 1000) / 10,
-      rotate: Math.round(data.rotate),
-    };
-    onchange(next);
-    editorOpen = false;
-    cropperInstance.destroy();
-    cropperInstance = null;
-    lastCroppedId = '';
+  function openEditor() {
+    if (!imgValue) return;
+    work = { ...imgValue };
+    editorOpen = true;
   }
-
   function cancelEditing() {
     editorOpen = false;
-    cropperInstance?.destroy();
-    cropperInstance = null;
-    lastCroppedId = '';
+    work = null;
+  }
+  function doneEditing() {
+    if (work) onchange(serializeFit(work));
+    editorOpen = false;
+    work = null;
   }
 
-  function setAspectRatio(ratio: number) { cropperInstance?.setAspectRatio(ratio); }
-  function rotateCCW() { cropperInstance?.rotate(-90); }
-  function rotateCW() { cropperInstance?.rotate(90); }
-  function resetCrop() { cropperInstance?.reset(); }
+  function setFit(fit: ImageFit) { if (work) work = { ...work, fit }; }
+  function setZoom(z: number) { if (work) work = { ...work, zoom: clamp(z, MIN_ZOOM, MAX_ZOOM) }; }
+  function rotateBy(deg: number) { if (work) work = { ...work, rotate: work.rotate + deg }; }
+  function resetTransform() { if (work) work = fitDefaults(work.id); }
+
+  // --- drag-to-reposition ---
+  let dragging = $state(false);
+  let lastX = 0, lastY = 0;
+
+  function onPointerDown(e: PointerEvent) {
+    if (!work) return;
+    dragging = true;
+    lastX = e.clientX;
+    lastY = e.clientY;
+    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+  }
+  function onPointerMove(e: PointerEvent) {
+    if (!dragging || !work || !frameEl) return;
+    const dx = e.clientX - lastX;
+    const dy = e.clientY - lastY;
+    lastX = e.clientX;
+    lastY = e.clientY;
+    const { posX, posY } = applyDrag(
+      work.posX, work.posY, dx, dy, frameEl.clientWidth, frameEl.clientHeight,
+    );
+    work = { ...work, posX, posY };
+  }
+  function onPointerUp(e: PointerEvent) {
+    dragging = false;
+    (e.currentTarget as HTMLElement).releasePointerCapture?.(e.pointerId);
+  }
 
   async function handleFiles(files: FileList | null) {
     if (!files || files.length === 0) return;
@@ -161,7 +115,7 @@
       const res = await fetch('/api/assets', { method: 'POST', body: fd });
       if (!res.ok) throw new Error(await res.text());
       const asset = (await res.json()) as { id: string };
-      onchange({ id: asset.id, cropX: 0, cropY: 0, cropW: 100, cropH: 100, rotate: 0 });
+      onchange(serializeFit(fitDefaults(asset.id)));
     } catch (e) {
       uploadError = String(e);
     } finally {
@@ -179,22 +133,38 @@
   let fileInput: HTMLInputElement | undefined = $state();
 </script>
 
-{#if editorOpen && imgValue}
+{#if editorOpen && work}
   <div class="img-editor-overlay" role="dialog" aria-modal="true" aria-label={t('imageEditor.title')}>
     <div class="img-editor-toolbar">
       <span class="editor-title">{t('imageEditor.title')}</span>
-      <div class="toolbar-group">
-        <button type="button" onclick={() => setAspectRatio(NaN)}>{t('imageEditor.cropFree')}</button>
-        <button type="button" onclick={() => setAspectRatio(16 / 9)}>{t('imageEditor.crop16x9')}</button>
-        <button type="button" onclick={() => setAspectRatio(4 / 3)}>{t('imageEditor.crop4x3')}</button>
-        <button type="button" onclick={() => setAspectRatio(1)}>{t('imageEditor.crop1x1')}</button>
+      <div class="toolbar-group" role="group" aria-label={t('imageEditor.fit')}>
+        {#each FITS as fit (fit)}
+          <button
+            type="button"
+            class:active={work.fit === fit}
+            onclick={() => setFit(fit)}
+          >{t(fitLabels[fit])}</button>
+        {/each}
+      </div>
+      <div class="toolbar-group zoom-group">
+        <span class="zoom-label">{t('imageEditor.zoom')}</span>
+        <input
+          type="range"
+          min={MIN_ZOOM}
+          max={MAX_ZOOM}
+          step="0.1"
+          value={work.zoom}
+          oninput={(e) => setZoom(Number((e.currentTarget as HTMLInputElement).value))}
+          aria-label={t('imageEditor.zoom')}
+        />
+        <span class="zoom-val">{Math.round(work.zoom * 100)}%</span>
       </div>
       <div class="toolbar-group">
-        <button type="button" onclick={rotateCCW} title={t('imageEditor.rotateCCW')}>↺</button>
-        <button type="button" onclick={rotateCW} title={t('imageEditor.rotateCW')}>↻</button>
+        <button type="button" onclick={() => rotateBy(-90)} title={t('imageEditor.rotateCCW')}>↺</button>
+        <button type="button" onclick={() => rotateBy(90)} title={t('imageEditor.rotateCW')}>↻</button>
       </div>
       <div class="toolbar-group">
-        <button type="button" onclick={resetCrop}>{t('imageEditor.reset')}</button>
+        <button type="button" onclick={resetTransform}>{t('imageEditor.reset')}</button>
       </div>
       <div class="toolbar-group">
         <button type="button" class="cancel-btn" onclick={cancelEditing}>✕</button>
@@ -202,12 +172,19 @@
       </div>
     </div>
     <div class="img-editor-canvas">
-      <img
-        bind:this={cropImgEl}
-        src="/api/assets/{imgValue.id}"
-        alt=""
-        crossorigin="anonymous"
-      />
+      <div
+        class="preview-frame"
+        class:dragging
+        bind:this={frameEl}
+        onpointerdown={onPointerDown}
+        onpointermove={onPointerMove}
+        onpointerup={onPointerUp}
+        role="application"
+        aria-label={t('imageEditor.positionHint')}
+      >
+        <img src="/api/assets/{work.id}" alt="" style={previewStyle} draggable="false" />
+      </div>
+      <p class="position-hint">{t('imageEditor.positionHint')}</p>
     </div>
   </div>
 {/if}
@@ -228,7 +205,7 @@
     </div>
     <div class="img-actions">
       <button type="button" onclick={() => fileInput?.click()}>{t('imageUpload.replaceButton')}</button>
-      <button type="button" onclick={() => { editorOpen = true; }}>{t('imageUpload.editButton')}</button>
+      <button type="button" onclick={openEditor}>{t('imageUpload.editButton')}</button>
     </div>
   {:else}
     <div
@@ -376,6 +353,7 @@
   }
   .toolbar-group {
     display: flex;
+    align-items: center;
     gap: 4px;
   }
   .toolbar-group button {
@@ -388,6 +366,18 @@
     transition: background 0.1s, color 0.1s;
   }
   .toolbar-group button:hover { background: #333; color: #fff; }
+  .toolbar-group button.active {
+    background: #005fff;
+    border-color: #005fff;
+    color: #fff;
+  }
+  .zoom-group { gap: 8px; }
+  .zoom-label, .zoom-val {
+    font-size: 12px;
+    color: #ccc;
+  }
+  .zoom-val { min-width: 38px; text-align: right; }
+  .zoom-group input[type="range"] { width: 120px; }
   .done-btn { border-color: #005fff !important; color: #005fff !important; font-weight: 600; }
   .done-btn:hover { background: #005fff !important; color: #fff !important; }
   .cancel-btn { opacity: 0.6; }
@@ -395,13 +385,37 @@
     flex: 1;
     overflow: hidden;
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
+    gap: 12px;
+    padding: 24px;
   }
-  .img-editor-canvas img {
-    max-width: 100%;
-    max-height: 100%;
-    display: block;
+  .preview-frame {
+    position: relative;
+    aspect-ratio: 16 / 9;
+    width: min(80vw, 1100px);
+    max-height: 70vh;
+    overflow: hidden;
+    background:
+      repeating-conic-gradient(#2a2a2a 0% 25%, #222 0% 50%) 50% / 24px 24px;
+    border: 1px solid #333;
+    cursor: grab;
+    touch-action: none;
+  }
+  .preview-frame.dragging { cursor: grabbing; }
+  .preview-frame img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    user-select: none;
+    -webkit-user-drag: none;
+  }
+  .position-hint {
+    font-size: 12px;
+    color: #888;
+    margin: 0;
   }
 
   @media (max-width: 768px) {
@@ -410,5 +424,8 @@
     .img-actions { flex-direction: column; }
     .img-editor-toolbar { overflow-x: auto; flex-wrap: nowrap; padding: 8px 12px; }
     .editor-title { display: none; }
+    .zoom-group input[type="range"] { width: 80px; }
+    .preview-frame { width: 92vw; max-height: 50vh; }
+    .img-editor-canvas { padding: 12px; }
   }
 </style>

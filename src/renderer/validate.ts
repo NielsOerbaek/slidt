@@ -1,4 +1,5 @@
 import type { Field } from './types.ts';
+import { isFit } from './image-transform.ts';
 
 export class ValidationError extends Error {
   constructor(message: string) {
@@ -49,11 +50,16 @@ function checkField(value: unknown, field: Field, path: string): void {
       if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
         const obj = value as Record<string, unknown>;
         if (typeof obj.id === 'string') {
+          if ('fit' in obj && !isFit(obj.fit)) {
+            throw new ValidationError(
+              `Field ${path} has invalid image fit: ${String(obj.fit)}`,
+            );
+          }
           return;
         }
       }
       throw new ValidationError(
-        `Field ${path} must be image (string or crop object), got ${typeof value}`,
+        `Field ${path} must be image (string, fit object, or crop object), got ${typeof value}`,
       );
     }
     case 'list': {

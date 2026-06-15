@@ -40,6 +40,32 @@ An object with named sub-fields.
 
 In templates: `{{#with stat}}{{label}}: {{fmt value "0,0"}}{{/with}}`
 
+## `image`
+
+References an uploaded asset and controls how it fills its frame.
+
+```json
+{
+  "image": {
+    "id": "asset-uuid",
+    "fit": "cover",
+    "zoom": 1,
+    "posX": 50,
+    "posY": 50,
+    "rotate": 0
+  }
+}
+```
+
+- `fit` — `cover` (fill frame, crop overflow), `contain` (whole image visible, letterboxed), or `fill` (stretch to frame). Default `cover`.
+- `zoom` — scale multiplier, `1`–`4`. Default `1`.
+- `posX` / `posY` — `object-position` in percent, `0`–`100`. Default `50` (centered).
+- `rotate` — degrees.
+
+A bare string (`"image": "asset-uuid"`) is accepted and rendered with the defaults above.
+
+**Legacy crop model.** Older images store a crop window (`{ id, cropX, cropY, cropW, cropH, rotate }`) and keep rendering unchanged. Editing such an image in the UI upgrades it to the fit model.
+
 ## Field definition schema
 
 ```json

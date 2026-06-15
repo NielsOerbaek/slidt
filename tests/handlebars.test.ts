@@ -52,22 +52,39 @@ describe('img helper', () => {
     expect(tpl({})).toBe('');
   });
 
-  it('renders a bare asset ID string with defaults', () => {
+  it('renders a bare asset ID string with fit defaults', () => {
     const tpl = compile('{{img image "hero"}}');
     const html = tpl({ image: 'abc-123' });
     expect(html).toContain('/api/assets/abc-123');
-    expect(html).toContain('class="img-wrap hero"');
-    expect(html).toContain('--crop-x: 0');
-    expect(html).toContain('--crop-w: 100');
+    expect(html).toContain('class="img-wrap img-fit hero"');
+    expect(html).toContain('--fit: cover');
+    expect(html).toContain('--zoom: 1');
+    expect(html).toContain('--pos-x: 50%');
+    expect(html).toContain('--pos-y: 50%');
     expect(html).toContain('--rotate: 0deg');
   });
 
-  it('renders an image object with crop values', () => {
+  it('renders an image object with fit / zoom / position values', () => {
+    const tpl = compile('{{img image "hero"}}');
+    const html = tpl({
+      image: { id: 'fit-1', fit: 'contain', zoom: 2, posX: 30, posY: 70, rotate: 90 },
+    });
+    expect(html).toContain('/api/assets/fit-1');
+    expect(html).toContain('class="img-wrap img-fit hero"');
+    expect(html).toContain('--fit: contain');
+    expect(html).toContain('--zoom: 2');
+    expect(html).toContain('--pos-x: 30%');
+    expect(html).toContain('--pos-y: 70%');
+    expect(html).toContain('--rotate: 90deg');
+  });
+
+  it('renders a legacy crop object through the crop path', () => {
     const tpl = compile('{{img image "hero"}}');
     const html = tpl({
       image: { id: 'def-456', cropX: 20, cropY: 10, cropW: 60, cropH: 80, rotate: 90 },
     });
     expect(html).toContain('/api/assets/def-456');
+    expect(html).toContain('class="img-wrap img-crop hero"');
     expect(html).toContain('--crop-x: 20');
     expect(html).toContain('--crop-y: 10');
     expect(html).toContain('--crop-w: 60');
@@ -75,10 +92,16 @@ describe('img helper', () => {
     expect(html).toContain('--rotate: 90deg');
   });
 
+  it('never emits loading="lazy" (breaks below-the-fold PDF images)', () => {
+    const tpl = compile('{{img image "hero"}}');
+    expect(tpl({ image: 'abc-123' })).not.toContain('loading=');
+    expect(tpl({ image: { id: 'x', cropW: 50, cropH: 50 } })).not.toContain('loading=');
+  });
+
   it('omits extra class when wrapperClass not provided', () => {
     const tpl = compile('{{img image}}');
     const html = tpl({ image: 'abc-123' });
-    expect(html).toContain('class="img-wrap"');
+    expect(html).toContain('class="img-wrap img-fit"');
   });
 
   it('encodes special characters in asset ID', () => {

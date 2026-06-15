@@ -96,4 +96,19 @@ describe('image field validation', () => {
       validate({ img: { cropX: 0, cropW: 100 } }, [{ name: 'img', type: 'image', required: true }]),
     ).toThrow();
   });
+
+  it('accepts a fit object with id', () => {
+    expect(() =>
+      validate(
+        { img: { id: 'uuid-abc', fit: 'cover', zoom: 1.5, posX: 30, posY: 70, rotate: 0 } },
+        [{ name: 'img', type: 'image' }],
+      ),
+    ).not.toThrow();
+  });
+
+  it('rejects an invalid fit value', () => {
+    expect(() =>
+      validate({ img: { id: 'uuid-abc', fit: 'squish' } }, [{ name: 'img', type: 'image' }]),
+    ).toThrow(/invalid image fit/);
+  });
 });

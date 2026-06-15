@@ -102,6 +102,7 @@ em {
   position: relative;
   overflow: hidden;
 }
+/* Legacy crop-window model (existing decks). */
 .img-wrap > img {
   position: absolute;
   width: calc(100% * 100 / var(--crop-w, 100));
@@ -110,5 +111,17 @@ em {
   top: calc(var(--crop-y, 0) / var(--crop-h, 100) * -100%);
   transform: rotate(var(--rotate, 0deg));
   transform-origin: center center;
+}
+/* Fit / zoom / position model (new images). */
+.img-wrap.img-fit > img {
+  inset: 0;
+  left: auto;
+  top: auto;
+  width: 100%;
+  height: 100%;
+  object-fit: var(--fit, cover);
+  object-position: var(--pos-x, 50%) var(--pos-y, 50%);
+  transform: scale(var(--zoom, 1)) rotate(var(--rotate, 0deg));
+  transform-origin: var(--pos-x, 50%) var(--pos-y, 50%);
 }
 `;

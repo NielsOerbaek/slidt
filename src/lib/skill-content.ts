@@ -258,20 +258,25 @@ The agent has access to: \`list_slides\`, \`get_slide\`, \`patch_slide\`, \`add_
 ## Workflow: Upload Images
 
 \`\`\`bash
-# Upload an image asset
+# Upload an image asset (multipart needs a matching Origin header — CSRF guard)
 ASSET=$(curl -s -X POST "$SLIDT_URL/api/assets" \\
   -H "Authorization: Bearer $SLIDT_API_KEY" \\
+  -H "Origin: $SLIDT_URL" \\
   -F "deckId=$DECK_ID" \\
   -F "kind=image" \\
   -F "file=@/path/to/image.png")
 
-ASSET_URL=$(echo $ASSET | jq -r '.url')
+ASSET_ID=$(echo $ASSET | jq -r '.id')
 
-# Use the asset URL in slide data (image field type)
+# Reference the asset in slide data. The image field controls how the picture
+# fills its frame: fit = cover | contain | fill, zoom 1-4, posX/posY 0-100.
 curl -s -X PATCH "$SLIDT_URL/api/decks/$DECK_ID/slides/$SLIDE_ID" \\
   -H "Authorization: Bearer $SLIDT_API_KEY" \\
   -H "Content-Type: application/json" \\
-  -d "{\\"data\\":{\\"image\\":\\"$ASSET_URL\\"}}"
+  -d "{\\"data\\":{\\"image\\":{\\"id\\":\\"$ASSET_ID\\",\\"fit\\":\\"cover\\",\\"zoom\\":1,\\"posX\\":50,\\"posY\\":50,\\"rotate\\":0}}}"
+
+# A bare id string also works and renders with defaults (fit cover, centered):
+#   -d "{\\"data\\":{\\"image\\":\\"$ASSET_ID\\"}}"
 \`\`\`
 
 ---

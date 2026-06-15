@@ -3,7 +3,7 @@
   "lang": "da",
   "slides": [
     {
-      "typeName": "title",
+      "typeName": "cover",
       "data": {
         "eyebrow": "April 2026",
         "title": "ANTAL",
@@ -24,7 +24,7 @@
       }
     },
     {
-      "typeName": "section",
+      "typeName": "divider",
       "data": {
         "bigMark": "01",
         "title": "Baggrund",
@@ -32,7 +32,7 @@
       }
     },
     {
-      "typeName": "content",
+      "typeName": "bullet-list",
       "data": {
         "eyebrow": "ANTAL",
         "title": "Hvad er ANTAL?",
@@ -44,7 +44,7 @@
       }
     },
     {
-      "typeName": "principles",
+      "typeName": "numbered-list",
       "data": {
         "eyebrow": "Principper",
         "title": "Grundprincipper",
@@ -56,7 +56,7 @@
       }
     },
     {
-      "typeName": "section",
+      "typeName": "divider",
       "data": {
         "bigMark": "02",
         "title": "Theta-modellen",
@@ -64,7 +64,7 @@
       }
     },
     {
-      "typeName": "values",
+      "typeName": "column-list",
       "data": {
         "eyebrow": "Værdier",
         "title": "ANTAL-værdier",
@@ -81,7 +81,7 @@
       }
     },
     {
-      "typeName": "reserve",
+      "typeName": "callout-content",
       "data": {
         "eyebrow": "Reserve",
         "title": "Kapitalreserve",
@@ -93,7 +93,7 @@
       }
     },
     {
-      "typeName": "purposes",
+      "typeName": "card-grid",
       "data": {
         "eyebrow": "Formål",
         "title": "ANTALs fire formål",
@@ -106,7 +106,7 @@
       }
     },
     {
-      "typeName": "section",
+      "typeName": "divider",
       "data": {
         "bigMark": "03",
         "title": "Ejerskabsmodel",
@@ -114,7 +114,7 @@
       }
     },
     {
-      "typeName": "ownership",
+      "typeName": "team-cards",
       "data": {
         "eyebrow": "Ejerskab",
         "title": "Ejerskabsstrukturen",
@@ -127,7 +127,7 @@
       }
     },
     {
-      "typeName": "section",
+      "typeName": "divider",
       "data": {
         "bigMark": "04",
         "title": "Drøftelse",
@@ -135,7 +135,7 @@
       }
     },
     {
-      "typeName": "friction",
+      "typeName": "comparison",
       "data": {
         "eyebrow": "Spænding",
         "title": "Centrale friktioner i Theta",
@@ -159,7 +159,7 @@
       }
     },
     {
-      "typeName": "discussion",
+      "typeName": "qa-list",
       "data": {
         "eyebrow": "Diskussion",
         "title": "Spørgsmål til drøftelse",

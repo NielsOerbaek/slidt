@@ -7,18 +7,17 @@ describe('antalThetaDefault theme', () => {
     expect(antalThetaDefault.name).toBe('antal-theta-default');
   });
 
-  it('contains the OOD brand tokens', () => {
+  it('contains the brand tokens', () => {
     const t = antalThetaDefault.tokens;
-    expect(t['--ood-white']).toBe('#FFFFFF');
-    expect(t['--ood-big-cloud']).toBe('#EDEDED');
-    expect(t['--ood-deep-violet']).toBe('#6E31FF');
-    expect(t['--ood-dark-matter']).toBe('#363442');
-    expect(t['--ood-wicked-matrix']).toBe('#54DE10');
+    expect(t['--sl-bg']).toBe('#FFFFFF');
+    expect(t['--sl-surface']).toBe('#EDEDED');
+    expect(t['--sl-accent']).toBe('#6E31FF');
+    expect(t['--sl-fg']).toBe('#363442');
   });
 
   it('emits as valid CSS via themeCss', () => {
     const css = themeCss(antalThetaDefault);
     expect(css).toContain(':root {');
-    expect(css).toContain('--ood-white: #FFFFFF;');
+    expect(css).toContain('--sl-accent: #6E31FF;');
   });
 });

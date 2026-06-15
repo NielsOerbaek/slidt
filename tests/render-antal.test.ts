@@ -28,7 +28,7 @@ describe('full ANTAL deck render', () => {
 
   it('includes theme tokens and base styles', async () => {
     const html = await render(deck, antalThetaDefault, BUILT_IN_SLIDE_TYPES);
-    expect(html).toContain('--ood-deep-violet: #6E31FF');
+    expect(html).toContain('--sl-accent: #6E31FF');
     expect(html).toContain('@page { size: 1920px 1080px');
   });
 

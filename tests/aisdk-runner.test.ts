@@ -184,7 +184,9 @@ describe('buildAnthropicRawContent', () => {
 
     const assistantMsg = messages.find((m) => m.role === 'assistant')!;
     const content = assistantMsg.content as Array<{ type: string }>;
-    expect(content.some((b) => b.type === 'reasoning')).toBe(true);
+    // Reasoning/thinking blocks are intentionally stripped from converted
+    // history (see anthropicRawToAiSdkMessages) — text and tool-call survive.
+    expect(content.some((b) => b.type === 'reasoning')).toBe(false);
     expect(content.some((b) => b.type === 'text')).toBe(true);
     expect(content.some((b) => b.type === 'tool-call')).toBe(true);
   });
@@ -306,7 +308,8 @@ describe('anthropicRawToAiSdkMessages', () => {
     const content = messages[0]!.content as Array<{ type: string; toolCallId: string; output: unknown }>;
     expect(content[0]!.type).toBe('tool-result');
     expect(content[0]!.toolCallId).toBe('tu-x');
-    expect(content[0]!.output).toBe('[]');
+    // AI SDK v6 tool-result output is the typed shape { type: 'text', value }.
+    expect(content[0]!.output).toEqual({ type: 'text', value: '[]' });
   });
 
   it('skips unknown roles', () => {

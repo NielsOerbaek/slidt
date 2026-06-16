@@ -131,7 +131,7 @@
       </div>
 
       {#each data.decks as deck, i (deck.id)}
-        <a class="row" href="/decks/{deck.id}" style:view-transition-name="deck-{deck.id}">
+        <div class="row" role="link" tabindex="0" style:view-transition-name="deck-{deck.id}" onclick={() => goto(`/decks/${deck.id}`)} onkeydown={(e) => { if (e.key === 'Enter') goto(`/decks/${deck.id}`); }}>
           <div class="cell n">{String(i + 1).padStart(2, '0')}</div>
           <div class="cell title">
             {#if i === 0}<span class="dot" aria-hidden="true"></span>{/if}
@@ -183,7 +183,7 @@
             </div>
           </div>
           <div class="cell arrow">→</div>
-        </a>
+        </div>
       {/each}
     </div>
 
@@ -199,7 +199,7 @@
           <div class="th arrow"></div>
         </div>
         {#each data.sharedDecks as deck, i (deck.id)}
-          <a class="row" href="/decks/{deck.id}" style:view-transition-name="deck-{deck.id}">
+          <div class="row" role="link" tabindex="0" style:view-transition-name="deck-{deck.id}" onclick={() => goto(`/decks/${deck.id}`)} onkeydown={(e) => { if (e.key === 'Enter') goto(`/decks/${deck.id}`); }}>
             <div class="cell n">{String(i + 1).padStart(2, '0')}</div>
             <div class="cell title">
               <span class="t">{deck.title}</span>
@@ -211,7 +211,7 @@
               <span class="chip">SHARED</span>
             </div>
             <div class="cell arrow">→</div>
-          </a>
+          </div>
         {/each}
       </div>
     {/if}
@@ -446,8 +446,9 @@
     outline: none;
   }
 
-  .row { text-decoration: none; color: inherit; }
+  .row { text-decoration: none; color: inherit; cursor: pointer; }
   .row:hover .cell { background: var(--st-bg-deep); }
+  .row:focus-visible .cell { background: var(--st-bg-deep); }
 
   /* ── empty state ──────────────────────────────────────── */
   .empty-shell {

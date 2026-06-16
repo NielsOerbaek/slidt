@@ -1435,11 +1435,10 @@
     transition: opacity 100ms ease;
   }
   .srow:hover .srow-menu,
-  .srow.active .srow-menu { opacity: 0.6; }
-  .srow-menu:hover { opacity: 1 !important; }
+  .srow.active .srow-menu { opacity: 1; }
   .srow-menu-btn {
-    padding: 14px 10px;
-    font-size: 16px;
+    padding: 14px 12px;
+    font-size: 18px;
     letter-spacing: 0.08em;
     color: inherit;
     background: transparent;
@@ -1447,6 +1446,7 @@
     cursor: pointer;
     line-height: 1;
   }
+  .srow-menu-btn:hover { background: var(--st-bg-deep); }
   /* Thumbnail mode: absolute position */
   .srow.thumb .srow-menu {
     position: absolute;
@@ -1455,10 +1455,11 @@
     opacity: 0;
     z-index: 2;
   }
-  .srow.thumb:hover .srow-menu { opacity: 0.8; }
+  .srow.thumb:hover .srow-menu,
+  .srow.thumb.active .srow-menu { opacity: 1; }
   .srow.thumb .srow-menu-btn {
-    padding: 2px 5px;
-    font-size: 13px;
+    padding: 6px 8px;
+    font-size: 14px;
     line-height: 1;
     background: rgba(250,250,247,0.85);
     border-radius: 2px;
@@ -1928,9 +1929,8 @@
     .type-picker-body { max-height: 70vh; }
 
     /* Menu always visible on touch (no hover) */
-    .srow-menu { opacity: 0.5; }
-    .srow.active .srow-menu { opacity: 0.8; }
-    .srow.thumb .srow-menu { opacity: 0.6; }
+    .srow-menu { opacity: 1; }
+    .srow.thumb .srow-menu { opacity: 1; }
   }
 
   @media (max-width: 480px) {

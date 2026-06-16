@@ -390,7 +390,6 @@
   let draggedId = $state<string | null>(null);
   let dropTargetId = $state<string | null>(null);
   let dropPosition = $state<'before' | 'after'>('before');
-  let dropClearTimer: ReturnType<typeof setTimeout> | null = null;
   // Optimistic reorder: while a PATCH is in flight (or just landed but before
   // invalidateAll has refetched), display the local order so the UI doesn't
   // jump back to the old position.
@@ -415,25 +414,50 @@
     listBodyEl?.style.setProperty('--drop-gap', `${(e.currentTarget as HTMLElement).offsetHeight}px`);
   }
 
-  function onDragOver(e: DragEvent, targetId: string) {
+  // Single container-level dragover avoids the per-element leave/enter noise
+  // and the feedback loop where the drop-gap margin shifts layout under the cursor.
+  function onDragOver(e: DragEvent) {
     e.preventDefault();
-    if (dropClearTimer) { clearTimeout(dropClearTimer); dropClearTimer = null; }
-    if (!draggedId || draggedId === targetId) return;
+    if (!draggedId) return;
     if (e.dataTransfer) e.dataTransfer.dropEffect = 'move';
-    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
-    dropPosition = (e.clientY - rect.top) < rect.height / 2 ? 'before' : 'after';
-    dropTargetId = targetId;
+
+    const rows = listBodyEl?.querySelectorAll<HTMLElement>('[data-slide-id]');
+    if (!rows || rows.length === 0) return;
+
+    // Find the slide whose midpoint is closest to the cursor
+    let bestId: string | null = null;
+    let bestPosition: 'before' | 'after' = 'before';
+    let bestDist = Infinity;
+
+    for (const row of rows) {
+      const id = row.dataset.slideId!;
+      if (id === draggedId) continue;
+      const rect = row.getBoundingClientRect();
+      const midY = rect.top + rect.height / 2;
+      const dist = Math.abs(e.clientY - midY);
+      if (dist < bestDist) {
+        bestDist = dist;
+        bestId = id;
+        // 8 px dead zone around midpoint stops flicker when cursor hovers the boundary
+        if (e.clientY < midY - 8) bestPosition = 'before';
+        else if (e.clientY > midY + 8) bestPosition = 'after';
+        else bestPosition = dropPosition; // keep current to avoid flip-flopping
+      }
+    }
+
+    if (bestId !== null) {
+      dropTargetId = bestId;
+      dropPosition = bestPosition;
+    }
   }
 
-  function onDragLeave(e: DragEvent, slideId: string) {
-    // Ignore leaves that are just moving into a child element
+  function onListDragLeave(e: DragEvent) {
+    // Only clear when cursor actually leaves the list container
     if ((e.currentTarget as Element).contains(e.relatedTarget as Node)) return;
-    if (dropTargetId !== slideId) return;
-    dropClearTimer = setTimeout(() => { dropTargetId = null; }, 80);
+    dropTargetId = null;
   }
 
   function onDragEnd() {
-    if (dropClearTimer) { clearTimeout(dropClearTimer); dropClearTimer = null; }
     draggedId = null;
     dropTargetId = null;
     listBodyEl?.style.removeProperty('--drop-gap');
@@ -835,7 +859,11 @@
         <span>{t('editor.slides_label')}</span>
         <span>{String(data.slides.length).padStart(2, '0')}</span>
       </div>
-      <div class="list-body" bind:this={listBodyEl} onscroll={() => { menuOpenFor = null; menuBtnRect = null; }}>
+      <div class="list-body" bind:this={listBodyEl}
+        onscroll={() => { menuOpenFor = null; menuBtnRect = null; }}
+        ondragover={onDragOver}
+        ondragleave={onListDragLeave}
+      >
         {#each displaySlides as slide, i (slide.id)}
           {@const type = data.slideTypes.find((t) => t.id === slide.typeId)}
           {@const active = selectedSlideId === slide.id}
@@ -869,8 +897,6 @@
             }}
             draggable="true"
             ondragstart={(e) => onDragStart(e, slide.id)}
-            ondragover={(e) => onDragOver(e, slide.id)}
-            ondragleave={(e) => onDragLeave(e, slide.id)}
             ondragend={onDragEnd}
             ondrop={(e) => onDrop(e, slide.id)}
             onmouseenter={(e) => onSlideRowEnter(e, slide.id)}

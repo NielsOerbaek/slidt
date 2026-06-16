@@ -477,9 +477,10 @@
     }
   }
 
-  async function onDrop(e: DragEvent, targetId: string) {
+  async function onDrop(e: DragEvent) {
     e.preventDefault();
-    if (!draggedId || draggedId === targetId) {
+    const targetId = dropTargetId;
+    if (!draggedId || !targetId || draggedId === targetId) {
       onDragEnd();
       return;
     }
@@ -863,6 +864,7 @@
         onscroll={() => { menuOpenFor = null; menuBtnRect = null; }}
         ondragover={onDragOver}
         ondragleave={onListDragLeave}
+        ondrop={onDrop}
       >
         {#each displaySlides as slide, i (slide.id)}
           {@const type = data.slideTypes.find((t) => t.id === slide.typeId)}
@@ -898,7 +900,6 @@
             draggable="true"
             ondragstart={(e) => onDragStart(e, slide.id)}
             ondragend={onDragEnd}
-            ondrop={(e) => onDrop(e, slide.id)}
             onmouseenter={(e) => onSlideRowEnter(e, slide.id)}
             onmouseleave={onSlideRowLeave}
           >

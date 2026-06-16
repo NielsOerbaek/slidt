@@ -390,6 +390,7 @@
   let draggedId = $state<string | null>(null);
   let dropTargetId = $state<string | null>(null);
   let dropPosition = $state<'before' | 'after'>('before');
+  let dropClearTimer: ReturnType<typeof setTimeout> | null = null;
   // Optimistic reorder: while a PATCH is in flight (or just landed but before
   // invalidateAll has refetched), display the local order so the UI doesn't
   // jump back to the old position.
@@ -416,6 +417,7 @@
 
   function onDragOver(e: DragEvent, targetId: string) {
     e.preventDefault();
+    if (dropClearTimer) { clearTimeout(dropClearTimer); dropClearTimer = null; }
     if (!draggedId || draggedId === targetId) return;
     if (e.dataTransfer) e.dataTransfer.dropEffect = 'move';
     const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
@@ -423,11 +425,15 @@
     dropTargetId = targetId;
   }
 
-  function onDragLeave(slideId: string) {
-    if (dropTargetId === slideId) dropTargetId = null;
+  function onDragLeave(e: DragEvent, slideId: string) {
+    // Ignore leaves that are just moving into a child element
+    if ((e.currentTarget as Element).contains(e.relatedTarget as Node)) return;
+    if (dropTargetId !== slideId) return;
+    dropClearTimer = setTimeout(() => { dropTargetId = null; }, 80);
   }
 
   function onDragEnd() {
+    if (dropClearTimer) { clearTimeout(dropClearTimer); dropClearTimer = null; }
     draggedId = null;
     dropTargetId = null;
     listBodyEl?.style.removeProperty('--drop-gap');
@@ -864,7 +870,7 @@
             draggable="true"
             ondragstart={(e) => onDragStart(e, slide.id)}
             ondragover={(e) => onDragOver(e, slide.id)}
-            ondragleave={() => onDragLeave(slide.id)}
+            ondragleave={(e) => onDragLeave(e, slide.id)}
             ondragend={onDragEnd}
             ondrop={(e) => onDrop(e, slide.id)}
             onmouseenter={(e) => onSlideRowEnter(e, slide.id)}
@@ -899,7 +905,7 @@
                 aria-label={t('editor.slide_menu')}
                 title={t('editor.slide_menu')}
                 onclick={(e) => openSlideMenu(e, slide.id)}
-              >⋯</button>
+              >•••</button>
             </div>
             <span class="srow-grip" aria-hidden="true">⋮⋮</span>
           </div>
@@ -1431,8 +1437,8 @@
   .srow-menu {
     display: flex;
     align-items: center;
-    opacity: 0;
-    transition: opacity 100ms ease;
+    opacity: 0.25;
+    transition: opacity 150ms ease;
   }
   .srow:hover .srow-menu,
   .srow.active .srow-menu { opacity: 1; }
